@@ -1587,7 +1587,7 @@
     <!-- ===== SCROLL TO TOP ===== -->
     <button class="scroll-top" id="scrollTop" aria-label="Scroll to top">↑</button>
 
-    <script>
+<script>
         // ===== TRANSLATIONS =====
         const translations = {
             ar: {
@@ -1595,7 +1595,6 @@
                 'nav.gallery': 'المعرض',
                 'nav.about': 'عن الفنانة',
                 'nav.custom': 'طلبات خاصة',
-                'nav.rate': 'تقييم',
                 'nav.contact': 'تواصل',
                 
                 'hero.title': 'Shulamith Gallery',
@@ -1618,11 +1617,11 @@
                 'about.text2': 'تقدم أعمالاً فنية ولوحات وديكور، مع إمكانية تنفيذ أي تابلوه بخامة وحجم مناسبين للعميل.',
                 'about.text3': 'شغفها بالفن ينعكس في كل عمل تقدمه، حيث تخلق قطعاً فنية تحمل بصمة خاصة وتناسب ذوق كل عميل.',
                 'about.services.title': 'الخدمات',
-                'about.services.1': '🎨 تنفيذ تابلوهات فنية',
-                'about.services.2': '🏠 اختيار أعمال مناسبة للمكان',
-                'about.services.3': '🖼️ ديكور منزلي فني',
-                'about.services.4': '✨ أعمال فنية حسب الطلب',
-                'about.services.5': '🎁 هدايا إبداعية',
+                'about.services.1': 'تنفيذ تابلوهات فنية',
+                'about.services.2': 'اختيار أعمال مناسبة للمكان',
+                'about.services.3': 'ديكور منزلي فني',
+                'about.services.4': 'أعمال فنية حسب الطلب',
+                'about.services.5': 'هدايا إبداعية',
                 
                 'custom.title': 'اطلب تصميمك الخاص',
                 'custom.subtitle': 'نفذ أي تابلوه بخامة وحجم يناسب مكانك',
@@ -1651,7 +1650,7 @@
                 'contact.form.messagePlaceholder': 'اكتب رسالتك هنا...',
                 'contact.form.submit': 'إرسال',
                 'contact.form.sending': 'جاري الإرسال...',
-                'contact.form.success': '✓ تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.',
+                'contact.form.success': 'تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.',
                 'contact.form.error': 'حدث خطأ، حاول مرة أخرى',
                 'contact.form.connectionError': 'حدث خطأ في الاتصال، حاول مرة أخرى',
                 'contact.form.nameRequired': 'الاسم مطلوب',
@@ -1670,7 +1669,6 @@
                 'nav.gallery': 'Gallery',
                 'nav.about': 'About',
                 'nav.custom': 'Custom Art',
-                'nav.rate': 'Rate',
                 'nav.contact': 'Contact',
                 
                 'hero.title': 'Shulamith Gallery',
@@ -1693,11 +1691,11 @@
                 'about.text2': 'She creates paintings, artworks, and decor pieces, with the ability to execute any artwork with suitable materials and sizes for the client.',
                 'about.text3': 'Her passion for art reflects in every piece she creates, producing unique works that carry a special signature and suit each client\'s taste.',
                 'about.services.title': 'Services',
-                'about.services.1': '🎨 Custom Artwork Creation',
-                'about.services.2': '🏠 Art Selection for Spaces',
-                'about.services.3': '🖼️ Artistic Home Decor',
-                'about.services.4': '✨ Commissioned Artworks',
-                'about.services.5': '🎁 Creative Gifts',
+                'about.services.1': 'Custom Artwork Creation',
+                'about.services.2': 'Art Selection for Spaces',
+                'about.services.3': 'Artistic Home Decor',
+                'about.services.4': 'Commissioned Artworks',
+                'about.services.5': 'Creative Gifts',
                 
                 'custom.title': 'Order Your Custom Design',
                 'custom.subtitle': 'Create any artwork with the material and size that fits your space',
@@ -1726,7 +1724,7 @@
                 'contact.form.messagePlaceholder': 'Write your message here...',
                 'contact.form.submit': 'Send',
                 'contact.form.sending': 'Sending...',
-                'contact.form.success': '✓ Your message has been sent successfully! We\'ll get back to you soon.',
+                'contact.form.success': 'Your message has been sent successfully! We\'ll get back to you soon.',
                 'contact.form.error': 'An error occurred, please try again',
                 'contact.form.connectionError': 'Connection error, please try again',
                 'contact.form.nameRequired': 'Name is required',
@@ -1745,6 +1743,8 @@
         // ===== STATE =====
         let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
         let allArtworks = [];
+        let refreshInterval = null;
+        let isLoading = false;
 
         // ===== DOM REFS =====
         const $ = (sel) => document.querySelector(sel);
@@ -1766,7 +1766,6 @@
                 const key = el.getAttribute('data-i18n');
                 if (translations[lang] && translations[lang][key]) {
                     if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                        // Use the placeholder key directly
                         const placeholderKey = key + 'Placeholder';
                         if (translations[lang][placeholderKey]) {
                             el.placeholder = translations[lang][placeholderKey];
@@ -1859,6 +1858,9 @@
 
         // ===== LOAD ARTWORKS =====
         async function loadArtworks() {
+            if (isLoading) return;
+            isLoading = true;
+            
             const grid = document.getElementById('galleryGrid');
             
             try {
@@ -1883,14 +1885,21 @@
                     a.galleryName = galleryNames[a.galleryId] || '';
                 });
                 
+                // حفظ الفلتر النشط
+                const activeFilter = filters.querySelector('.filter-btn.active');
+                const currentFilter = activeFilter ? activeFilter.dataset.filter : 'all';
+                
                 let filterHTML = `<button class="filter-btn active" data-filter="all" data-i18n="gallery.all">الكل</button>`;
                 galleries.forEach(gId => {
                     const name = galleryNames[gId] || gId;
-                    filterHTML += `<button class="filter-btn" data-filter="${gId}">${name}</button>`;
+                    const activeClass = gId === currentFilter ? ' active' : '';
+                    filterHTML += `<button class="filter-btn${activeClass}" data-filter="${gId}">${name}</button>`;
                 });
                 filters.innerHTML = filterHTML;
                 
-                renderArtworks(allArtworks);
+                // تطبيق الفلتر الحالي
+                const filtered = currentFilter === 'all' ? allArtworks : allArtworks.filter(a => a.galleryId === currentFilter);
+                renderArtworks(filtered);
                 
                 filters.querySelectorAll('.filter-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
@@ -1905,6 +1914,8 @@
             } catch (error) {
                 console.error('Error loading artworks:', error);
                 grid.innerHTML = `<div class="empty-state">حدث خطأ في تحميل الأعمال</div>`;
+            } finally {
+                isLoading = false;
             }
         }
 
@@ -1950,6 +1961,23 @@
                     }
                 });
             }, 100);
+        }
+
+        // ===== AUTO REFRESH =====
+        function startAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            refreshInterval = setInterval(() => {
+                loadArtworks();
+            }, 5000);
+        }
+
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
         }
 
         // ===== CONTACT FORM =====
@@ -2064,7 +2092,13 @@
             handleScroll();
             
             loadArtworks();
+            startAutoRefresh();
         }
+
+        // Clean up interval on page unload
+        window.addEventListener('beforeunload', function() {
+            stopAutoRefresh();
+        });
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);

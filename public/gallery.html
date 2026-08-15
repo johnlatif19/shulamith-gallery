@@ -499,7 +499,7 @@
         </div>
     </footer>
 
-    <script>
+<script>
         // ===== LANGUAGE =====
         let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
         let refreshInterval = null;
@@ -509,7 +509,8 @@
             localStorage.setItem('shulamith-lang', lang);
             document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
             document.body.className = lang === 'ar' ? 'rtl' : 'ltr';
-            document.querySelector('.lang-text').textContent = lang.toUpperCase();
+            const langText = document.querySelector('.lang-text');
+            if (langText) langText.textContent = lang.toUpperCase();
         }
 
         document.getElementById('langSwitch').addEventListener('click', () => {
@@ -669,8 +670,9 @@
         }
 
         // ===== INIT =====
+        // إزالة await لأن الدالة مش async
         setLanguage(currentLang);
-        await loadGalleries();
+        loadGalleries();
         startAutoRefresh();
 
         // Clean up interval on page unload

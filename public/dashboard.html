@@ -1399,7 +1399,9 @@
     <div class="toast-container" id="toastContainer"></div>
     
     <script>
-        // ===== STATE =====
+        // ============================================
+        // ===== STATE & VARIABLES =====
+        // ============================================
         let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
         let token = localStorage.getItem('shulamith-token');
         let galleries = [];
@@ -1407,11 +1409,9 @@
         let messages = [];
         let deleteTarget = { type: '', id: '' };
 
-        // ===== DOM REFS =====
-        const $ = (sel) => document.querySelector(sel);
-        const $$ = (sel) => document.querySelectorAll(sel);
-
-        // ===== TOAST =====
+        // ============================================
+        // ===== TOAST NOTIFICATION =====
+        // ============================================
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -1425,7 +1425,9 @@
             }, 3000);
         }
 
-        // ===== AUTH =====
+        // ============================================
+        // ===== AUTHENTICATION =====
+        // ============================================
         function getHeaders() {
             return {
                 'Authorization': 'Bearer ' + token,
@@ -1458,8 +1460,8 @@
                 return true;
             } catch (error) {
                 console.error('Auth check error:', error);
-                // Don't redirect on network errors, let user retry
-                return false;
+                // Don't redirect on network errors
+                return true; // Assume valid to prevent redirect loop
             }
         }
 
@@ -1468,7 +1470,9 @@
             window.location.href = '/login.html';
         }
 
+        // ============================================
         // ===== API FETCH =====
+        // ============================================
         async function apiFetch(url, options = {}) {
             try {
                 const headers = options.body ? getHeaders() : { 'Authorization': 'Bearer ' + token };
@@ -1477,15 +1481,18 @@
                     headers: headers
                 });
                 
-                if (res.status === 401) {
-                    // Avoid redirect loop - only redirect if not a verify request
-                    if (!url.includes('/verify')) {
-                        localStorage.removeItem('shulamith-token');
-                        window.location.href = '/login.html';
-                        throw new Error('Unauthorized');
-                    }
+                // If unauthorized and not a verify request, redirect to login
+                if (res.status === 401 && !url.includes('/verify')) {
+                    localStorage.removeItem('shulamith-token');
+                    window.location.href = '/login.html';
+                    throw new Error('Unauthorized');
+                }
+                
+                // If it's a verify request with 401, just return the response
+                if (res.status === 401 && url.includes('/verify')) {
                     return res;
                 }
+                
                 return res.json();
             } catch (error) {
                 if (error.message === 'Unauthorized') {
@@ -1496,20 +1503,25 @@
             }
         }
 
+        // ============================================
         // ===== LANGUAGE =====
+        // ============================================
         function setLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('shulamith-lang', lang);
             document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
             document.body.className = lang === 'ar' ? 'rtl' : 'ltr';
-            document.querySelector('.lang-text').textContent = lang.toUpperCase();
+            const langText = document.querySelector('.lang-text');
+            if (langText) langText.textContent = lang.toUpperCase();
         }
 
         function toggleLanguage() {
             setLanguage(currentLang === 'ar' ? 'en' : 'ar');
         }
 
+        // ============================================
         // ===== SIDEBAR =====
+        // ============================================
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
             document.getElementById('sidebarOverlay').classList.toggle('active');
@@ -1520,16 +1532,21 @@
             document.getElementById('sidebarOverlay').classList.remove('active');
         }
 
+        // ============================================
         // ===== NAVIGATION =====
+        // ============================================
         function navigateTo(section) {
+            // Update sidebar nav items
             document.querySelectorAll('.nav-item').forEach(el => {
                 el.classList.toggle('active', el.dataset.section === section);
             });
             
+            // Update sections
             document.querySelectorAll('.section').forEach(el => {
                 el.classList.toggle('active', el.id === 'section-' + section);
             });
             
+            // Update title
             const titles = {
                 overview: 'نظرة عامة',
                 galleries: 'المعارض',
@@ -1539,16 +1556,20 @@
             };
             document.getElementById('pageTitle').textContent = titles[section] || section;
             
+            // Close sidebar on mobile
             closeSidebar();
             
+            // Load data based on section
             if (section === 'overview') loadStats();
-            if (section === 'galleries') loadGalleries();
-            if (section === 'artworks') loadArtworks();
-            if (section === 'messages') loadMessages();
-            if (section === 'settings') loadSettings();
+            else if (section === 'galleries') loadGalleries();
+            else if (section === 'artworks') loadArtworks();
+            else if (section === 'messages') loadMessages();
+            else if (section === 'settings') loadSettings();
         }
 
+        // ============================================
         // ===== LOAD STATS =====
+        // ============================================
         async function loadStats() {
             try {
                 const data = await apiFetch('/api/stats');
@@ -1573,7 +1594,7 @@
 
         async function loadRecentMessages() {
             try {
-                const data = await apiFetch('/api/messages?limit=5');
+                const data = await apiFetch('/api/messages');
                 const container = document.getElementById('recentMessages');
                 if (!data || data.length === 0) {
                     container.innerHTML = '<div class="empty-state">لا توجد رسائل حالياً</div>';
@@ -1601,7 +1622,9 @@
             }
         }
 
+        // ============================================
         // ===== LOAD GALLERIES =====
+        // ============================================
         async function loadGalleries() {
             const container = document.getElementById('galleriesContainer');
             try {
@@ -1634,9 +1657,9 @@
                             <td><span class="badge-status ${g.visible !== false ? 'visible' : 'hidden'}">${g.visible !== false ? 'ظاهر' : 'مخفي'}</span></td>
                             <td>
                                 <div class="table-actions">
-                                    <button class="btn-edit" onclick="editGallery('${g.id}')">✏️ تعديل</button>
-                                    <button class="btn-toggle ${g.visible !== false ? '' : 'hidden'}" onclick="toggleGallery('${g.id}')">${g.visible !== false ? '👁️ إخفاء' : '👁️ إظهار'}</button>
-                                    <button class="btn-delete" onclick="confirmDelete('gallery', '${g.id}')">🗑️ حذف</button>
+                                    <button class="btn-edit" onclick="window.editGallery('${g.id}')">✏️ تعديل</button>
+                                    <button class="btn-toggle ${g.visible !== false ? '' : 'hidden'}" onclick="window.toggleGallery('${g.id}')">${g.visible !== false ? '👁️ إخفاء' : '👁️ إظهار'}</button>
+                                    <button class="btn-delete" onclick="window.confirmDelete('gallery', '${g.id}')">🗑️ حذف</button>
                                 </div>
                             </td>
                         </tr>
@@ -1650,7 +1673,63 @@
             }
         }
 
+        // ============================================
+        // ===== GALLERY CRUD =====
+        // ============================================
+        function openGalleryModal(id = null) {
+            const modal = document.getElementById('galleryModal');
+            const title = document.getElementById('galleryModalTitle');
+            const form = document.getElementById('galleryForm');
+            form.reset();
+            document.getElementById('galleryId').value = '';
+            
+            if (id) {
+                title.textContent = 'تعديل معرض';
+                const gallery = galleries.find(g => g.id === id);
+                if (gallery) {
+                    document.getElementById('galleryId').value = id;
+                    document.getElementById('galleryName').value = gallery.name;
+                    document.getElementById('galleryDescription').value = gallery.description || '';
+                    document.getElementById('galleryCover').value = gallery.coverImage || '';
+                    document.getElementById('galleryOrder').value = gallery.order || 0;
+                    document.getElementById('galleryVisible').checked = gallery.visible !== false;
+                }
+            } else {
+                title.textContent = 'إضافة معرض';
+            }
+            modal.classList.add('active');
+        }
+
+        // Expose to global scope for onclick
+        window.editGallery = function(id) {
+            openGalleryModal(id);
+        };
+
+        window.toggleGallery = async function(id) {
+            const gallery = galleries.find(g => g.id === id);
+            if (!gallery) return;
+            try {
+                const res = await fetch(`/api/galleries/${id}`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        ...gallery,
+                        visible: gallery.visible === false ? true : false
+                    })
+                });
+                if (res.ok) {
+                    showToast('تم تغيير حالة المعرض');
+                    loadGalleries();
+                    loadStats();
+                }
+            } catch (error) {
+                showToast('حدث خطأ', 'error');
+            }
+        };
+
+        // ============================================
         // ===== LOAD ARTWORKS =====
+        // ============================================
         async function loadArtworks() {
             const container = document.getElementById('artworksContainer');
             try {
@@ -1691,9 +1770,9 @@
                             <td><span class="badge-status ${a.visible !== false ? 'visible' : 'hidden'}">${a.visible !== false ? 'ظاهر' : 'مخفي'}</span></td>
                             <td>
                                 <div class="table-actions">
-                                    <button class="btn-edit" onclick="editArtwork('${a.id}')">✏️ تعديل</button>
-                                    <button class="btn-toggle ${a.visible !== false ? '' : 'hidden'}" onclick="toggleArtwork('${a.id}')">${a.visible !== false ? '👁️ إخفاء' : '👁️ إظهار'}</button>
-                                    <button class="btn-delete" onclick="confirmDelete('artwork', '${a.id}')">🗑️ حذف</button>
+                                    <button class="btn-edit" onclick="window.editArtwork('${a.id}')">✏️ تعديل</button>
+                                    <button class="btn-toggle ${a.visible !== false ? '' : 'hidden'}" onclick="window.toggleArtwork('${a.id}')">${a.visible !== false ? '👁️ إخفاء' : '👁️ إظهار'}</button>
+                                    <button class="btn-delete" onclick="window.confirmDelete('artwork', '${a.id}')">🗑️ حذف</button>
                                 </div>
                             </td>
                         </tr>
@@ -1707,182 +1786,9 @@
             }
         }
 
-        // ===== LOAD MESSAGES =====
-        async function loadMessages(filter = 'all') {
-            const container = document.getElementById('messagesContainer');
-            try {
-                let url = '/api/messages';
-                if (filter === 'unread') url += '?unread=true';
-                const data = await apiFetch(url);
-                messages = data;
-                if (!data || data.length === 0) {
-                    container.innerHTML = '<div class="empty-state">لا توجد رسائل حالياً</div>';
-                    return;
-                }
-                let html = `
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>الاسم</th>
-                                    <th>البريد</th>
-                                    <th>الهاتف</th>
-                                    <th>الرسالة</th>
-                                    <th>التاريخ</th>
-                                    <th>الحالة</th>
-                                    <th>الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
-                data.forEach(msg => {
-                    const status = msg.read ? 'مقروءة' : 'غير مقروءة';
-                    const statusClass = msg.read ? 'read' : 'unread';
-                    const time = msg.createdAt ? new Date(msg.createdAt).toLocaleDateString('ar') : '';
-                    html += `
-                        <tr>
-                            <td>${msg.name}</td>
-                            <td>${msg.email}</td>
-                            <td>${msg.phone || '-'}</td>
-                            <td>${msg.message.substring(0, 40)}${msg.message.length > 40 ? '...' : ''}</td>
-                            <td>${time}</td>
-                            <td><span class="badge-status ${statusClass}">${status}</span></td>
-                            <td>
-                                <div class="table-actions">
-                                    <button class="btn-toggle ${msg.read ? '' : 'hidden'}" onclick="toggleMessage('${msg.id}', ${!msg.read})">${msg.read ? '📩 غير مقروء' : '📩 قراءة'}</button>
-                                    <button class="btn-delete" onclick="confirmDelete('message', '${msg.id}')">🗑️ حذف</button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                });
-                html += '</tbody></table></div>';
-                container.innerHTML = html;
-            } catch (error) {
-                console.error('Error loading messages:', error);
-                container.innerHTML = '<div class="empty-state">حدث خطأ في تحميل الرسائل</div>';
-            }
-        }
-
-        // ===== LOAD SETTINGS =====
-        async function loadSettings() {
-            try {
-                const data = await apiFetch('/api/settings');
-                document.getElementById('siteName').value = data.siteName || '';
-                document.getElementById('siteLogo').value = data.logo || '';
-                document.getElementById('aboutText').value = data.aboutText || '';
-                document.getElementById('sitePhone').value = data.phone || '';
-                document.getElementById('siteEmail').value = data.email || '';
-                document.getElementById('siteAddress').value = data.address || '';
-                document.getElementById('instagramUrl').value = data.instagram || '';
-                document.getElementById('facebookUrl').value = data.facebook || '';
-                document.getElementById('whatsappNumber').value = data.whatsapp || '';
-                document.getElementById('heroText').value = data.heroText || '';
-                document.getElementById('footerText').value = data.footerText || '';
-            } catch (error) {
-                console.error('Error loading settings:', error);
-            }
-        }
-
-        // ===== GALLERY CRUD =====
-        function openGalleryModal(id = null) {
-            const modal = document.getElementById('galleryModal');
-            const title = document.getElementById('galleryModalTitle');
-            const form = document.getElementById('galleryForm');
-            form.reset();
-            document.getElementById('galleryId').value = '';
-            
-            if (id) {
-                title.textContent = 'تعديل معرض';
-                const gallery = galleries.find(g => g.id === id);
-                if (gallery) {
-                    document.getElementById('galleryId').value = id;
-                    document.getElementById('galleryName').value = gallery.name;
-                    document.getElementById('galleryDescription').value = gallery.description || '';
-                    document.getElementById('galleryCover').value = gallery.coverImage || '';
-                    document.getElementById('galleryOrder').value = gallery.order || 0;
-                    document.getElementById('galleryVisible').checked = gallery.visible !== false;
-                }
-            } else {
-                title.textContent = 'إضافة معرض';
-            }
-            modal.classList.add('active');
-        }
-
-        document.getElementById('addGalleryBtn').addEventListener('click', () => openGalleryModal());
-        document.querySelector('[data-modal="galleryModal"]').addEventListener('click', () => {
-            document.getElementById('galleryModal').classList.remove('active');
-        });
-
-        document.getElementById('galleryForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const id = document.getElementById('galleryId').value;
-            const data = {
-                name: document.getElementById('galleryName').value.trim(),
-                description: document.getElementById('galleryDescription').value.trim(),
-                coverImage: document.getElementById('galleryCover').value.trim(),
-                order: parseInt(document.getElementById('galleryOrder').value) || 0,
-                visible: document.getElementById('galleryVisible').checked
-            };
-            
-            const submitBtn = document.getElementById('gallerySubmit');
-            submitBtn.disabled = true;
-            submitBtn.querySelector('span:first-child').style.display = 'none';
-            submitBtn.querySelector('.btn-loading').style.display = 'inline';
-            
-            try {
-                const url = id ? `/api/galleries/${id}` : '/api/galleries';
-                const method = id ? 'PUT' : 'POST';
-                const res = await fetch(url, {
-                    method,
-                    headers: getHeaders(),
-                    body: JSON.stringify(data)
-                });
-                const result = await res.json();
-                if (res.ok) {
-                    showToast(id ? 'تم تحديث المعرض بنجاح' : 'تم إضافة المعرض بنجاح');
-                    document.getElementById('galleryModal').classList.remove('active');
-                    loadGalleries();
-                    loadStats();
-                } else {
-                    showToast(result.error || 'حدث خطأ', 'error');
-                }
-            } catch (error) {
-                showToast('حدث خطأ في الاتصال', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.querySelector('span:first-child').style.display = 'inline';
-                submitBtn.querySelector('.btn-loading').style.display = 'none';
-            }
-        });
-
-        function editGallery(id) {
-            openGalleryModal(id);
-        }
-
-        async function toggleGallery(id) {
-            const gallery = galleries.find(g => g.id === id);
-            if (!gallery) return;
-            try {
-                const res = await fetch(`/api/galleries/${id}`, {
-                    method: 'PUT',
-                    headers: getHeaders(),
-                    body: JSON.stringify({
-                        ...gallery,
-                        visible: gallery.visible === false ? true : false
-                    })
-                });
-                if (res.ok) {
-                    showToast('تم تغيير حالة المعرض');
-                    loadGalleries();
-                    loadStats();
-                }
-            } catch (error) {
-                showToast('حدث خطأ', 'error');
-            }
-        }
-
+        // ============================================
         // ===== ARTWORK CRUD =====
+        // ============================================
         async function openArtworkModal(id = null) {
             const modal = document.getElementById('artworkModal');
             const title = document.getElementById('artworkModalTitle');
@@ -1933,116 +1839,12 @@
             modal.classList.add('active');
         }
 
-        document.getElementById('addArtworkBtn').addEventListener('click', () => openArtworkModal());
-        document.querySelector('[data-modal="artworkModal"]').addEventListener('click', () => {
-            document.getElementById('artworkModal').classList.remove('active');
-        });
-
-        // Image upload
-        document.getElementById('artworkImageFile').addEventListener('change', async function(e) {
-            const file = this.files[0];
-            if (!file) return;
-            
-            const progress = document.getElementById('uploadProgress');
-            const fill = document.getElementById('progressFill');
-            const text = document.getElementById('progressText');
-            progress.style.display = 'block';
-            
-            const formData = new FormData();
-            formData.append('image', file);
-            
-            try {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', '/api/upload');
-                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-                
-                xhr.upload.onprogress = function(e) {
-                    if (e.lengthComputable) {
-                        const pct = Math.round((e.loaded / e.total) * 100);
-                        fill.style.width = pct + '%';
-                        text.textContent = pct + '%';
-                    }
-                };
-                
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        const data = JSON.parse(xhr.response);
-                        document.getElementById('artworkImageUrl').value = data.url;
-                        document.getElementById('uploadPreview').innerHTML = `<img src="${data.url}" alt="Uploaded">`;
-                        showToast('تم رفع الصورة بنجاح');
-                    } else if (xhr.status === 401) {
-                        localStorage.removeItem('shulamith-token');
-                        window.location.href = '/login.html';
-                    } else {
-                        showToast('فشل رفع الصورة', 'error');
-                    }
-                    progress.style.display = 'none';
-                };
-                
-                xhr.onerror = function() {
-                    showToast('حدث خطأ في الرفع', 'error');
-                    progress.style.display = 'none';
-                };
-                
-                xhr.send(formData);
-            } catch (error) {
-                showToast('حدث خطأ', 'error');
-                progress.style.display = 'none';
-            }
-        });
-
-        document.getElementById('artworkForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const id = document.getElementById('artworkId').value;
-            const data = {
-                galleryId: document.getElementById('artworkGallery').value,
-                title: document.getElementById('artworkTitle').value.trim(),
-                description: document.getElementById('artworkDescription').value.trim(),
-                imageUrl: document.getElementById('artworkImageUrl').value.trim(),
-                material: document.getElementById('artworkMaterial').value.trim(),
-                dimensions: document.getElementById('artworkDimensions').value.trim(),
-                price: parseFloat(document.getElementById('artworkPrice').value) || 0,
-                order: parseInt(document.getElementById('artworkOrder').value) || 0,
-                featured: document.getElementById('artworkFeatured').checked,
-                visible: document.getElementById('artworkVisible').checked
-            };
-            
-            const submitBtn = document.getElementById('artworkSubmit');
-            submitBtn.disabled = true;
-            submitBtn.querySelector('span:first-child').style.display = 'none';
-            submitBtn.querySelector('.btn-loading').style.display = 'inline';
-            
-            try {
-                const url = id ? `/api/artworks/${id}` : '/api/artworks';
-                const method = id ? 'PUT' : 'POST';
-                const res = await fetch(url, {
-                    method,
-                    headers: getHeaders(),
-                    body: JSON.stringify(data)
-                });
-                const result = await res.json();
-                if (res.ok) {
-                    showToast(id ? 'تم تحديث العمل الفني بنجاح' : 'تم إضافة العمل الفني بنجاح');
-                    document.getElementById('artworkModal').classList.remove('active');
-                    loadArtworks();
-                    loadStats();
-                } else {
-                    showToast(result.error || 'حدث خطأ', 'error');
-                }
-            } catch (error) {
-                showToast('حدث خطأ في الاتصال', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.querySelector('span:first-child').style.display = 'inline';
-                submitBtn.querySelector('.btn-loading').style.display = 'none';
-            }
-        });
-
-        function editArtwork(id) {
+        // Expose to global scope for onclick
+        window.editArtwork = function(id) {
             openArtworkModal(id);
-        }
+        };
 
-        async function toggleArtwork(id) {
+        window.toggleArtwork = async function(id) {
             const artwork = artworks.find(a => a.id === id);
             if (!artwork) return;
             try {
@@ -2062,10 +1864,71 @@
             } catch (error) {
                 showToast('حدث خطأ', 'error');
             }
+        };
+
+        // ============================================
+        // ===== LOAD MESSAGES =====
+        // ============================================
+        async function loadMessages(filter = 'all') {
+            const container = document.getElementById('messagesContainer');
+            try {
+                let url = '/api/messages';
+                if (filter === 'unread') url += '?unread=true';
+                const data = await apiFetch(url);
+                messages = data;
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<div class="empty-state">لا توجد رسائل حالياً</div>';
+                    return;
+                }
+                let html = `
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>البريد</th>
+                                    <th>الهاتف</th>
+                                    <th>الرسالة</th>
+                                    <th>التاريخ</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                data.forEach(msg => {
+                    const status = msg.read ? 'مقروءة' : 'غير مقروءة';
+                    const statusClass = msg.read ? 'read' : 'unread';
+                    const time = msg.createdAt ? new Date(msg.createdAt).toLocaleDateString('ar') : '';
+                    html += `
+                        <tr>
+                            <td>${msg.name}</td>
+                            <td>${msg.email}</td>
+                            <td>${msg.phone || '-'}</td>
+                            <td>${msg.message.substring(0, 40)}${msg.message.length > 40 ? '...' : ''}</td>
+                            <td>${time}</td>
+                            <td><span class="badge-status ${statusClass}">${status}</span></td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="btn-toggle ${msg.read ? '' : 'hidden'}" onclick="window.toggleMessage('${msg.id}', ${!msg.read})">${msg.read ? '📩 غير مقروء' : '📩 قراءة'}</button>
+                                    <button class="btn-delete" onclick="window.confirmDelete('message', '${msg.id}')">🗑️ حذف</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                container.innerHTML = '<div class="empty-state">حدث خطأ في تحميل الرسائل</div>';
+            }
         }
 
+        // ============================================
         // ===== MESSAGE FUNCTIONS =====
-        async function toggleMessage(id, read) {
+        // ============================================
+        window.toggleMessage = async function(id, read) {
             try {
                 const res = await fetch(`/api/messages/${id}/read`, {
                     method: 'PUT',
@@ -2080,75 +1943,34 @@
             } catch (error) {
                 showToast('حدث خطأ', 'error');
             }
+        };
+
+        // ============================================
+        // ===== LOAD SETTINGS =====
+        // ============================================
+        async function loadSettings() {
+            try {
+                const data = await apiFetch('/api/settings');
+                document.getElementById('siteName').value = data.siteName || '';
+                document.getElementById('siteLogo').value = data.logo || '';
+                document.getElementById('aboutText').value = data.aboutText || '';
+                document.getElementById('sitePhone').value = data.phone || '';
+                document.getElementById('siteEmail').value = data.email || '';
+                document.getElementById('siteAddress').value = data.address || '';
+                document.getElementById('instagramUrl').value = data.instagram || '';
+                document.getElementById('facebookUrl').value = data.facebook || '';
+                document.getElementById('whatsappNumber').value = data.whatsapp || '';
+                document.getElementById('heroText').value = data.heroText || '';
+                document.getElementById('footerText').value = data.footerText || '';
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
         }
 
-        document.getElementById('messageFilter').addEventListener('change', function() {
-            loadMessages(this.value);
-        });
-
-        // ===== SETTINGS =====
-        document.getElementById('settingsForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const data = {
-                siteName: document.getElementById('siteName').value.trim(),
-                logo: document.getElementById('siteLogo').value.trim(),
-                aboutText: document.getElementById('aboutText').value.trim(),
-                phone: document.getElementById('sitePhone').value.trim(),
-                email: document.getElementById('siteEmail').value.trim(),
-                address: document.getElementById('siteAddress').value.trim(),
-                instagram: document.getElementById('instagramUrl').value.trim(),
-                facebook: document.getElementById('facebookUrl').value.trim(),
-                whatsapp: document.getElementById('whatsappNumber').value.trim(),
-                heroText: document.getElementById('heroText').value.trim(),
-                footerText: document.getElementById('footerText').value.trim()
-            };
-            
-            const submitBtn = document.getElementById('settingsSubmit');
-            const status = document.getElementById('settingsStatus');
-            submitBtn.disabled = true;
-            submitBtn.querySelector('span:first-child').style.display = 'none';
-            submitBtn.querySelector('.btn-loading').style.display = 'inline';
-            status.style.display = 'none';
-            
-            try {
-                const res = await fetch('/api/settings', {
-                    method: 'PUT',
-                    headers: getHeaders(),
-                    body: JSON.stringify(data)
-                });
-                const result = await res.json();
-                if (res.ok) {
-                    status.className = 'form-status';
-                    status.style.display = 'block';
-                    status.style.background = 'rgba(46,204,113,0.15)';
-                    status.style.color = '#2ecc71';
-                    status.style.border = '1px solid rgba(46,204,113,0.3)';
-                    status.textContent = '✓ تم حفظ الإعدادات بنجاح';
-                    showToast('تم حفظ الإعدادات بنجاح');
-                } else {
-                    status.className = 'form-status';
-                    status.style.display = 'block';
-                    status.style.background = 'rgba(231,76,60,0.15)';
-                    status.style.color = '#e74c3c';
-                    status.style.border = '1px solid rgba(231,76,60,0.3)';
-                    status.textContent = result.error || 'حدث خطأ';
-                }
-            } catch (error) {
-                status.className = 'form-status';
-                status.style.display = 'block';
-                status.style.background = 'rgba(231,76,60,0.15)';
-                status.style.color = '#e74c3c';
-                status.style.border = '1px solid rgba(231,76,60,0.3)';
-                status.textContent = 'حدث خطأ في الاتصال';
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.querySelector('span:first-child').style.display = 'inline';
-                submitBtn.querySelector('.btn-loading').style.display = 'none';
-            }
-        });
-
+        // ============================================
         // ===== CONFIRM DELETE =====
-        function confirmDelete(type, id) {
+        // ============================================
+        window.confirmDelete = function(type, id) {
             deleteTarget = { type, id };
             const messages = {
                 gallery: 'هل أنت متأكد من حذف هذا المعرض؟',
@@ -2157,79 +1979,322 @@
             };
             document.getElementById('confirmMessage').textContent = messages[type] || 'هل أنت متأكد من حذف هذا العنصر؟';
             document.getElementById('confirmModal').classList.add('active');
-        }
+        };
 
-        document.querySelector('[data-modal="confirmModal"]').addEventListener('click', () => {
-            document.getElementById('confirmModal').classList.remove('active');
-        });
-
-        document.getElementById('confirmDelete').addEventListener('click', async function() {
-            const { type, id } = deleteTarget;
-            const modal = document.getElementById('confirmModal');
-            
-            try {
-                let url = '';
-                if (type === 'gallery') url = `/api/galleries/${id}`;
-                else if (type === 'artwork') url = `/api/artworks/${id}`;
-                else if (type === 'message') url = `/api/messages/${id}`;
-                
-                const res = await fetch(url, {
-                    method: 'DELETE',
-                    headers: getHeaders()
-                });
-                
-                if (res.ok) {
-                    showToast('تم الحذف بنجاح');
-                    modal.classList.remove('active');
-                    if (type === 'gallery') { loadGalleries(); loadStats(); }
-                    else if (type === 'artwork') { loadArtworks(); loadStats(); }
-                    else if (type === 'message') { loadMessages(document.getElementById('messageFilter').value); loadStats(); }
-                } else {
-                    const data = await res.json();
-                    showToast(data.error || 'حدث خطأ', 'error');
-                }
-            } catch (error) {
-                showToast('حدث خطأ في الاتصال', 'error');
-            }
-        });
-
-        // ===== INIT =====
-        async function init() {
-            // Check auth
-            const valid = await checkAuth();
-            if (!valid) {
-                // If not valid, checkAuth will redirect
-                return;
-            }
+        // ============================================
+        // ===== INITIALIZATION =====
+        // ============================================
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Check authentication
+            const isValid = await checkAuth();
+            if (!isValid) return;
             
             // Set language
             setLanguage(currentLang);
             
-            // Events
+            // ===== EVENT LISTENERS =====
+            
+            // Language switch
             document.getElementById('langSwitch').addEventListener('click', toggleLanguage);
+            
+            // Sidebar toggle
             document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
             document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+            
+            // Logout
             document.getElementById('logoutBtn').addEventListener('click', logout);
             
-            // Navigation
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    navigateTo(this.dataset.section);
+            // Navigation buttons
+            document.querySelectorAll('.nav-item').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.getAttribute('data-section');
+                    if (section) {
+                        navigateTo(section);
+                    }
                 });
             });
             
             // Close modals on overlay click
-            document.querySelectorAll('.modal').forEach(modal => {
+            document.querySelectorAll('.modal').forEach(function(modal) {
                 modal.addEventListener('click', function(e) {
-                    if (e.target === this) this.classList.remove('active');
+                    if (e.target === this) {
+                        this.classList.remove('active');
+                    }
+                });
+            });
+            
+            // Close modals with close button
+            document.querySelectorAll('.modal-close').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const modalId = this.getAttribute('data-modal');
+                    if (modalId) {
+                        document.getElementById(modalId).classList.remove('active');
+                    }
+                });
+            });
+            
+            // Gallery form submission
+            document.getElementById('galleryForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const id = document.getElementById('galleryId').value;
+                const data = {
+                    name: document.getElementById('galleryName').value.trim(),
+                    description: document.getElementById('galleryDescription').value.trim(),
+                    coverImage: document.getElementById('galleryCover').value.trim(),
+                    order: parseInt(document.getElementById('galleryOrder').value) || 0,
+                    visible: document.getElementById('galleryVisible').checked
+                };
+                
+                const submitBtn = document.getElementById('gallerySubmit');
+                submitBtn.disabled = true;
+                submitBtn.querySelector('span:first-child').style.display = 'none';
+                submitBtn.querySelector('.btn-loading').style.display = 'inline';
+                
+                try {
+                    const url = id ? `/api/galleries/${id}` : '/api/galleries';
+                    const method = id ? 'PUT' : 'POST';
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: getHeaders(),
+                        body: JSON.stringify(data)
+                    });
+                    const result = await res.json();
+                    if (res.ok) {
+                        showToast(id ? 'تم تحديث المعرض بنجاح' : 'تم إضافة المعرض بنجاح');
+                        document.getElementById('galleryModal').classList.remove('active');
+                        loadGalleries();
+                        loadStats();
+                    } else {
+                        showToast(result.error || 'حدث خطأ', 'error');
+                    }
+                } catch (error) {
+                    showToast('حدث خطأ في الاتصال', 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.querySelector('span:first-child').style.display = 'inline';
+                    submitBtn.querySelector('.btn-loading').style.display = 'none';
+                }
+            });
+            
+            // Add gallery button
+            document.getElementById('addGalleryBtn').addEventListener('click', function() {
+                openGalleryModal();
+            });
+            
+            // Artwork form submission
+            document.getElementById('artworkForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const id = document.getElementById('artworkId').value;
+                const data = {
+                    galleryId: document.getElementById('artworkGallery').value,
+                    title: document.getElementById('artworkTitle').value.trim(),
+                    description: document.getElementById('artworkDescription').value.trim(),
+                    imageUrl: document.getElementById('artworkImageUrl').value.trim(),
+                    material: document.getElementById('artworkMaterial').value.trim(),
+                    dimensions: document.getElementById('artworkDimensions').value.trim(),
+                    price: parseFloat(document.getElementById('artworkPrice').value) || 0,
+                    order: parseInt(document.getElementById('artworkOrder').value) || 0,
+                    featured: document.getElementById('artworkFeatured').checked,
+                    visible: document.getElementById('artworkVisible').checked
+                };
+                
+                const submitBtn = document.getElementById('artworkSubmit');
+                submitBtn.disabled = true;
+                submitBtn.querySelector('span:first-child').style.display = 'none';
+                submitBtn.querySelector('.btn-loading').style.display = 'inline';
+                
+                try {
+                    const url = id ? `/api/artworks/${id}` : '/api/artworks';
+                    const method = id ? 'PUT' : 'POST';
+                    const res = await fetch(url, {
+                        method: method,
+                        headers: getHeaders(),
+                        body: JSON.stringify(data)
+                    });
+                    const result = await res.json();
+                    if (res.ok) {
+                        showToast(id ? 'تم تحديث العمل الفني بنجاح' : 'تم إضافة العمل الفني بنجاح');
+                        document.getElementById('artworkModal').classList.remove('active');
+                        loadArtworks();
+                        loadStats();
+                    } else {
+                        showToast(result.error || 'حدث خطأ', 'error');
+                    }
+                } catch (error) {
+                    showToast('حدث خطأ في الاتصال', 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.querySelector('span:first-child').style.display = 'inline';
+                    submitBtn.querySelector('.btn-loading').style.display = 'none';
+                }
+            });
+            
+            // Add artwork button
+            document.getElementById('addArtworkBtn').addEventListener('click', function() {
+                openArtworkModal();
+            });
+            
+            // Image upload
+            document.getElementById('artworkImageFile').addEventListener('change', function(e) {
+                const file = this.files[0];
+                if (!file) return;
+                
+                const progress = document.getElementById('uploadProgress');
+                const fill = document.getElementById('progressFill');
+                const text = document.getElementById('progressText');
+                progress.style.display = 'block';
+                
+                const formData = new FormData();
+                formData.append('image', file);
+                
+                try {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/api/upload');
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                    
+                    xhr.upload.onprogress = function(e) {
+                        if (e.lengthComputable) {
+                            const pct = Math.round((e.loaded / e.total) * 100);
+                            fill.style.width = pct + '%';
+                            text.textContent = pct + '%';
+                        }
+                    };
+                    
+                    xhr.onload = function() {
+                        if (xhr.status === 200) {
+                            const data = JSON.parse(xhr.response);
+                            document.getElementById('artworkImageUrl').value = data.url;
+                            document.getElementById('uploadPreview').innerHTML = `<img src="${data.url}" alt="Uploaded">`;
+                            showToast('تم رفع الصورة بنجاح');
+                        } else if (xhr.status === 401) {
+                            localStorage.removeItem('shulamith-token');
+                            window.location.href = '/login.html';
+                        } else {
+                            showToast('فشل رفع الصورة', 'error');
+                        }
+                        progress.style.display = 'none';
+                    };
+                    
+                    xhr.onerror = function() {
+                        showToast('حدث خطأ في الرفع', 'error');
+                        progress.style.display = 'none';
+                    };
+                    
+                    xhr.send(formData);
+                } catch (error) {
+                    showToast('حدث خطأ', 'error');
+                    progress.style.display = 'none';
+                }
+            });
+            
+            // Message filter
+            document.getElementById('messageFilter').addEventListener('change', function() {
+                loadMessages(this.value);
+            });
+            
+            // Settings form submission
+            document.getElementById('settingsForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const data = {
+                    siteName: document.getElementById('siteName').value.trim(),
+                    logo: document.getElementById('siteLogo').value.trim(),
+                    aboutText: document.getElementById('aboutText').value.trim(),
+                    phone: document.getElementById('sitePhone').value.trim(),
+                    email: document.getElementById('siteEmail').value.trim(),
+                    address: document.getElementById('siteAddress').value.trim(),
+                    instagram: document.getElementById('instagramUrl').value.trim(),
+                    facebook: document.getElementById('facebookUrl').value.trim(),
+                    whatsapp: document.getElementById('whatsappNumber').value.trim(),
+                    heroText: document.getElementById('heroText').value.trim(),
+                    footerText: document.getElementById('footerText').value.trim()
+                };
+                
+                const submitBtn = document.getElementById('settingsSubmit');
+                const status = document.getElementById('settingsStatus');
+                submitBtn.disabled = true;
+                submitBtn.querySelector('span:first-child').style.display = 'none';
+                submitBtn.querySelector('.btn-loading').style.display = 'inline';
+                status.style.display = 'none';
+                
+                try {
+                    const res = await fetch('/api/settings', {
+                        method: 'PUT',
+                        headers: getHeaders(),
+                        body: JSON.stringify(data)
+                    });
+                    const result = await res.json();
+                    if (res.ok) {
+                        status.className = 'form-status';
+                        status.style.display = 'block';
+                        status.style.background = 'rgba(46,204,113,0.15)';
+                        status.style.color = '#2ecc71';
+                        status.style.border = '1px solid rgba(46,204,113,0.3)';
+                        status.textContent = '✓ تم حفظ الإعدادات بنجاح';
+                        showToast('تم حفظ الإعدادات بنجاح');
+                    } else {
+                        status.className = 'form-status';
+                        status.style.display = 'block';
+                        status.style.background = 'rgba(231,76,60,0.15)';
+                        status.style.color = '#e74c3c';
+                        status.style.border = '1px solid rgba(231,76,60,0.3)';
+                        status.textContent = result.error || 'حدث خطأ';
+                    }
+                } catch (error) {
+                    status.className = 'form-status';
+                    status.style.display = 'block';
+                    status.style.background = 'rgba(231,76,60,0.15)';
+                    status.style.color = '#e74c3c';
+                    status.style.border = '1px solid rgba(231,76,60,0.3)';
+                    status.textContent = 'حدث خطأ في الاتصال';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.querySelector('span:first-child').style.display = 'inline';
+                    submitBtn.querySelector('.btn-loading').style.display = 'none';
+                }
+            });
+            
+            // Confirm delete
+            document.getElementById('confirmDelete').addEventListener('click', async function() {
+                const { type, id } = deleteTarget;
+                const modal = document.getElementById('confirmModal');
+                
+                try {
+                    let url = '';
+                    if (type === 'gallery') url = `/api/galleries/${id}`;
+                    else if (type === 'artwork') url = `/api/artworks/${id}`;
+                    else if (type === 'message') url = `/api/messages/${id}`;
+                    
+                    const res = await fetch(url, {
+                        method: 'DELETE',
+                        headers: getHeaders()
+                    });
+                    
+                    if (res.ok) {
+                        showToast('تم الحذف بنجاح');
+                        modal.classList.remove('active');
+                        if (type === 'gallery') { loadGalleries(); loadStats(); }
+                        else if (type === 'artwork') { loadArtworks(); loadStats(); }
+                        else if (type === 'message') { loadMessages(document.getElementById('messageFilter').value); loadStats(); }
+                    } else {
+                        const data = await res.json();
+                        showToast(data.error || 'حدث خطأ', 'error');
+                    }
+                } catch (error) {
+                    showToast('حدث خطأ في الاتصال', 'error');
+                }
+            });
+            
+            // Confirm modal cancel
+            document.querySelectorAll('[data-modal="confirmModal"]').forEach(function(el) {
+                el.addEventListener('click', function() {
+                    document.getElementById('confirmModal').classList.remove('active');
                 });
             });
             
             // Load initial data
             loadStats();
-        }
-
-        document.addEventListener('DOMContentLoaded', init);
+        });
     </script>
 </body>
 </html>

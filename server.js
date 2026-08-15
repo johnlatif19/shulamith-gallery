@@ -12,26 +12,10 @@ const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ============================================
-// ===== DEBUG: CHECK ENVIRONMENT VARIABLES =====
-// ============================================
-console.log('========================================');
-console.log('🔍 ENVIRONMENT VARIABLES CHECK:');
-console.log('========================================');
-console.log('SMTP_HOST:', process.env.SMTP_HOST || '❌ NOT SET');
-console.log('SMTP_PORT:', process.env.SMTP_PORT || '❌ NOT SET');
-console.log('SMTP_USER:', process.env.SMTP_USER || '❌ NOT SET');
-console.log('SMTP_PASSWORD:', process.env.SMTP_PASSWORD ? '✅ SET' : '❌ NOT SET');
-console.log('SMTP_FROM_EMAIL:', process.env.SMTP_FROM_EMAIL || '❌ NOT SET');
-console.log('SMTP_FROM_NAME:', process.env.SMTP_FROM_NAME || '❌ NOT SET');
-console.log('ADMIN_USERNAME:', process.env.ADMIN_USERNAME || '❌ NOT SET');
-console.log('JWT_SECRET:', process.env.JWT_SECRET ? '✅ SET' : '❌ NOT SET');
-console.log('CLOUDINARY_CLOUD_NAME:', process.env.CLOUDINARY_CLOUD_NAME || '❌ NOT SET');
-console.log('FIREBASE_CONFIG:', process.env.FIREBASE_CONFIG ? '✅ SET' : '❌ NOT SET');
-console.log('========================================\n');
-
 // ============ Timeout Middleware ============
+// منع تعليق الطلبات
 const timeoutMiddleware = (req, res, next) => {
+    // تعيين مهلة 30 ثانية للطلبات البطيئة
     req.setTimeout(30000, () => {
         res.status(504).json({ error: 'Request timeout' });
     });
@@ -60,6 +44,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static('public'));
 
+// تطبيق مهلة على جميع الطلبات
 app.use(timeoutMiddleware);
 
 // ============ Rate Limiting ============
@@ -93,15 +78,16 @@ app.use('/api/upload', limiter);
 app.use('/api/stats', limiter);
 app.use('/api/send-email', limiter);
 
-// ============ Firebase Admin ============
+// ============ Firebase Admin with Retry Logic ============
 let firebaseConfig;
 try {
     firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
 } catch (e) {
-    console.error('❌ Error parsing FIREBASE_CONFIG:', e.message);
+    console.error('Error parsing FIREBASE_CONFIG:', e.message);
     process.exit(1);
 }
 
+// IMPORTANT: Check if app already exists (prevents Vercel duplicate issue)
 if (!admin.apps.length) {
     try {
         admin.initializeApp({
@@ -125,74 +111,90 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// ============ Email Transporter (Debug Version) ============
+// ============ Email Transporter (with better error handling) ============
 let transporter = null;
 let emailConfigured = false;
 
-console.log('📧 Initializing Email Transporter...');
+// دالة لإعادة محاولة الاتصال
+const initializeTransporter = async () => {
+    try {
+        const nodemailerModule = require('nodemailer');
+        if (!nodemailerModule || typeof nodemailerModule.createTransporter !== 'function') {
+            console.warn('⚠️ Nodemailer not available');
+            return false;
+        }
 
-try {
-    const nodemailerModule = require('nodemailer');
-    console.log('✅ Nodemailer module loaded');
-    
-    const smtpHost = process.env.SMTP_HOST;
-    const smtpPort = parseInt(process.env.SMTP_PORT) || 587;
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = process.env.SMTP_PASSWORD;
-    const smtpFromEmail = process.env.SMTP_FROM_EMAIL;
-    const smtpFromName = process.env.SMTP_FROM_NAME || 'Shulamith Gallery';
+        // التحقق من وجود المتغيرات
+        const requiredEnv = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASSWORD', 'SMTP_FROM_EMAIL'];
+        const missing = requiredEnv.filter(key => !process.env[key]);
+        if (missing.length > 0) {
+            console.warn(`⚠️ Missing SMTP env variables: ${missing.join(', ')}`);
+            return false;
+        }
 
-    console.log('📧 SMTP Configuration:');
-    console.log(`   Host: ${smtpHost || '❌ MISSING'}`);
-    console.log(`   Port: ${smtpPort}`);
-    console.log(`   User: ${smtpUser || '❌ MISSING'}`);
-    console.log(`   Password: ${smtpPass ? '✅ SET' : '❌ MISSING'}`);
-    console.log(`   From Email: ${smtpFromEmail || '❌ MISSING'}`);
-    console.log(`   From Name: ${smtpFromName}`);
+        console.log(`📧 Attempting to connect to SMTP: ${process.env.SMTP_HOST}:${process.env.SMTP_PORT}`);
 
-    if (!smtpHost || !smtpUser || !smtpPass || !smtpFromEmail) {
-        console.error('❌ Missing required SMTP environment variables!');
-        console.error('   Please check your .env file');
-    } else if (nodemailerModule && typeof nodemailerModule.createTransporter === 'function') {
-        console.log('✅ Creating transporter...');
-        
-        transporter = nodemailerModule.createTransporter({
-            host: smtpHost,
-            port: smtpPort,
-            secure: smtpPort === 465,
+        const newTransporter = nodemailerModule.createTransporter({
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT),
+            secure: process.env.SMTP_SECURE === 'true',
             auth: {
-                user: smtpUser,
-                pass: smtpPass
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASSWORD
             },
-            connectionTimeout: 10000,
+            connectionTimeout: 10000, // زيادة المهلة
             greetingTimeout: 10000,
-            socketTimeout: 10000
-        });
-
-        console.log('✅ Transporter created, verifying connection...');
-
-        transporter.verify(function(error, success) {
-            if (error) {
-                console.error('❌ SMTP verification failed:');
-                console.error('   Error:', error.message);
-                console.error('   Please check your SMTP credentials');
-                transporter = null;
-                emailConfigured = false;
-            } else {
-                console.log('✅ SMTP configured and verified successfully!');
-                emailConfigured = true;
+            socketTimeout: 10000,
+            // إعدادات إضافية لـ Gmail
+            tls: {
+                rejectUnauthorized: false
             }
         });
-    } else {
-        console.error('❌ Nodemailer.createTransporter not available');
-    }
-} catch (error) {
-    console.error('❌ Failed to initialize nodemailer:');
-    console.error('   Error:', error.message);
-    transporter = null;
-    emailConfigured = false;
-}
 
+        // التحقق من الاتصال مع مهلة
+        await Promise.race([
+            newTransporter.verify(),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('SMTP verification timeout')), 15000)
+            )
+        ]);
+
+        transporter = newTransporter;
+        emailConfigured = true;
+        console.log('✅ SMTP configured and verified successfully');
+        return true;
+    } catch (error) {
+        console.warn(`⚠️ SMTP initialization failed: ${error.message}`);
+        transporter = null;
+        emailConfigured = false;
+        return false;
+    }
+};
+
+// محاولة التهيئة عند بدء التشغيل
+initializeTransporter();
+
+// إعادة المحاولة بعد 5 ثوانٍ إذا فشلت
+setTimeout(() => {
+    if (!emailConfigured) {
+        console.log('🔄 Retrying SMTP connection...');
+        initializeTransporter();
+    }
+}, 5000);
+
+// إعادة المحاولة كل دقيقة لمدة 5 دقائق
+let retryCount = 0;
+const retryInterval = setInterval(() => {
+    if (emailConfigured || retryCount >= 5) {
+        clearInterval(retryInterval);
+        return;
+    }
+    retryCount++;
+    console.log(`🔄 SMTP retry ${retryCount}/5...`);
+    initializeTransporter();
+}, 60000);
+
+// دالة مساعدة للتحقق من جاهزية البريد
 function isEmailConfigured() {
     return transporter !== null && emailConfigured === true;
 }
@@ -240,120 +242,7 @@ const validatePhone = (phone) => {
     return /^[\d+\s-()]{8,20}$/.test(phone);
 };
 
-// ============================================
-// ===== TEST API =====
-// ============================================
-app.get('/api/test', (req, res) => {
-    res.json({
-        status: '✅ Server is running',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        smtp: {
-            configured: transporter !== null,
-            verified: emailConfigured,
-            host: process.env.SMTP_HOST || 'Not set',
-            user: process.env.SMTP_USER || 'Not set',
-            fromEmail: process.env.SMTP_FROM_EMAIL || 'Not set'
-        },
-        environment: {
-            node: process.version,
-            platform: process.platform,
-            env: process.env.NODE_ENV || 'development'
-        }
-    });
-});
-
-// ============================================
-// ===== TEST EMAIL API =====
-// ============================================
-app.post('/api/test-email', requireAuth, async (req, res) => {
-    try {
-        const { email } = req.body;
-        const testEmail = email || process.env.SMTP_FROM_EMAIL;
-
-        if (!testEmail) {
-            return res.status(400).json({ 
-                error: 'Email is required. Please provide an email address.' 
-            });
-        }
-
-        if (!validateEmail(testEmail)) {
-            return res.status(400).json({ error: 'Invalid email format' });
-        }
-
-        console.log('📧 Testing email to:', testEmail);
-        console.log('   SMTP Configured:', isEmailConfigured());
-
-        if (!isEmailConfigured()) {
-            return res.status(500).json({ 
-                error: 'Email service not configured. Please check SMTP settings in .env file.',
-                smtpStatus: {
-                    configured: transporter !== null,
-                    verified: emailConfigured,
-                    host: process.env.SMTP_HOST || 'Not set'
-                }
-            });
-        }
-
-        const mailOptions = {
-            from: `"Shulamith Gallery Test" <${process.env.SMTP_FROM_EMAIL}>`,
-            to: testEmail,
-            subject: '🧪 Test Email from Shulamith Gallery',
-            html: `
-                <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #1a1a1a; color: #e8e0d4; border-radius: 12px; border: 1px solid #333;">
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" style="max-width: 150px; height: auto; border-radius: 8px;">
-                    </div>
-                    <div style="border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px;">
-                        <h2 style="color: #d4b892; margin: 0; font-weight: 300;">🧪 Test Email</h2>
-                        <p style="color: #b0a89a; margin: 5px 0 0 0;">${new Date().toLocaleString('ar-EG')}</p>
-                    </div>
-                    <div style="background: #252525; padding: 20px; border-radius: 8px; border-right: 3px solid #2ecc71;">
-                        <p style="color: #d4c8b8; margin: 0 0 10px 0;">
-                            ✅ This is a test email from <strong style="color: #d4b892;">Shulamith Gallery</strong>
-                        </p>
-                        <p style="color: #d4c8b8; margin: 0 0 10px 0;">
-                            <strong style="color: #d4b892;">Status:</strong> 
-                            <span style="color: #2ecc71;">Email service is working correctly!</span>
-                        </p>
-                    </div>
-                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #333; text-align: center;">
-                        <p style="color: #999; font-size: 14px; margin: 0;">
-                            © 2026 <strong style="color: #d4b892;">Shulamith Gallery</strong>. All rights reserved.
-                        </p>
-                    </div>
-                </div>
-            `
-        };
-
-        await transporter.sendMail(mailOptions);
-        console.log('✅ Test email sent successfully to:', testEmail);
-
-        res.json({ 
-            success: true, 
-            message: 'Test email sent successfully to ' + testEmail,
-            details: {
-                to: testEmail,
-                from: process.env.SMTP_FROM_EMAIL,
-                smtpHost: process.env.SMTP_HOST
-            }
-        });
-    } catch (error) {
-        console.error('❌ Test email error:', error);
-        res.status(500).json({ 
-            error: 'Failed to send test email: ' + error.message,
-            details: {
-                smtpHost: process.env.SMTP_HOST,
-                smtpUser: process.env.SMTP_USER,
-                smtpConfigured: isEmailConfigured()
-            }
-        });
-    }
-});
-
-// ============================================
-// ===== API ROUTES =====
-// ============================================
+// ============ API Routes ============
 
 // ---------- Auth ----------
 app.post('/api/login', async (req, res) => {
@@ -462,6 +351,7 @@ app.delete('/api/galleries/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
 
+        // Check if gallery has artworks
         const artworksSnapshot = await db.collection('artworks')
             .where('galleryId', '==', id)
             .get();
@@ -599,6 +489,7 @@ app.delete('/api/artworks/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
 
+        // Get artwork to delete cloudinary image if needed
         const doc = await db.collection('artworks').doc(id).get();
         if (doc.exists) {
             const data = doc.data();
@@ -623,7 +514,7 @@ app.delete('/api/artworks/:id', requireAuth, async (req, res) => {
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-        fileSize: 5 * 1024 * 1024
+        fileSize: 5 * 1024 * 1024 // 5MB limit
     }
 });
 
@@ -633,9 +524,11 @@ app.post('/api/upload', requireAuth, upload.single('image'), async (req, res) =>
             return res.status(400).json({ error: 'No image file provided' });
         }
 
+        // Convert buffer to base64
         const b64 = Buffer.from(req.file.buffer).toString('base64');
         const dataURI = `data:${req.file.mimetype};base64,${b64}`;
 
+        // Upload to Cloudinary with timeout
         const result = await Promise.race([
             cloudinary.uploader.upload(dataURI, {
                 folder: 'shulamith-gallery',
@@ -667,6 +560,7 @@ app.post('/api/contact', async (req, res) => {
     try {
         const { name, email, phone, message } = req.body;
 
+        // Validation
         if (!name || !email || !message) {
             return res.status(400).json({ error: 'Name, email, and message are required' });
         }
@@ -679,6 +573,7 @@ app.post('/api/contact', async (req, res) => {
             return res.status(400).json({ error: 'Invalid phone number format' });
         }
 
+        // Save to Firebase
         const messageData = {
             name: name.trim(),
             email: email.trim(),
@@ -690,11 +585,13 @@ app.post('/api/contact', async (req, res) => {
 
         const docRef = await db.collection('messages').add(messageData);
 
+        // Send confirmation email (non-blocking)
         if (email && transporter && emailConfigured) {
+            // إرسال البريد في الخلفية دون انتظار
             setImmediate(async () => {
                 try {
                     await transporter.sendMail({
-                        from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_FROM_EMAIL}>`,
+                        from: `"${process.env.SMTP_FROM_NAME || 'Shulamith Gallery'}" <${process.env.SMTP_FROM_EMAIL}>`,
                         to: email,
                         subject: 'شكراً لتواصلك مع Shulamith Gallery',
                         html: `
@@ -797,6 +694,7 @@ app.get('/api/settings', async (req, res) => {
         if (doc.exists) {
             res.json({ id: doc.id, ...doc.data() });
         } else {
+            // Return default settings
             res.json({
                 siteName: 'Shulamith Gallery',
                 logo: 'https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg',
@@ -821,6 +719,7 @@ app.put('/api/settings', requireAuth, async (req, res) => {
     try {
         const settings = req.body;
 
+        // Validate required fields
         const requiredFields = ['siteName', 'logo'];
         for (const field of requiredFields) {
             if (!settings[field]) {
@@ -828,6 +727,7 @@ app.put('/api/settings', requireAuth, async (req, res) => {
             }
         }
 
+        // Add timestamps
         settings.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
         await db.collection('settings').doc('site').set(settings, { merge: true });
@@ -841,6 +741,7 @@ app.put('/api/settings', requireAuth, async (req, res) => {
 // ---------- Stats ----------
 app.get('/api/stats', requireAuth, async (req, res) => {
     try {
+        // استخدام Promise.all مع مهلة زمنية لمنع التعليق
         const statsPromise = Promise.all([
             db.collection('galleries').get(),
             db.collection('artworks').get(),
@@ -849,6 +750,7 @@ app.get('/api/stats', requireAuth, async (req, res) => {
             db.collection('messages').where('read', '==', false).get()
         ]);
 
+        // مهلة 10 ثواني
         const timeoutPromise = new Promise((_, reject) => {
             setTimeout(() => reject(new Error('Stats request timeout')), 10000);
         });
@@ -886,29 +788,15 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
             return res.status(400).json({ error: 'Invalid email format' });
         }
 
-        console.log('📧 Send Email Request:');
-        console.log(`   To: ${email}`);
-        console.log(`   From: ${name}`);
-        console.log(`   Message length: ${message.length}`);
-
+        // التحقق من تهيئة البريد بشكل أفضل
         if (!transporter || !emailConfigured) {
-            console.error('❌ Email service not configured');
-            console.log('📧 Email would be logged (SMTP not configured):');
-            console.log(`   To: ${email}`);
-            console.log(`   From: ${name}`);
-            console.log(`   Message: ${message}`);
-            
-            return res.status(500).json({ 
-                error: 'Email service not configured. Please check SMTP settings in .env file.',
-                smtpStatus: {
-                    configured: transporter !== null,
-                    verified: emailConfigured,
-                    host: process.env.SMTP_HOST || 'Not set',
-                    user: process.env.SMTP_USER || 'Not set'
-                }
+            console.error('❌ Email service not configured. Please check SMTP settings.');
+            return res.status(500).json({
+                error: 'Email service not configured. Please check SMTP settings in .env file.'
             });
         }
 
+        // إرسال البريد الإلكتروني باسم Shulamith Gallery
         const mailOptions = {
             from: `"Shulamith Gallery" <${process.env.SMTP_FROM_EMAIL}>`,
             to: email,
@@ -943,11 +831,11 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
         };
 
         await transporter.sendMail(mailOptions);
-        console.log('✅ Email sent successfully to:', email);
+        console.log('✅ Email sent to:', email);
 
         res.json({ success: true, message: 'Email sent successfully' });
     } catch (error) {
-        console.error('❌ Send email error:', error);
+        console.error('Send email error:', error);
         res.status(500).json({ error: 'Failed to send email: ' + error.message });
     }
 });
@@ -960,7 +848,15 @@ app.get('/api/health', (req, res) => {
         uptime: process.uptime(),
         smtp: {
             configured: transporter !== null,
-            verified: emailConfigured
+            verified: emailConfigured,
+            host: process.env.SMTP_HOST || 'not set',
+            user: process.env.SMTP_USER ? process.env.SMTP_USER.substring(0, 3) + '***' : 'not set',
+            fromEmail: process.env.SMTP_FROM_EMAIL || 'not set'
+        },
+        environment: {
+            node: process.version,
+            platform: process.platform,
+            env: process.env.NODE_ENV || 'development'
         }
     });
 });
@@ -969,6 +865,7 @@ app.get('/api/health', (req, res) => {
 app.use((err, req, res, next) => {
     console.error('Server error:', err);
 
+    // Multer error handling
     if (err instanceof multer.MulterError) {
         if (err.code === 'FILE_TOO_LARGE') {
             return res.status(413).json({ error: 'File too large. Maximum size is 5MB.' });
@@ -993,18 +890,10 @@ process.on('SIGINT', () => {
 // ============ Start Server ============
 if (require.main === module) {
     app.listen(PORT, () => {
-        console.log('\n========================================');
-        console.log('🚀 Shulamith Gallery Server');
-        console.log('========================================');
-        console.log(`📡 Server running on port ${PORT}`);
-        console.log(`📊 Dashboard: http://localhost:${PORT}/dashboard.html`);
-        console.log(`🔐 Login: http://localhost:${PORT}/login.html`);
-        console.log(`🩺 Health: http://localhost:${PORT}/api/health`);
-        console.log(`🧪 Test: http://localhost:${PORT}/api/test`);
-        console.log(`📧 Test Email: POST http://localhost:${PORT}/api/test-email`);
-        console.log('========================================');
-        console.log(`📧 SMTP Status: ${isEmailConfigured() ? '✅ CONFIGURED' : '❌ NOT CONFIGURED'}`);
-        console.log('========================================\n');
+        console.log(`🚀 Shulamith Gallery Server running on port ${PORT}`);
+        console.log(`📊 Dashboard available at http://localhost:${PORT}/dashboard.html`);
+        console.log(`🔐 Login at http://localhost:${PORT}/login.html`);
+        console.log(`🩺 Health check at http://localhost:${PORT}/api/health`);
     });
 }
 

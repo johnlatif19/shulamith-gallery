@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول — Shulamith Gallery</title>
+    <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
+    
+    <style>
+        /* ===== ROOT VARIABLES ===== */
+        :root {
+            --color-bg: #0d0b0a;
+            --color-bg-secondary: #161210;
+            --color-bg-card: #1e1a18;
+            --color-bg-hover: #2a2421;
+            --color-primary: #d4b892;
+            --color-primary-light: #e8d4bc;
+            --color-primary-dark: #b89a72;
+            --color-text: #e8e0d4;
+            --color-text-muted: #b0a89a;
+            --color-text-dark: #8a8272;
+            --color-border: #2a2421;
+            --color-error: #e74c3c;
+            --color-success: #2ecc71;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ===== RESET ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Tahoma', Arial, sans-serif;
+            background: var(--color-bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        /* Background with logo overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                url('https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg') center center / cover no-repeat;
+            opacity: 0.15;
+            z-index: 0;
+            animation: bgZoom 30s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgZoom {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        /* ===== LOGIN CONTAINER ===== */
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .login-card {
+            background: rgba(22, 18, 16, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: 48px 40px 40px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+            transition: var(--transition);
+        }
+
+        .login-card:hover {
+            border-color: rgba(212, 184, 146, 0.2);
+        }
+
+        /* ===== HEADER ===== */
+        .login-header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .login-logo {
+            height: 70px;
+            width: auto;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        .login-header h1 {
+            color: var(--color-primary);
+            font-size: 1.8rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+
+        .login-header p {
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+            font-weight: 300;
+        }
+
+        /* ===== FORM ===== */
+        .login-form .form-group {
+            margin-bottom: 20px;
+        }
+
+        .login-form label {
+            display: block;
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+            font-weight: 400;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            color: var(--color-text);
+            font-size: 1rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: var(--color-primary-dark);
+            box-shadow: 0 0 0 3px rgba(212, 184, 146, 0.08);
+        }
+
+        .login-form input::placeholder {
+            color: var(--color-text-dark);
+        }
+
+        .form-error {
+            color: var(--color-error);
+            font-size: 0.8rem;
+            display: block;
+            margin-top: 4px;
+            min-height: 18px;
+        }
+
+        /* ===== PASSWORD TOGGLE ===== */
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            padding-right: 48px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--color-text-dark);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px;
+            transition: var(--transition);
+        }
+
+        .toggle-password:hover {
+            color: var(--color-text);
+        }
+
+        /* ===== SUBMIT BUTTON ===== */
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--color-primary);
+            color: var(--color-bg);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1.05rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .login-btn:hover {
+            background: var(--color-primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(212, 184, 146, 0.2);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-loading {
+            display: none;
+        }
+
+        /* ===== STATUS ===== */
+        .login-status {
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            display: none;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .login-status.success {
+            display: block;
+            background: rgba(46, 204, 113, 0.12);
+            color: var(--color-success);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .login-status.error {
+            display: block;
+            background: rgba(231, 76, 60, 0.12);
+            color: var(--color-error);
+            border: 1px solid rgba(231, 76, 60, 0.2);
+        }
+
+        /* ===== FOOTER ===== */
+        .login-footer {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .login-footer a {
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .login-footer a:hover {
+            color: var(--color-primary);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 32px 24px 28px;
+            }
+
+            .login-logo {
+                height: 55px;
+            }
+
+            .login-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .login-form input {
+                padding: 10px 14px;
+                font-size: 0.95rem;
+            }
+
+            .login-btn {
+                padding: 12px;
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .login-card {
+                padding: 24px 16px 20px;
+            }
+
+            .login-logo {
+                height: 45px;
+            }
+
+            .login-header h1 {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* ===== LTR ===== */
+        body.ltr .password-wrapper input {
+            padding-right: 16px;
+            padding-left: 48px;
+        }
+
+        body.ltr .toggle-password {
+            right: auto;
+            left: 12px;
+        }
+
+        body.ltr .login-footer a {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="login-logo">
+                <h1>Shulamith Gallery</h1>
+            </div>
+            
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="username">اسم المستخدم</label>
+                    <input type="text" id="username" name="username" required placeholder="أدخل اسم المستخدم" autocomplete="username">
+                    <span class="form-error" id="usernameError"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">كلمة المرور</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" name="password" required placeholder="أدخل كلمة المرور" autocomplete="current-password">
+                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">🐵</button>
+                    </div>
+                    <span class="form-error" id="passwordError"></span>
+                </div>
+                
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <span>تسجيل الدخول</span>
+                    <span class="btn-loading">جاري التحقق...</span>
+                </button>
+                
+                <div class="login-status" id="loginStatus"></div>
+            </form>
+            
+            <div class="login-footer">
+                <a href="/">← العودة إلى الموقع</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== DOM REFS =====
+        const form = document.getElementById('loginForm');
+        const username = document.getElementById('username');
+        const password = document.getElementById('password');
+        const usernameError = document.getElementById('usernameError');
+        const passwordError = document.getElementById('passwordError');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginStatus = document.getElementById('loginStatus');
+        const togglePassword = document.getElementById('togglePassword');
+
+        // ===== TOGGLE PASSWORD =====
+        togglePassword.addEventListener('click', function() {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            this.textContent = type === 'password' ? '🐵' : '🙈';
+        });
+
+        // ===== CHECK LOGIN STATUS =====
+        function checkAuth() {
+            const token = localStorage.getItem('shulamith-token');
+            if (token) {
+                fetch('/api/verify', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.valid) {
+                        window.location.href = '/dashboard';
+                    }
+                })
+                .catch(() => {});
+            }
+        }
+
+        // ===== HANDLE LOGIN =====
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            // Reset errors
+            usernameError.textContent = '';
+            passwordError.textContent = '';
+            loginStatus.className = 'login-status';
+            loginStatus.style.display = 'none';
+            
+            // Validate
+            let isValid = true;
+            
+            if (!username.value.trim()) {
+                usernameError.textContent = 'اسم المستخدم مطلوب';
+                isValid = false;
+            }
+            
+            if (!password.value.trim()) {
+                passwordError.textContent = 'كلمة المرور مطلوبة';
+                isValid = false;
+            }
+            
+            if (!isValid) return;
+            
+            // Submit
+            loginBtn.disabled = true;
+            const originalText = loginBtn.querySelector('span:first-child');
+            const loadingText = loginBtn.querySelector('.btn-loading');
+            originalText.style.display = 'none';
+            loadingText.style.display = 'inline';
+            
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: username.value.trim(),
+                        password: password.value.trim()
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    localStorage.setItem('shulamith-token', data.token);
+                    loginStatus.className = 'login-status success';
+                    loginStatus.style.display = 'block';
+                    loginStatus.textContent = '✓ تم تسجيل الدخول بنجاح! جاري التحويل...';
+                    
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 800);
+                } else {
+                    loginStatus.className = 'login-status error';
+                    loginStatus.style.display = 'block';
+                    loginStatus.textContent = data.error || 'اسم المستخدم أو كلمة المرور غير صحيحة';
+                }
+            } catch (error) {
+                loginStatus.className = 'login-status error';
+                loginStatus.style.display = 'block';
+                loginStatus.textContent = 'حدث خطأ في الاتصال، حاول مرة أخرى';
+            } finally {
+                loginBtn.disabled = false;
+                originalText.style.display = 'inline';
+                loadingText.style.display = 'none';
+            }
+        }
+
+        // ===== KEYBOARD SHORTCUTS =====
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const active = document.activeElement;
+                if (active === username || active === password) {
+                    e.preventDefault();
+                    form.dispatchEvent(new Event('submit'));
+                }
+            }
+            if (e.key === 'Escape') {
+                window.location.href = '/';
+            }
+        });
+
+        // ===== INIT =====
+        checkAuth();
+        form.addEventListener('submit', handleLogin);
+    </script>
+</body>
+</html>

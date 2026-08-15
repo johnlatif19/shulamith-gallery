@@ -1442,6 +1442,13 @@
                 const res = await fetch('/api/verify', {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
+                
+                if (res.status === 401) {
+                    localStorage.removeItem('shulamith-token');
+                    window.location.href = '/login.html';
+                    return false;
+                }
+                
                 const data = await res.json();
                 if (!data.valid) {
                     localStorage.removeItem('shulamith-token');
@@ -1449,8 +1456,9 @@
                     return false;
                 }
                 return true;
-            } catch {
-                window.location.href = '/login.html';
+            } catch (error) {
+                console.error('Auth check error:', error);
+                // Don't redirect on network errors, let user retry
                 return false;
             }
         }
@@ -1458,6 +1466,34 @@
         function logout() {
             localStorage.removeItem('shulamith-token');
             window.location.href = '/login.html';
+        }
+
+        // ===== API FETCH =====
+        async function apiFetch(url, options = {}) {
+            try {
+                const headers = options.body ? getHeaders() : { 'Authorization': 'Bearer ' + token };
+                const res = await fetch(url, {
+                    ...options,
+                    headers: headers
+                });
+                
+                if (res.status === 401) {
+                    // Avoid redirect loop - only redirect if not a verify request
+                    if (!url.includes('/verify')) {
+                        localStorage.removeItem('shulamith-token');
+                        window.location.href = '/login.html';
+                        throw new Error('Unauthorized');
+                    }
+                    return res;
+                }
+                return res.json();
+            } catch (error) {
+                if (error.message === 'Unauthorized') {
+                    throw error;
+                }
+                console.error('API fetch error:', error);
+                throw error;
+            }
         }
 
         // ===== LANGUAGE =====
@@ -1486,17 +1522,14 @@
 
         // ===== NAVIGATION =====
         function navigateTo(section) {
-            // Update nav items
             document.querySelectorAll('.nav-item').forEach(el => {
                 el.classList.toggle('active', el.dataset.section === section);
             });
             
-            // Update sections
             document.querySelectorAll('.section').forEach(el => {
                 el.classList.toggle('active', el.id === 'section-' + section);
             });
             
-            // Update title
             const titles = {
                 overview: 'نظرة عامة',
                 galleries: 'المعارض',
@@ -1506,29 +1539,13 @@
             };
             document.getElementById('pageTitle').textContent = titles[section] || section;
             
-            // Close sidebar on mobile
             closeSidebar();
             
-            // Load data if needed
             if (section === 'overview') loadStats();
             if (section === 'galleries') loadGalleries();
             if (section === 'artworks') loadArtworks();
             if (section === 'messages') loadMessages();
             if (section === 'settings') loadSettings();
-        }
-
-        // ===== API =====
-        async function apiFetch(url, options = {}) {
-            const res = await fetch(url, {
-                ...options,
-                headers: options.body ? getHeaders() : { 'Authorization': 'Bearer ' + token }
-            });
-            if (res.status === 401) {
-                localStorage.removeItem('shulamith-token');
-                window.location.href = '/login.html';
-                throw new Error('Unauthorized');
-            }
-            return res.json();
         }
 
         // ===== LOAD STATS =====
@@ -1540,7 +1557,6 @@
                 document.getElementById('statMessages').textContent = data.messages || 0;
                 document.getElementById('statFeatured').textContent = data.featured || 0;
                 
-                // Update unread badge
                 const badge = document.getElementById('unreadBadge');
                 if (data.unreadMessages > 0) {
                     badge.textContent = data.unreadMessages;
@@ -1549,7 +1565,6 @@
                     badge.style.display = 'none';
                 }
                 
-                // Load recent messages
                 await loadRecentMessages();
             } catch (error) {
                 console.error('Error loading stats:', error);
@@ -1662,7 +1677,6 @@
                             <tbody>
                 `;
                 for (const a of data) {
-                    // Get gallery name
                     let galleryName = '';
                     const gallery = galleries.find(g => g.id === a.galleryId);
                     if (gallery) galleryName = gallery.name;
@@ -1881,13 +1895,17 @@
             // Load galleries for dropdown
             const select = document.getElementById('artworkGallery');
             select.innerHTML = '';
-            const galleryData = await apiFetch('/api/galleries');
-            galleryData.forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g.id;
-                opt.textContent = g.name;
-                select.appendChild(opt);
-            });
+            try {
+                const galleryData = await apiFetch('/api/galleries');
+                galleryData.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g.id;
+                    opt.textContent = g.name;
+                    select.appendChild(opt);
+                });
+            } catch (error) {
+                console.error('Error loading galleries for dropdown:', error);
+            }
             
             if (id) {
                 title.textContent = 'تعديل عمل فني';
@@ -1952,6 +1970,9 @@
                         document.getElementById('artworkImageUrl').value = data.url;
                         document.getElementById('uploadPreview').innerHTML = `<img src="${data.url}" alt="Uploaded">`;
                         showToast('تم رفع الصورة بنجاح');
+                    } else if (xhr.status === 401) {
+                        localStorage.removeItem('shulamith-token');
+                        window.location.href = '/login.html';
                     } else {
                         showToast('فشل رفع الصورة', 'error');
                     }
@@ -2176,7 +2197,10 @@
         async function init() {
             // Check auth
             const valid = await checkAuth();
-            if (!valid) return;
+            if (!valid) {
+                // If not valid, checkAuth will redirect
+                return;
+            }
             
             // Set language
             setLanguage(currentLang);

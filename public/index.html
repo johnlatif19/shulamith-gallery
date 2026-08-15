@@ -293,9 +293,11 @@
             z-index: 0;
             opacity: 0.7;
             animation: heroBgZoom 20s ease-in-out infinite alternate;
+            /* منع البكسل */
+            image-rendering: auto;
             image-rendering: -webkit-optimize-contrast;
             image-rendering: crisp-edges;
-            -ms-interpolation-mode: nearest-neighbor;
+            -ms-interpolation-mode: bicubic;
         }
 
         @keyframes heroBgZoom {
@@ -1619,6 +1621,7 @@
                 'gallery.all': 'الكل',
                 'gallery.loading': 'جاري تحميل الأعمال...',
                 'gallery.empty': 'لا توجد أعمال فنية حالياً',
+                'gallery.view': 'عرض التفاصيل',
                 
                 'about.title': 'عن الفنانة',
                 'about.text1': 'مريم (شولميث) — فنانة تشكيلية مصرية، خريجة كلية فنون جميلة.',
@@ -1692,6 +1695,7 @@
                 'gallery.all': 'All',
                 'gallery.loading': 'Loading artworks...',
                 'gallery.empty': 'No artworks available',
+                'gallery.view': 'View Details',
                 
                 'about.title': 'About the Artist',
                 'about.text1': 'Maryam (Shulamith) — Egyptian visual artist, graduate of the Faculty of Fine Arts.',
@@ -1724,9 +1728,9 @@
                 'contact.form.name': 'Name',
                 'contact.form.namePlaceholder': 'Enter your name',
                 'contact.form.email': 'Email',
-                'contact.form.emailPlaceholder': 'Enter your email',
+                'contact.form.emailPlaceholder': 'Enter your email address',
                 'contact.form.phone': 'Phone',
-                'contact.form.phonePlaceholder': 'Enter your phone number',
+                'contact.form.phonePlaceholder': 'Enter phone number',
                 'contact.form.message': 'Message',
                 'contact.form.messagePlaceholder': 'Write your message here...',
                 'contact.form.submit': 'Send',
@@ -1771,7 +1775,6 @@
                 const key = el.getAttribute('data-i18n');
                 if (translations[lang] && translations[lang][key]) {
                     if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                        // Use placeholder specific key if exists
                         const placeholderKey = key + 'Placeholder';
                         if (translations[lang][placeholderKey]) {
                             el.placeholder = translations[lang][placeholderKey];
@@ -1814,7 +1817,6 @@
                 btn.classList.remove('visible');
             }
             
-            // Reveal animations
             document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
                 const rect = el.getBoundingClientRect();
                 const windowHeight = window.innerHeight;
@@ -1876,23 +1878,19 @@
                     return;
                 }
                 
-                // Build filters
                 const filters = document.getElementById('galleryFilters');
                 const galleries = [...new Set(allArtworks.map(a => a.galleryId))];
                 const galleryNames = {};
                 
-                // Get gallery names
                 const galleriesData = await apiGet('/api/galleries');
                 galleriesData.forEach(g => {
                     galleryNames[g.id] = g.name;
                 });
                 
-                // Add gallery names to artworks
                 allArtworks.forEach(a => {
                     a.galleryName = galleryNames[a.galleryId] || '';
                 });
                 
-                // Build filter buttons
                 let filterHTML = `<button class="filter-btn active" data-filter="all" data-i18n="gallery.all">الكل</button>`;
                 galleries.forEach(gId => {
                     const name = galleryNames[gId] || gId;
@@ -1900,10 +1898,8 @@
                 });
                 filters.innerHTML = filterHTML;
                 
-                // Render all artworks
                 renderArtworks(allArtworks);
                 
-                // Filter click
                 filters.querySelectorAll('.filter-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         filters.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -1947,7 +1943,6 @@
             
             grid.innerHTML = html;
             
-            // Click to open lightbox
             grid.querySelectorAll('.gallery-item').forEach((item, index) => {
                 item.addEventListener('click', () => {
                     const artwork = artworks[index];
@@ -1955,7 +1950,6 @@
                 });
             });
             
-            // Trigger reveal for new items
             setTimeout(() => {
                 grid.querySelectorAll('.gallery-item').forEach(el => {
                     const rect = el.getBoundingClientRect();
@@ -1978,12 +1972,10 @@
             const submitBtn = document.getElementById('contactSubmit');
             const status = document.getElementById('formStatus');
             
-            // Reset errors
             document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
             status.className = 'form-status';
             status.style.display = 'none';
             
-            // Validate
             let isValid = true;
             
             if (!name.value.trim()) {
@@ -2008,7 +2000,6 @@
             
             if (!isValid) return;
             
-            // Submit
             submitBtn.disabled = true;
             const originalText = submitBtn.querySelector('span:first-child');
             const loadingText = submitBtn.querySelector('.btn-loading');
@@ -2053,10 +2044,8 @@
 
         // ===== INIT =====
         function init() {
-            // Set language
             setLanguage(currentLang);
             
-            // Events
             document.getElementById('langSwitch').addEventListener('click', toggleLanguage);
             document.getElementById('navToggle').addEventListener('click', toggleNav);
             document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
@@ -2064,12 +2053,10 @@
             
             document.getElementById('contactForm').addEventListener('submit', handleContactSubmit);
             
-            // Close lightbox on background click
             document.getElementById('lightbox').addEventListener('click', function(e) {
                 if (e.target === this) closeLightbox();
             });
             
-            // Close lightbox on Escape
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') closeLightbox();
                 if (e.key === 'Escape' && document.getElementById('navMenu').classList.contains('active')) {
@@ -2077,20 +2064,16 @@
                 }
             });
             
-            // Close nav on link click
             document.querySelectorAll('.nav-menu a').forEach(link => {
                 link.addEventListener('click', closeNav);
             });
             
-            // Scroll handler
             window.addEventListener('scroll', handleScroll);
             handleScroll();
             
-            // Load artworks
             loadArtworks();
         }
 
-        // Run on DOM ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {

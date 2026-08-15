@@ -48,7 +48,7 @@ app.use(express.static('public'));
 
 app.use(timeoutMiddleware);
 
-// ============ Rate Limiting (معدل لـ Vercel) ============
+// ============ Rate Limiting ============
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -120,7 +120,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// ============ Email Transporter (Vercel Optimized) ============
+// ============ Email Transporter ============
 let transporter = null;
 let emailConfigured = false;
 let initializationPromise = null;
@@ -198,7 +198,6 @@ const initializeTransporter = async () => {
     return initializationPromise;
 };
 
-// ✅ تهيئة SMTP عند بدء التشغيل
 initializeTransporter().catch(console.error);
 
 async function getTransporter() {
@@ -601,7 +600,7 @@ app.post('/api/contact', async (req, res) => {
 
         const docRef = await db.collection('messages').add(messageData);
 
-        // ✅ إرسال confirmation email في الخلفية
+        // Send confirmation email in background
         if (email && transporter && emailConfigured) {
             setImmediate(async () => {
                 try {
@@ -701,6 +700,169 @@ app.delete('/api/messages/:id', requireAuth, async (req, res) => {
     } catch (error) {
         console.error('Error deleting message:', error);
         res.status(500).json({ error: 'Failed to delete message' });
+    }
+});
+
+// ---------- RATES ----------
+app.post('/api/rates', async (req, res) => {
+    try {
+        const { name, email, rating, opinion } = req.body;
+
+        if (!name || !email || !rating || !opinion) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        if (!validateEmail(email)) {
+            return res.status(400).json({ error: 'Invalid email format' });
+        }
+
+        if (rating < 1 || rating > 5) {
+            return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+        }
+
+        const rateData = {
+            name: name.trim(),
+            email: email.trim(),
+            rating: parseInt(rating),
+            opinion: opinion.trim(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        const docRef = await db.collection('rates').add(rateData);
+        res.status(201).json({ id: docRef.id, ...rateData });
+    } catch (error) {
+        console.error('Error creating rate:', error);
+        res.status(500).json({ error: 'Failed to submit rate' });
+    }
+});
+
+app.get('/api/rates', async (req, res) => {
+    try {
+        const { rating } = req.query;
+        let query = db.collection('rates').orderBy('createdAt', 'desc');
+
+        if (rating) {
+            query = query.where('rating', '==', parseInt(rating));
+        }
+
+        const snapshot = await query.get();
+        const rates = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            rates.push({
+                id: doc.id,
+                ...data,
+                createdAt: data.createdAt?.toDate?.()?.toISOString() || null
+            });
+        });
+        res.json(rates);
+    } catch (error) {
+        console.error('Error fetching rates:', error);
+        res.status(500).json({ error: 'Failed to fetch rates' });
+    }
+});
+
+app.delete('/api/rates/:id', requireAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        await db.collection('rates').doc(id).delete();
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting rate:', error);
+        res.status(500).json({ error: 'Failed to delete rate' });
+    }
+});
+
+// ---------- ORDERS ----------
+app.post('/api/orders', async (req, res) => {
+    try {
+        const { name, phone, email, orderText } = req.body;
+
+        if (!name || !phone || !email || !orderText) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        if (!validateEmail(email)) {
+            return res.status(400).json({ error: 'Invalid email format' });
+        }
+
+        if (!validatePhone(phone)) {
+            return res.status(400).json({ error: 'Invalid phone format' });
+        }
+
+        const orderData = {
+            name: name.trim(),
+            phone: phone.trim(),
+            email: email.trim(),
+            orderText: orderText.trim(),
+            status: 'pending',
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        const docRef = await db.collection('orders').add(orderData);
+        res.status(201).json({ id: docRef.id, ...orderData });
+    } catch (error) {
+        console.error('Error creating order:', error);
+        res.status(500).json({ error: 'Failed to submit order' });
+    }
+});
+
+app.get('/api/orders', async (req, res) => {
+    try {
+        const { status } = req.query;
+        let query = db.collection('orders').orderBy('createdAt', 'desc');
+
+        if (status && status !== 'all') {
+            query = query.where('status', '==', status);
+        }
+
+        const snapshot = await query.get();
+        const orders = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            orders.push({
+                id: doc.id,
+                ...data,
+                createdAt: data.createdAt?.toDate?.()?.toISOString() || null
+            });
+        });
+        res.json(orders);
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        res.status(500).json({ error: 'Failed to fetch orders' });
+    }
+});
+
+app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        const validStatuses = ['pending', 'processing', 'completed', 'cancelled'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ error: 'Invalid status' });
+        }
+
+        await db.collection('orders').doc(id).update({
+            status,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating order:', error);
+        res.status(500).json({ error: 'Failed to update order' });
+    }
+});
+
+app.delete('/api/orders/:id', requireAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        await db.collection('orders').doc(id).delete();
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting order:', error);
+        res.status(500).json({ error: 'Failed to delete order' });
     }
 });
 

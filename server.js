@@ -76,6 +76,7 @@ app.use('/api/login', authLimiter);
 app.use('/api/contact', contactLimiter);
 app.use('/api/upload', limiter);
 app.use('/api/stats', limiter);
+app.use('/api/send-email', limiter);
 
 // ============ Firebase Admin with Retry Logic ============
 let firebaseConfig;
@@ -717,6 +718,67 @@ app.get('/api/stats', requireAuth, async (req, res) => {
         } else {
             res.status(500).json({ error: 'Failed to fetch stats' });
         }
+    }
+});
+
+// ---------- Send Email (Admin) ----------
+app.post('/api/send-email', requireAuth, async (req, res) => {
+    try {
+        const { name, email, message } = req.body;
+
+        if (!name || !email || !message) {
+            return res.status(400).json({ error: 'Name, email, and message are required' });
+        }
+
+        if (!validateEmail(email)) {
+            return res.status(400).json({ error: 'Invalid email format' });
+        }
+
+        if (!transporter) {
+            return res.status(500).json({ error: 'Email service not configured' });
+        }
+
+        // إرسال البريد الإلكتروني باسم Shulamith Gallery
+        const mailOptions = {
+            from: `"Shulamith Gallery" <${process.env.SMTP_FROM_EMAIL}>`,
+            to: email,
+            subject: `📧 رسالة من Shulamith Gallery`,
+            html: `
+                <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #1a1a1a; color: #e8e0d4; border-radius: 12px; border: 1px solid #333;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" style="max-width: 150px; height: auto; border-radius: 8px;">
+                    </div>
+                    <div style="border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px;">
+                        <h2 style="color: #d4b892; margin: 0; font-weight: 300;">Shulamith Gallery</h2>
+                        <p style="color: #b0a89a; margin: 5px 0 0 0;">${new Date().toLocaleDateString('ar-EG')}</p>
+                    </div>
+                    <div style="background: #252525; padding: 20px; border-radius: 8px; border-right: 3px solid #d4b892;">
+                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">المرسل:</strong> ${name}</p>
+                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">البريد:</strong> ${email}</p>
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
+                            <p style="color: #d4c8b8; margin: 0 0 8px 0;"><strong style="color: #d4b892;">الرسالة:</strong></p>
+                            <p style="color: #e8e0d4; margin: 0; line-height: 1.8; background: #1a1a1a; padding: 12px; border-radius: 6px;">${message}</p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #333; text-align: center;">
+                        <p style="color: #999; font-size: 14px; margin: 0;">
+                            © 2026 <strong style="color: #d4b892;">Shulamith Gallery</strong>. All rights reserved.
+                        </p>
+                        <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">
+                            شولميث جاليري — حيث يلتقي الفن بالجمال
+                        </p>
+                    </div>
+                </div>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('✅ Email sent to:', email);
+
+        res.json({ success: true, message: 'Email sent successfully' });
+    } catch (error) {
+        console.error('Send email error:', error);
+        res.status(500).json({ error: 'Failed to send email: ' + error.message });
     }
 });
 

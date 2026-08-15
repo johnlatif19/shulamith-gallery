@@ -492,6 +492,26 @@
             color: var(--color-error);
         }
 
+        .badge-status.pending {
+            background: rgba(243, 156, 18, 0.15);
+            color: var(--color-warning);
+        }
+
+        .badge-status.processing {
+            background: rgba(52, 152, 219, 0.15);
+            color: #3498db;
+        }
+
+        .badge-status.completed {
+            background: rgba(46, 204, 113, 0.15);
+            color: var(--color-success);
+        }
+
+        .badge-status.cancelled {
+            background: rgba(231, 76, 60, 0.15);
+            color: var(--color-error);
+        }
+
         /* ===== RECENT MESSAGES ===== */
         .recent-section {
             background: var(--color-bg-card);
@@ -999,6 +1019,42 @@
             display: none;
         }
 
+        /* ===== SETTINGS FORM ===== */
+        .settings-form .form-group {
+            margin-bottom: 16px;
+        }
+
+        .settings-form .form-group label {
+            display: block;
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .settings-form .form-group input,
+        .settings-form .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            color: var(--color-text);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .settings-form .form-group input:focus,
+        .settings-form .form-group textarea:focus {
+            outline: none;
+            border-color: var(--color-primary-dark);
+            box-shadow: 0 0 0 3px rgba(212, 184, 146, 0.08);
+        }
+
+        .settings-form .form-group textarea {
+            resize: vertical;
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 992px) {
             .sidebar {
@@ -1188,6 +1244,14 @@
                     ✉️ الرسائل
                     <span class="badge" id="unreadBadge" style="display:none;">0</span>
                 </button>
+                <button class="nav-item" data-section="rates">
+                    ⭐ التقييمات
+                    <span class="badge" id="ratesBadge" style="display:none;">0</span>
+                </button>
+                <button class="nav-item" data-section="orders">
+                    📦 الطلبات
+                    <span class="badge" id="ordersBadge" style="display:none;">0</span>
+                </button>
                 <button class="nav-item" data-section="send">
                     📧 إرسال رسالة
                 </button>
@@ -1245,6 +1309,20 @@
                             <div class="stat-info">
                                 <h3>المميزة</h3>
                                 <p class="stat-number" id="statFeatured">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⭐</div>
+                            <div class="stat-info">
+                                <h3>التقييمات</h3>
+                                <p class="stat-number" id="statRates">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">📦</div>
+                            <div class="stat-info">
+                                <h3>الطلبات</h3>
+                                <p class="stat-number" id="statOrders">0</p>
                             </div>
                         </div>
                     </div>
@@ -1305,6 +1383,51 @@
                     </div>
                 </section>
 
+                <!-- ===== RATES SECTION ===== -->
+                <section id="section-rates" class="section">
+                    <div class="section-header">
+                        <h2>⭐ التقييمات</h2>
+                        <div class="filter-group">
+                            <select id="ratesFilter" class="filter-select">
+                                <option value="all">الكل</option>
+                                <option value="5">5 نجوم</option>
+                                <option value="4">4 نجوم</option>
+                                <option value="3">3 نجوم</option>
+                                <option value="2">2 نجوم</option>
+                                <option value="1">نجمة</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-container" id="ratesContainer">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p>جاري التحميل...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== ORDERS SECTION ===== -->
+                <section id="section-orders" class="section">
+                    <div class="section-header">
+                        <h2>📦 الطلبات</h2>
+                        <div class="filter-group">
+                            <select id="ordersFilter" class="filter-select">
+                                <option value="all">الكل</option>
+                                <option value="pending">قيد الانتظار</option>
+                                <option value="processing">قيد التنفيذ</option>
+                                <option value="completed">مكتمل</option>
+                                <option value="cancelled">ملغي</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-container" id="ordersContainer">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p>جاري التحميل...</p>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- ===== SEND MESSAGE SECTION ===== -->
                 <section id="section-send" class="section">
                     <div class="section-header">
@@ -1346,47 +1469,47 @@
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
                             <div class="form-group" style="grid-column: 1 / -1;">
                                 <label for="siteName">اسم الموقع</label>
-                                <input type="text" id="siteName" name="siteName" required style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                                <input type="text" id="siteName" name="siteName" required>
                             </div>
                             <div class="form-group" style="grid-column: 1 / -1;">
                                 <label for="siteLogo">رابط الشعار</label>
-                                <input type="url" id="siteLogo" name="logo" required style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                                <input type="url" id="siteLogo" name="logo" required>
                             </div>
                             <div class="form-group" style="grid-column: 1 / -1;">
                                 <label for="aboutText">نص عن الفنانة</label>
-                                <textarea id="aboutText" name="aboutText" rows="4" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem; resize:vertical;"></textarea>
+                                <textarea id="aboutText" name="aboutText" rows="4"></textarea>
                             </div>
                             <div class="form-group">
                                 <label for="sitePhone">الهاتف</label>
-                                <input type="text" id="sitePhone" name="phone" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                                <input type="text" id="sitePhone" name="phone">
                             </div>
                             <div class="form-group">
                                 <label for="siteEmail">البريد الإلكتروني</label>
-                                <input type="email" id="siteEmail" name="email" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                                <input type="email" id="siteEmail" name="email">
                             </div>
                             <div class="form-group">
                                 <label for="siteAddress">العنوان</label>
-                                <input type="text" id="siteAddress" name="address" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                                <input type="text" id="siteAddress" name="address">
                             </div>
                             <div class="form-group">
                                 <label for="instagramUrl">إنستغرام</label>
-                                <input type="text" id="instagramUrl" name="instagram" placeholder="username" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                                <input type="text" id="instagramUrl" name="instagram" placeholder="username">
                             </div>
                             <div class="form-group">
                                 <label for="facebookUrl">فيسبوك</label>
-                                <input type="text" id="facebookUrl" name="facebook" placeholder="page_id" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                                <input type="text" id="facebookUrl" name="facebook" placeholder="page_id">
                             </div>
                             <div class="form-group">
                                 <label for="whatsappNumber">واتساب</label>
-                                <input type="text" id="whatsappNumber" name="whatsapp" placeholder="201234567890" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                                <input type="text" id="whatsappNumber" name="whatsapp" placeholder="201234567890">
                             </div>
                             <div class="form-group" style="grid-column: 1 / -1;">
                                 <label for="heroText">نص الهيرو</label>
-                                <input type="text" id="heroText" name="heroText" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                                <input type="text" id="heroText" name="heroText">
                             </div>
                             <div class="form-group" style="grid-column: 1 / -1;">
                                 <label for="footerText">نص الفوتر</label>
-                                <input type="text" id="footerText" name="footerText" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                                <input type="text" id="footerText" name="footerText">
                             </div>
                         </div>
                         <button type="submit" class="add-btn" id="settingsSubmit" style="margin-top:16px; width:100%; padding:12px;">
@@ -1682,6 +1805,8 @@
                 galleries: 'المعارض',
                 artworks: 'الأعمال الفنية',
                 messages: 'الرسائل',
+                rates: 'التقييمات',
+                orders: 'الطلبات',
                 send: 'إرسال رسالة',
                 settings: 'الإعدادات'
             };
@@ -1693,6 +1818,8 @@
             else if (section === 'galleries') loadGalleries();
             else if (section === 'artworks') loadArtworks();
             else if (section === 'messages') loadMessages();
+            else if (section === 'rates') loadRates();
+            else if (section === 'orders') loadOrders();
             else if (section === 'settings') loadSettings();
         }
 
@@ -1706,6 +1833,20 @@
                 document.getElementById('statArtworks').textContent = data.artworks || 0;
                 document.getElementById('statMessages').textContent = data.messages || 0;
                 document.getElementById('statFeatured').textContent = data.featured || 0;
+                
+                // Get rates count
+                try {
+                    const ratesRes = await fetch('/api/rates');
+                    const ratesData = await ratesRes.json();
+                    document.getElementById('statRates').textContent = ratesData.length || 0;
+                } catch (e) {}
+                
+                // Get orders count
+                try {
+                    const ordersRes = await fetch('/api/orders');
+                    const ordersData = await ordersRes.json();
+                    document.getElementById('statOrders').textContent = ordersData.length || 0;
+                } catch (e) {}
                 
                 const badge = document.getElementById('unreadBadge');
                 if (data.unreadMessages > 0) {
@@ -2072,6 +2213,166 @@
         };
 
         // ============================================
+        // ===== LOAD RATES =====
+        // ============================================
+        async function loadRates(filter = 'all') {
+            const container = document.getElementById('ratesContainer');
+            try {
+                let url = '/api/rates';
+                if (filter !== 'all') url += `?rating=${filter}`;
+                const data = await apiFetch(url);
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<div class="empty-state">لا توجد تقييمات حالياً</div>';
+                    return;
+                }
+                let html = `
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>البريد</th>
+                                    <th>التقييم</th>
+                                    <th>الرأي</th>
+                                    <th>التاريخ</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                data.forEach(rate => {
+                    const stars = '★'.repeat(rate.rating) + '☆'.repeat(5 - rate.rating);
+                    const date = rate.createdAt ? new Date(rate.createdAt).toLocaleDateString('ar') : '';
+                    html += `
+                        <tr>
+                            <td>${rate.name}</td>
+                            <td>${rate.email}</td>
+                            <td style="color:#f1c40f;">${stars}</td>
+                            <td>${rate.opinion.substring(0, 40)}${rate.opinion.length > 40 ? '...' : ''}</td>
+                            <td>${date}</td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="btn-delete" onclick="window.confirmDelete('rate', '${rate.id}')">🗑️ حذف</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+
+                const badge = document.getElementById('ratesBadge');
+                if (data.length > 0) {
+                    badge.textContent = data.length;
+                    badge.style.display = 'inline';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading rates:', error);
+                container.innerHTML = '<div class="empty-state">حدث خطأ في تحميل التقييمات</div>';
+            }
+        }
+
+        // ============================================
+        // ===== LOAD ORDERS =====
+        // ============================================
+        async function loadOrders(filter = 'all') {
+            const container = document.getElementById('ordersContainer');
+            try {
+                let url = '/api/orders';
+                if (filter !== 'all') url += `?status=${filter}`;
+                const data = await apiFetch(url);
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<div class="empty-state">لا توجد طلبات حالياً</div>';
+                    return;
+                }
+                let html = `
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>الهاتف</th>
+                                    <th>البريد</th>
+                                    <th>الطلب</th>
+                                    <th>الحالة</th>
+                                    <th>التاريخ</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                const statusMap = {
+                    pending: '⏳ قيد الانتظار',
+                    processing: '🔄 قيد التنفيذ',
+                    completed: '✅ مكتمل',
+                    cancelled: '❌ ملغي'
+                };
+                data.forEach(order => {
+                    const statusText = statusMap[order.status] || order.status;
+                    const date = order.createdAt ? new Date(order.createdAt).toLocaleDateString('ar') : '';
+                    html += `
+                        <tr>
+                            <td>${order.name}</td>
+                            <td>${order.phone}</td>
+                            <td>${order.email}</td>
+                            <td>${order.orderText.substring(0, 40)}${order.orderText.length > 40 ? '...' : ''}</td>
+                            <td><span class="badge-status ${order.status}">${statusText}</span></td>
+                            <td>${date}</td>
+                            <td>
+                                <div class="table-actions">
+                                    <select class="filter-select" onchange="window.updateOrderStatus('${order.id}', this.value)" style="padding:2px 8px; font-size:0.75rem;">
+                                        <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>قيد الانتظار</option>
+                                        <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>قيد التنفيذ</option>
+                                        <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>مكتمل</option>
+                                        <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>ملغي</option>
+                                    </select>
+                                    <button class="btn-delete" onclick="window.confirmDelete('order', '${order.id}')">🗑️ حذف</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+
+                const badge = document.getElementById('ordersBadge');
+                const pending = data.filter(o => o.status === 'pending' || o.status === 'processing');
+                if (pending.length > 0) {
+                    badge.textContent = pending.length;
+                    badge.style.display = 'inline';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                container.innerHTML = '<div class="empty-state">حدث خطأ في تحميل الطلبات</div>';
+            }
+        }
+
+        // ============================================
+        // ===== UPDATE ORDER STATUS =====
+        // ============================================
+        window.updateOrderStatus = async function(id, status) {
+            try {
+                const res = await fetch(`/api/orders/${id}/status`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ status })
+                });
+                if (res.ok) {
+                    showToast('تم تحديث حالة الطلب');
+                    loadOrders(document.getElementById('ordersFilter').value);
+                } else {
+                    showToast('حدث خطأ', 'error');
+                }
+            } catch (error) {
+                showToast('حدث خطأ', 'error');
+            }
+        };
+
+        // ============================================
         // ===== LOAD SETTINGS =====
         // ============================================
         async function loadSettings() {
@@ -2108,7 +2409,6 @@
             status.className = 'form-status';
             status.style.display = 'none';
             
-            // Validate
             if (!name.value.trim() || !email.value.trim() || !message.value.trim()) {
                 status.className = 'form-status error';
                 status.style.display = 'block';
@@ -2116,7 +2416,6 @@
                 return;
             }
             
-            // Validate email
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
                 status.className = 'form-status error';
                 status.style.display = 'block';
@@ -2171,7 +2470,9 @@
             const messages = {
                 gallery: 'هل أنت متأكد من حذف هذا المعرض؟',
                 artwork: 'هل أنت متأكد من حذف هذا العمل الفني؟',
-                message: 'هل أنت متأكد من حذف هذه الرسالة؟'
+                message: 'هل أنت متأكد من حذف هذه الرسالة؟',
+                rate: 'هل أنت متأكد من حذف هذا التقييم؟',
+                order: 'هل أنت متأكد من حذف هذا الطلب؟'
             };
             document.getElementById('confirmMessage').textContent = messages[type] || 'هل أنت متأكد من حذف هذا العنصر؟';
             document.getElementById('confirmModal').classList.add('active');
@@ -2379,6 +2680,16 @@
                 loadMessages(this.value);
             });
             
+            // Rates filter
+            document.getElementById('ratesFilter').addEventListener('change', function() {
+                loadRates(this.value);
+            });
+            
+            // Orders filter
+            document.getElementById('ordersFilter').addEventListener('change', function() {
+                loadOrders(this.value);
+            });
+            
             // Settings form
             document.getElementById('settingsForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
@@ -2450,6 +2761,8 @@
                     if (type === 'gallery') url = `/api/galleries/${id}`;
                     else if (type === 'artwork') url = `/api/artworks/${id}`;
                     else if (type === 'message') url = `/api/messages/${id}`;
+                    else if (type === 'rate') url = `/api/rates/${id}`;
+                    else if (type === 'order') url = `/api/orders/${id}`;
                     
                     const res = await fetch(url, {
                         method: 'DELETE',
@@ -2462,6 +2775,8 @@
                         if (type === 'gallery') { loadGalleries(); loadStats(); }
                         else if (type === 'artwork') { loadArtworks(); loadStats(); }
                         else if (type === 'message') { loadMessages(document.getElementById('messageFilter').value); loadStats(); }
+                        else if (type === 'rate') { loadRates(document.getElementById('ratesFilter').value); loadStats(); }
+                        else if (type === 'order') { loadOrders(document.getElementById('ordersFilter').value); loadStats(); }
                     } else {
                         const data = await res.json();
                         showToast(data.error || 'حدث خطأ', 'error');

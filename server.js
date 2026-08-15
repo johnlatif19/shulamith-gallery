@@ -111,38 +111,65 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// ============ Email Transporter (with fallback) ============
+// ============ Email Transporter (with better error handling) ============
 let transporter = null;
+let emailConfigured = false;
+
 try {
     const nodemailerModule = require('nodemailer');
     if (nodemailerModule && typeof nodemailerModule.createTransporter === 'function') {
-        transporter = nodemailerModule.createTransporter({
-            host: process.env.SMTP_HOST,
-            port: parseInt(process.env.SMTP_PORT),
-            secure: process.env.SMTP_SECURE === 'true',
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASSWORD
-            },
-            // مهلة الاتصال
-            connectionTimeout: 5000,
-            greetingTimeout: 5000,
-            socketTimeout: 5000
-        });
-        // Verify connection (non-blocking)
-        transporter.verify(function(error, success) {
-            if (error) {
-                console.warn('⚠️ SMTP connection error:', error.message);
-                transporter = null;
-            } else {
-                console.log('✅ SMTP configured and verified');
-            }
-        });
+        // التحقق من وجود متغيرات البيئة
+        const smtpHost = process.env.SMTP_HOST;
+        const smtpPort = parseInt(process.env.SMTP_PORT);
+        const smtpUser = process.env.SMTP_USER;
+        const smtpPass = process.env.SMTP_PASSWORD;
+        const smtpFromEmail = process.env.SMTP_FROM_EMAIL;
+
+        if (!smtpHost || !smtpPort || !smtpUser || !smtpPass || !smtpFromEmail) {
+            console.warn('⚠️ SMTP configuration incomplete. Email features disabled.');
+            console.warn('   Required: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM_EMAIL');
+        } else {
+            transporter = nodemailerModule.createTransporter({
+                host: smtpHost,
+                port: smtpPort,
+                secure: process.env.SMTP_SECURE === 'true',
+                auth: {
+                    user: smtpUser,
+                    pass: smtpPass
+                },
+                connectionTimeout: 5000,
+                greetingTimeout: 5000,
+                socketTimeout: 5000,
+                tls: {
+                    rejectUnauthorized: false
+                }
+            });
+
+            // Verify connection (non-blocking)
+            transporter.verify(function(error, success) {
+                if (error) {
+                    console.warn('⚠️ SMTP connection error:', error.message);
+                    console.warn('   Please check your SMTP credentials and try again.');
+                    transporter = null;
+                    emailConfigured = false;
+                } else {
+                    console.log('✅ SMTP configured and verified successfully');
+                    emailConfigured = true;
+                }
+            });
+        }
     } else {
         console.warn('⚠️ Nodemailer.createTransporter not available, email features disabled');
     }
 } catch (error) {
     console.warn('⚠️ Failed to initialize nodemailer:', error.message);
+    transporter = null;
+    emailConfigured = false;
+}
+
+// دالة مساعدة للتحقق من جاهزية البريد
+function isEmailConfigured() {
+    return transporter !== null && emailConfigured === true;
 }
 
 // ============ JWT Helpers ============
@@ -532,7 +559,7 @@ app.post('/api/contact', async (req, res) => {
         const docRef = await db.collection('messages').add(messageData);
 
         // Send confirmation email (non-blocking)
-        if (email && transporter) {
+        if (email && transporter && emailConfigured) {
             // إرسال البريد في الخلفية دون انتظار
             setImmediate(async () => {
                 try {
@@ -561,7 +588,7 @@ app.post('/api/contact', async (req, res) => {
                     });
                     console.log('✅ Confirmation email sent to:', email);
                 } catch (error) {
-                    console.error('Error sending email:', error);
+                    console.error('Error sending confirmation email:', error);
                 }
             });
         }
@@ -734,8 +761,12 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
             return res.status(400).json({ error: 'Invalid email format' });
         }
 
-        if (!transporter) {
-            return res.status(500).json({ error: 'Email service not configured' });
+        // التحقق من تهيئة البريد بشكل أفضل
+        if (!transporter || !emailConfigured) {
+            console.error('❌ Email service not configured. Please check SMTP settings.');
+            return res.status(500).json({
+                error: 'Email service not configured. Please check SMTP settings in .env file.'
+            });
         }
 
         // إرسال البريد الإلكتروني باسم Shulamith Gallery

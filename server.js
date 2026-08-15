@@ -600,7 +600,7 @@ app.post('/api/contact', async (req, res) => {
 
         const docRef = await db.collection('messages').add(messageData);
 
-        // Send confirmation email in background
+        // Send confirmation email to the user
         if (email && transporter && emailConfigured) {
             setImmediate(async () => {
                 try {
@@ -611,13 +611,13 @@ app.post('/api/contact', async (req, res) => {
                         html: `
                             <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #1a1a1a; color: #e8e0d4; border-radius: 12px;">
                                 <div style="text-align: center; margin-bottom: 30px;">
-                                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" style="max-width: 150px; height: auto;">
+                                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" style="max-width: 150px; height: auto; border-radius: 8px;">
                                 </div>
                                 <h2 style="color: #d4b892; margin-bottom: 20px;">مرحباً ${name}،</h2>
-                                <p style="line-height: 1.8; color: #d4c8b8;">تم استقبال استفساركم وسيتم الرد في أقرب وقت.</p>
+                                <p style="line-height: 1.8; color: #d4c8b8;">تم استلام استفساركم وسيتم الرد في أقرب وقت.</p>
                                 <p style="line-height: 1.8; color: #d4c8b8;">شكراً لتواصلك مع <strong style="color: #d4b892;">Shulamith Gallery</strong>.</p>
-                                <div style="margin: 30px 0; padding: 20px; background: #252525; border-radius: 8px; border-left: 3px solid #d4b892;">
-                                    <p style="margin: 5px 0; color: #d4c8b8;"><strong style="color: #d4b892;">الرسالة:</strong></p>
+                                <div style="margin: 30px 0; padding: 20px; background: #252525; border-radius: 8px; border-right: 3px solid #d4b892;">
+                                    <p style="margin: 5px 0; color: #d4c8b8;"><strong style="color: #d4b892;">رسالتك:</strong></p>
                                     <p style="margin: 10px 0 0 0; color: #e8e0d4; font-style: italic;">${message}</p>
                                 </div>
                                 <hr style="border: none; border-top: 1px solid #333; margin: 30px 0;">
@@ -762,7 +762,6 @@ app.get('/api/rates', async (req, res) => {
     }
 });
 
-// ---------- Update Rate ----------
 app.put('/api/rates/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
@@ -868,7 +867,6 @@ app.get('/api/orders', async (req, res) => {
     }
 });
 
-// ---------- Update Order ----------
 app.put('/api/orders/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;

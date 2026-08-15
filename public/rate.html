@@ -459,7 +459,7 @@
     <!-- ===== PAGE HEADER ===== -->
     <section class="page-header">
         <div class="container">
-            <h1>⭐ التقييمات</h1>
+            <h1>التقييمات</h1>
             <p>شاركنا رأيك وساعدنا في تحسين خدماتنا</p>
         </div>
     </section>
@@ -519,7 +519,7 @@
     <section>
         <div class="container">
             <div class="rates-section">
-                <h2>📝 آراء العملاء</h2>
+                <h2>آراء العملاء</h2>
                 <div class="rates-grid" id="ratesGrid">
                     <div class="empty-state">لا توجد تقييمات حالياً</div>
                 </div>
@@ -537,6 +537,7 @@
     <script>
         // ===== LANGUAGE =====
         let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
+        let refreshInterval = null;
 
         function setLanguage(lang) {
             currentLang = lang;
@@ -561,6 +562,9 @@
             const grid = document.getElementById('ratesGrid');
             try {
                 const res = await fetch('/api/rates');
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
                 const data = await res.json();
 
                 if (!data || data.length === 0) {
@@ -578,7 +582,7 @@
                                 <span class="rate-name">${rate.name}</span>
                                 <span class="rate-stars">${stars}</span>
                             </div>
-                            <div class="rate-email">📧 ${rate.email}</div>
+                            <div class="rate-email">${rate.email}</div>
                             <div class="rate-opinion">${rate.opinion}</div>
                             <div class="rate-date">${date}</div>
                         </div>
@@ -653,7 +657,7 @@
                 if (res.ok) {
                     status.className = 'form-status success';
                     status.style.display = 'block';
-                    status.textContent = '✓ تم إرسال التقييم بنجاح! شكراً لك.';
+                    status.textContent = 'تم إرسال التقييم بنجاح! شكراً لك.';
                     this.reset();
                     loadRates();
                 } else {
@@ -672,9 +676,27 @@
             }
         });
 
+        // ===== REFRESH FUNCTION =====
+        function startAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            refreshInterval = setInterval(() => {
+                loadRates();
+            }, 5000);
+        }
+
         // ===== INIT =====
         setLanguage(currentLang);
         loadRates();
+        startAutoRefresh();
+
+        // Clean up interval on page unload
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
     </script>
 </body>
 </html>

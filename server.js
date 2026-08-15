@@ -61,15 +61,21 @@ app.use('/api/upload', limiter);
 // ============ Firebase Admin ============
 let firebaseConfig;
 try {
-  firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
+    firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
 } catch (e) {
-  console.error('Error parsing FIREBASE_CONFIG:', e.message);
-  process.exit(1);
+    console.error('Error parsing FIREBASE_CONFIG:', e.message);
+    process.exit(1);
 }
 
-admin.initializeApp({
-  credential: admin.credential.cert(firebaseConfig)
-});
+// IMPORTANT: Check if app already exists (prevics Vercel duplicate issue)
+if (!admin.apps.length) {
+    admin.initializeApp({
+        credential: admin.credential.cert(firebaseConfig)
+    });
+    console.log('✅ Firebase initialized successfully');
+} else {
+    console.log('✅ Firebase app already exists, reusing...');
+}
 
 const db = admin.firestore();
 

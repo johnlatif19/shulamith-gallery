@@ -28,6 +28,18 @@
       "dest": "/public/dashboard.html"
     },
     {
+      "src": "/gallery",
+      "dest": "/public/gallery.html"
+    },
+    {
+      "src": "/rate",
+      "dest": "/public/rate.html"
+    },
+    {
+      "src": "/order",
+      "dest": "/public/order.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }

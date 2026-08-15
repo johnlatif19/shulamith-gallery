@@ -6,7 +6,6 @@ const rateLimit = require('express-rate-limit');
 const admin = require('firebase-admin');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
-const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
@@ -67,7 +66,7 @@ try {
     process.exit(1);
 }
 
-// IMPORTANT: Check if app already exists (prevics Vercel duplicate issue)
+// IMPORTANT: Check if app already exists (prevents Vercel duplicate issue)
 if (!admin.apps.length) {
     admin.initializeApp({
         credential: admin.credential.cert(firebaseConfig)
@@ -86,16 +85,36 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// ============ Email Transporter ============
-const transporter = nodemailer.createTransporter({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASSWORD
-  }
-});
+// ============ Email Transporter (with fallback) ============
+let transporter = null;
+try {
+    // Try to require nodemailer properly
+    const nodemailerModule = require('nodemailer');
+    if (nodemailerModule && typeof nodemailerModule.createTransporter === 'function') {
+        transporter = nodemailerModule.createTransporter({
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT),
+            secure: process.env.SMTP_SECURE === 'true',
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASSWORD
+            }
+        });
+        // Verify connection
+        transporter.verify(function(error, success) {
+            if (error) {
+                console.warn('⚠️ SMTP connection error:', error.message);
+                transporter = null;
+            } else {
+                console.log('✅ SMTP configured and verified');
+            }
+        });
+    } else {
+        console.warn('⚠️ Nodemailer.createTransporter not available, email features disabled');
+    }
+} catch (error) {
+    console.warn('⚠️ Failed to initialize nodemailer:', error.message);
+}
 
 // ============ JWT Helpers ============
 const generateToken = (username) => {
@@ -476,8 +495,8 @@ app.post('/api/contact', async (req, res) => {
 
     const docRef = await db.collection('messages').add(messageData);
 
-    // Send confirmation email
-    if (email) {
+    // Send confirmation email (only if transporter is available)
+    if (email && transporter) {
       try {
         await transporter.sendMail({
           from: `"${process.env.SMTP_FROM_NAME}" <${process.env.SMTP_FROM_EMAIL}>`,
@@ -502,10 +521,13 @@ app.post('/api/contact', async (req, res) => {
             </div>
           `
         });
+        console.log('✅ Confirmation email sent to:', email);
       } catch (error) {
         console.error('Error sending email:', error);
         // Don't fail the request if email fails
       }
+    } else {
+      console.warn('⚠️ Email not sent - transporter not available or email missing');
     }
 
     res.status(201).json({ 

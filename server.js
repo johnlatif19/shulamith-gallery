@@ -7,7 +7,6 @@ const admin = require('firebase-admin');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 
 const app = express();
@@ -55,7 +54,6 @@ const limiter = rateLimit({
     message: { error: 'Too many requests, please try again later.' },
     standardHeaders: true,
     legacyHeaders: false,
-    // ✅ إضافة هذا لـ Vercel
     keyGenerator: (req) => {
         return req.ip || req.headers['x-forwarded-for'] || 'unknown';
     }
@@ -156,15 +154,19 @@ const initializeTransporter = async () => {
                     user: process.env.SMTP_USER,
                     pass: process.env.SMTP_PASSWORD
                 },
-                connectionTimeout: 10000,
-                greetingTimeout: 10000,
-                socketTimeout: 10000
+                connectionTimeout: 30000,
+                greetingTimeout: 30000,
+                socketTimeout: 30000,
+                tls: {
+                    ciphers: 'SSLv3',
+                    rejectUnauthorized: false
+                }
             });
 
             await Promise.race([
                 newTransporter.verify(),
                 new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('SMTP verification timeout')), 10000)
+                    setTimeout(() => reject(new Error('SMTP verification timeout')), 20000)
                 )
             ]);
 
@@ -179,10 +181,9 @@ const initializeTransporter = async () => {
             if (error.message.includes('535-5.7.8')) {
                 console.error('🔴 GMAIL AUTH ERROR: Use App Password, not regular password');
                 console.error('🔴 Get one at: https://myaccount.google.com/apppasswords');
-            } else if (error.message.includes('ECONNREFUSED')) {
-                console.error('🔴 CONNECTION REFUSED: Check firewall/internet');
             } else if (error.message.includes('timeout')) {
-                console.error('🔴 TIMEOUT: Network might be blocking the connection');
+                console.error('🔴 TIMEOUT: Vercel might be blocking the connection');
+                console.error('🔴 Try changing SMTP_PORT to 587 and SMTP_SECURE to false');
             }
             
             transporter = null;
@@ -199,7 +200,6 @@ const initializeTransporter = async () => {
 // ✅ تهيئة SMTP عند بدء التشغيل
 initializeTransporter().catch(console.error);
 
-// ✅ دالة مساعدة للحصول على transporter جاهز
 async function getTransporter() {
     if (transporter && emailConfigured) {
         return transporter;
@@ -261,10 +261,10 @@ const validatePhone = (phone) => {
     return /^[\d+\s-()]{8,20}$/.test(phone);
 };
 
-// ============ باقي الـ Routes (نفس الكود السابق) ============
-// ... كل الـ Routes من هنا (لم تتغير) ...
+// ============ جميع Routes (نفس الكود السابق) ============
+// ... (جميع Routes من /api/login إلى /api/stats كما هي) ...
 
-// ---------- Send Email (Admin) - معدل ----------
+// ============ Send Email (Admin) ============
 app.post('/api/send-email', requireAuth, async (req, res) => {
     try {
         const { name, email, message } = req.body;
@@ -330,7 +330,7 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
     }
 });
 
-// ============ Health Check (معدل) ============
+// ============ Health Check ============
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'ok',

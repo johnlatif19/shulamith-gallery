@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المعارض — Shulamith Gallery</title>
+    <meta name="description" content="استكشف معارض Shulamith Gallery الفنية المميزة">
+    
+    <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
+    
+    <style>
+        :root {
+            --color-bg: #0d0b0a;
+            --color-bg-secondary: #161210;
+            --color-bg-card: #1e1a18;
+            --color-bg-hover: #2a2421;
+            --color-primary: #d4b892;
+            --color-primary-light: #e8d4bc;
+            --color-primary-dark: #b89a72;
+            --color-text: #e8e0d4;
+            --color-text-muted: #b0a89a;
+            --color-text-dark: #8a8272;
+            --color-border: #2a2421;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Tahoma', Arial, sans-serif;
+            background: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        body.rtl { direction: rtl; }
+        body.ltr { direction: ltr; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--color-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--color-primary-dark); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(13, 11, 10, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--color-border);
+            transition: var(--transition);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 70px;
+        }
+
+        .nav-logo img {
+            height: 45px;
+            width: auto;
+            border-radius: var(--radius-sm);
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-menu li a {
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: var(--transition);
+            padding: 4px 0;
+            position: relative;
+        }
+
+        .nav-menu li a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1.5px;
+            background: var(--color-primary);
+            transition: var(--transition);
+        }
+
+        .nav-menu li a:hover,
+        .nav-menu li a.active {
+            color: var(--color-white);
+        }
+
+        .nav-menu li a:hover::after,
+        .nav-menu li a.active::after {
+            width: 100%;
+        }
+
+        body.ltr .nav-menu li a::after { left: 0; right: auto; }
+        body.rtl .nav-menu li a::after { left: auto; right: 0; }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .lang-switch {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .lang-switch:hover {
+            background: var(--color-bg-hover);
+            border-color: var(--color-primary-dark);
+        }
+
+        .nav-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .nav-toggle span {
+            display: block;
+            width: 26px;
+            height: 2px;
+            background: var(--color-text);
+            transition: var(--transition);
+            border-radius: 2px;
+        }
+
+        .nav-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .nav-toggle.active span:nth-child(2) { opacity: 0; }
+        .nav-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: rgba(13, 11, 10, 0.98);
+                flex-direction: column;
+                padding: 20px;
+                gap: 16px;
+                border-bottom: 1px solid var(--color-border);
+            }
+            .nav-menu.active { display: flex; }
+            .nav-toggle { display: flex; }
+        }
+
+        /* ===== PAGE HEADER ===== */
+        .page-header {
+            padding: 110px 0 40px;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-size: 2.8rem;
+            font-weight: 300;
+            color: var(--color-primary);
+            letter-spacing: 2px;
+        }
+
+        .page-header p {
+            color: var(--color-text-muted);
+            font-size: 1.1rem;
+            margin-top: 8px;
+        }
+
+        /* ===== GALLERY GRID ===== */
+        .galleries-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+            padding-bottom: 60px;
+        }
+
+        .gallery-card {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .gallery-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--color-primary-dark);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        }
+
+        .gallery-card-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            display: block;
+            background: var(--color-bg-secondary);
+        }
+
+        .gallery-card-content {
+            padding: 20px 24px 24px;
+        }
+
+        .gallery-card-content h3 {
+            color: var(--color-primary);
+            font-size: 1.2rem;
+            font-weight: 400;
+            margin-bottom: 6px;
+        }
+
+        .gallery-card-content p {
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .gallery-card-content .artwork-count {
+            color: var(--color-text-dark);
+            font-size: 0.85rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--color-text-muted);
+            grid-column: 1 / -1;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 80px 20px;
+            grid-column: 1 / -1;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 16px;
+            border: 3px solid var(--color-border);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== ARTWORKS MODAL ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            padding: 40px 20px;
+            overflow-y: auto;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-content {
+            max-width: 900px;
+            width: 100%;
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: 32px;
+            animation: modalIn 0.3s ease;
+            margin-top: 20px;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 16px;
+        }
+
+        .modal-header h2 {
+            color: var(--color-primary);
+            font-size: 1.5rem;
+            font-weight: 300;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--color-text-muted);
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            color: var(--color-text);
+            transform: rotate(90deg);
+        }
+
+        .modal-gallery-info {
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+
+        .modal-artworks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .modal-artwork-item {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .modal-artwork-item:hover {
+            border-color: var(--color-primary-dark);
+        }
+
+        .modal-artwork-item img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .modal-artwork-item .info {
+            padding: 12px 16px;
+        }
+
+        .modal-artwork-item .info h4 {
+            color: var(--color-primary);
+            font-size: 0.95rem;
+            font-weight: 400;
+        }
+
+        .modal-artwork-item .info p {
+            color: var(--color-text-muted);
+            font-size: 0.8rem;
+        }
+
+        .empty-artworks {
+            text-align: center;
+            padding: 40px;
+            color: var(--color-text-muted);
+            grid-column: 1 / -1;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--color-bg-secondary);
+            border-top: 1px solid var(--color-border);
+            padding: 40px 0 20px;
+            text-align: center;
+        }
+
+        .footer p {
+            color: var(--color-text-dark);
+            font-size: 0.85rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .page-header h1 { font-size: 2rem; }
+            .galleries-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+            .modal-content { padding: 20px; }
+            .modal-artworks-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 480px) {
+            .galleries-grid { grid-template-columns: 1fr; }
+            .modal-artworks-grid { grid-template-columns: 1fr; }
+            .page-header { padding: 100px 0 24px; }
+            .page-header h1 { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/">
+                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery">
+                </a>
+            </div>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/">الرئيسية</a></li>
+                <li><a href="/gallery.html" class="active">المعارض</a></li>
+                <li><a href="/rate.html">التقييمات</a></li>
+                <li><a href="/#contact">تواصل</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="lang-switch" id="langSwitch"><span class="lang-text">AR</span></button>
+                <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== PAGE HEADER ===== -->
+    <section class="page-header">
+        <div class="container">
+            <h1>🖼️ المعارض الفنية</h1>
+            <p>استكشف مجموعاتنا الفنية المميزة</p>
+        </div>
+    </section>
+
+    <!-- ===== GALLERIES ===== -->
+    <section>
+        <div class="container">
+            <div class="galleries-grid" id="galleriesGrid">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>جاري تحميل المعارض...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== ARTWORKS MODAL ===== -->
+    <div class="modal" id="artworksModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalGalleryTitle">المعرض</h2>
+                <button class="modal-close" id="modalClose">✕</button>
+            </div>
+            <div class="modal-gallery-info" id="modalGalleryDesc"></div>
+            <div class="modal-artworks-grid" id="modalArtworksGrid">
+                <div class="empty-artworks">جاري التحميل...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 Shulamith Gallery. جميع الحقوق محفوظة</p>
+        </div>
+    </footer>
+
+    <script>
+        // ===== LANGUAGE =====
+        let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('shulamith-lang', lang);
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            document.body.className = lang === 'ar' ? 'rtl' : 'ltr';
+            document.querySelector('.lang-text').textContent = lang.toUpperCase();
+        }
+
+        document.getElementById('langSwitch').addEventListener('click', () => {
+            setLanguage(currentLang === 'ar' ? 'en' : 'ar');
+        });
+
+        // ===== NAV =====
+        document.getElementById('navToggle').addEventListener('click', function() {
+            document.getElementById('navMenu').classList.toggle('active');
+            this.classList.toggle('active');
+        });
+
+        // ===== LOAD GALLERIES =====
+        async function loadGalleries() {
+            const grid = document.getElementById('galleriesGrid');
+            try {
+                const res = await fetch('/api/galleries');
+                const data = await res.json();
+                const visible = data.filter(g => g.visible !== false);
+
+                if (visible.length === 0) {
+                    grid.innerHTML = '<div class="empty-state">لا توجد معارض حالياً</div>';
+                    return;
+                }
+
+                let html = '';
+                for (const gallery of visible) {
+                    // Count artworks in this gallery
+                    const artworksRes = await fetch(`/api/artworks?galleryId=${gallery.id}`);
+                    const artworks = await artworksRes.json();
+                    const visibleArtworks = artworks.filter(a => a.visible !== false);
+                    const count = visibleArtworks.length;
+
+                    html += `
+                        <div class="gallery-card" data-id="${gallery.id}">
+                            <img src="${gallery.coverImage || 'https://via.placeholder.com/400x220/1e1a18/d4b892?text=Shulamith'}" 
+                                 alt="${gallery.name}" 
+                                 class="gallery-card-image"
+                                 onerror="this.src='https://via.placeholder.com/400x220/1e1a18/d4b892?text=Shulamith'">
+                            <div class="gallery-card-content">
+                                <h3>${gallery.name}</h3>
+                                <p>${gallery.description || ''}</p>
+                                <span class="artwork-count">🎨 ${count} عمل فني</span>
+                            </div>
+                        </div>
+                    `;
+                }
+                grid.innerHTML = html;
+
+                // Click to open modal
+                document.querySelectorAll('.gallery-card').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const id = this.dataset.id;
+                        openGalleryModal(id);
+                    });
+                });
+
+            } catch (error) {
+                console.error('Error loading galleries:', error);
+                grid.innerHTML = '<div class="empty-state">حدث خطأ في تحميل المعارض</div>';
+            }
+        }
+
+        // ===== OPEN GALLERY MODAL =====
+        async function openGalleryModal(galleryId) {
+            const modal = document.getElementById('artworksModal');
+            const title = document.getElementById('modalGalleryTitle');
+            const desc = document.getElementById('modalGalleryDesc');
+            const grid = document.getElementById('modalArtworksGrid');
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            grid.innerHTML = '<div class="empty-artworks">جاري التحميل...</div>';
+
+            try {
+                // Get gallery info
+                const galleryRes = await fetch('/api/galleries');
+                const galleries = await galleryRes.json();
+                const gallery = galleries.find(g => g.id === galleryId);
+                if (gallery) {
+                    title.textContent = gallery.name;
+                    desc.textContent = gallery.description || '';
+                }
+
+                // Get artworks
+                const artworksRes = await fetch(`/api/artworks?galleryId=${galleryId}`);
+                const artworks = await artworksRes.json();
+                const visible = artworks.filter(a => a.visible !== false);
+
+                if (visible.length === 0) {
+                    grid.innerHTML = '<div class="empty-artworks">لا توجد أعمال فنية في هذا المعرض</div>';
+                    return;
+                }
+
+                let html = '';
+                visible.forEach(a => {
+                    html += `
+                        <div class="modal-artwork-item">
+                            <img src="${a.imageUrl}" alt="${a.title}" onerror="this.src='https://via.placeholder.com/200x180/1e1a18/d4b892?text=Art'">
+                            <div class="info">
+                                <h4>${a.title}</h4>
+                                ${a.material ? `<p>🖌️ ${a.material}</p>` : ''}
+                                ${a.dimensions ? `<p>📐 ${a.dimensions}</p>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                grid.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error loading gallery artworks:', error);
+                grid.innerHTML = '<div class="empty-artworks">حدث خطأ في تحميل الأعمال</div>';
+            }
+        }
+
+        // ===== MODAL CONTROLS =====
+        document.getElementById('modalClose').addEventListener('click', closeModal);
+        document.getElementById('artworksModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        function closeModal() {
+            document.getElementById('artworksModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // ===== INIT =====
+        setLanguage(currentLang);
+        loadGalleries();
+    </script>
+</body>
+</html>

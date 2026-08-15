@@ -1,0 +1,2211 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم — Shulamith Gallery</title>
+    <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
+    
+    <style>
+        /* ===== ROOT VARIABLES ===== */
+        :root {
+            --color-bg: #0d0b0a;
+            --color-bg-secondary: #161210;
+            --color-bg-card: #1e1a18;
+            --color-bg-hover: #2a2421;
+            --color-primary: #d4b892;
+            --color-primary-light: #e8d4bc;
+            --color-primary-dark: #b89a72;
+            --color-text: #e8e0d4;
+            --color-text-muted: #b0a89a;
+            --color-text-dark: #8a8272;
+            --color-border: #2a2421;
+            --color-error: #e74c3c;
+            --color-success: #2ecc71;
+            --color-warning: #f39c12;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --sidebar-width: 250px;
+            --header-height: 70px;
+        }
+
+        /* ===== RESET ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Tahoma', Arial, sans-serif;
+            background: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        body.rtl { direction: rtl; }
+        body.ltr { direction: ltr; }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--color-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--color-primary-dark); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
+
+        /* ===== DASHBOARD CONTAINER ===== */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--color-bg-secondary);
+            border-right: 1px solid var(--color-border);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        body.ltr .sidebar {
+            left: 0;
+            right: auto;
+            border-right: 1px solid var(--color-border);
+            border-left: none;
+        }
+
+        body.rtl .sidebar {
+            right: 0;
+            left: auto;
+            border-left: 1px solid var(--color-border);
+            border-right: none;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 16px;
+        }
+
+        .sidebar-logo {
+            height: 50px;
+            width: auto;
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+        }
+
+        .sidebar-header h2 {
+            color: var(--color-primary);
+            font-size: 1.1rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0 12px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            border-radius: var(--radius-sm);
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            text-align: right;
+            position: relative;
+        }
+
+        body.ltr .nav-item { text-align: left; }
+
+        .nav-item:hover {
+            background: var(--color-bg-hover);
+            color: var(--color-text);
+        }
+
+        .nav-item.active {
+            background: rgba(212, 184, 146, 0.1);
+            color: var(--color-primary);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background: var(--color-primary);
+        }
+
+        body.rtl .nav-item.active::before { right: 0; }
+        body.ltr .nav-item.active::before { left: 0; }
+
+        .nav-item .badge {
+            background: var(--color-primary);
+            color: var(--color-bg);
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-right: auto;
+            font-weight: 500;
+        }
+
+        body.ltr .nav-item .badge { margin-right: 0; margin-left: auto; }
+
+        .sidebar-logout {
+            margin: 12px;
+            padding: 12px 16px;
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.2);
+            border-radius: var(--radius-sm);
+            color: var(--color-error);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: inherit;
+            text-align: center;
+        }
+
+        .sidebar-logout:hover {
+            background: rgba(231, 76, 60, 0.2);
+        }
+
+        /* ===== SIDEBAR TOGGLE (Mobile) ===== */
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--color-text);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: var(--transition);
+        }
+
+        body.rtl .main-content {
+            margin-left: 0;
+            margin-right: var(--sidebar-width);
+        }
+
+        /* ===== HEADER ===== */
+        .dashboard-header {
+            position: sticky;
+            top: 0;
+            background: rgba(13, 11, 10, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--color-border);
+            padding: 0 24px;
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+        }
+
+        .dashboard-header .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.2rem;
+            font-weight: 300;
+            color: var(--color-text);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lang-switch {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .lang-switch:hover {
+            background: var(--color-bg-hover);
+            border-color: var(--color-primary-dark);
+        }
+
+        /* ===== CONTENT ===== */
+        .dashboard-content {
+            padding: 24px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .section-header h2 {
+            font-size: 1.4rem;
+            font-weight: 300;
+            color: var(--color-primary);
+        }
+
+        .add-btn {
+            padding: 8px 20px;
+            background: var(--color-primary);
+            color: var(--color-bg);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .add-btn:hover {
+            background: var(--color-primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(212, 184, 146, 0.2);
+        }
+
+        /* ===== STATS ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            border-color: var(--color-primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(212, 184, 146, 0.08);
+            border-radius: var(--radius-sm);
+        }
+
+        .stat-info h3 {
+            color: var(--color-text-muted);
+            font-size: 0.8rem;
+            font-weight: 400;
+            margin-bottom: 2px;
+        }
+
+        .stat-number {
+            color: var(--color-text);
+            font-size: 1.6rem;
+            font-weight: 300;
+        }
+
+        /* ===== TABLES ===== */
+        .table-container {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        thead {
+            background: var(--color-bg-secondary);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        th {
+            padding: 12px 16px;
+            text-align: right;
+            color: var(--color-text-muted);
+            font-weight: 400;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        body.ltr th { text-align: left; }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--color-border);
+            color: var(--color-text);
+            vertical-align: middle;
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        td .image-thumb {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-edit, .btn-delete, .btn-toggle {
+            padding: 4px 12px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: var(--transition);
+        }
+
+        .btn-edit {
+            background: rgba(52, 152, 219, 0.15);
+            color: #3498db;
+        }
+
+        .btn-edit:hover {
+            background: rgba(52, 152, 219, 0.25);
+        }
+
+        .btn-delete {
+            background: rgba(231, 76, 60, 0.15);
+            color: var(--color-error);
+        }
+
+        .btn-delete:hover {
+            background: rgba(231, 76, 60, 0.25);
+        }
+
+        .btn-toggle {
+            background: rgba(46, 204, 113, 0.15);
+            color: var(--color-success);
+        }
+
+        .btn-toggle.hidden {
+            background: rgba(231, 76, 60, 0.15);
+            color: var(--color-error);
+        }
+
+        .badge-status {
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-status.read {
+            background: rgba(46, 204, 113, 0.15);
+            color: var(--color-success);
+        }
+
+        .badge-status.unread {
+            background: rgba(231, 76, 60, 0.15);
+            color: var(--color-error);
+        }
+
+        .badge-status.visible {
+            background: rgba(46, 204, 113, 0.15);
+            color: var(--color-success);
+        }
+
+        .badge-status.hidden {
+            background: rgba(231, 76, 60, 0.15);
+            color: var(--color-error);
+        }
+
+        /* ===== RECENT MESSAGES ===== */
+        .recent-section {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .recent-section h3 {
+            color: var(--color-primary);
+            font-size: 1.1rem;
+            font-weight: 300;
+            margin-bottom: 16px;
+        }
+
+        .recent-list .message-item {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .recent-list .message-item:last-child {
+            border-bottom: none;
+        }
+
+        .message-item .msg-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .message-item .msg-name {
+            color: var(--color-text);
+            font-weight: 500;
+        }
+
+        .message-item .msg-preview {
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+        }
+
+        .message-item .msg-time {
+            color: var(--color-text-dark);
+            font-size: 0.75rem;
+        }
+
+        .message-item .msg-status {
+            font-size: 0.75rem;
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+
+        .message-item .msg-status.read {
+            background: rgba(46, 204, 113, 0.15);
+            color: var(--color-success);
+        }
+
+        .message-item .msg-status.unread {
+            background: rgba(231, 76, 60, 0.15);
+            color: var(--color-error);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--color-text-muted);
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--color-text-muted);
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            margin: 0 auto 12px;
+            border: 3px solid var(--color-border);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== FILTERS ===== */
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 6px 12px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            color: var(--color-text);
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--color-primary-dark);
+        }
+
+        /* ===== MODALS ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 32px;
+            animation: modalIn 0.3s ease;
+        }
+
+        .modal-large { max-width: 800px; }
+        .modal-small { max-width: 400px; }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h3 {
+            color: var(--color-primary);
+            font-size: 1.3rem;
+            font-weight: 300;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--color-text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            color: var(--color-text);
+            transform: rotate(90deg);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        /* ===== FORM IN MODAL ===== */
+        .modal .form-group {
+            margin-bottom: 16px;
+        }
+
+        .modal .form-group label {
+            display: block;
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .modal .form-group input,
+        .modal .form-group textarea,
+        .modal .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            color: var(--color-text);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .modal .form-group input:focus,
+        .modal .form-group textarea:focus,
+        .modal .form-group select:focus {
+            outline: none;
+            border-color: var(--color-primary-dark);
+            box-shadow: 0 0 0 3px rgba(212, 184, 146, 0.08);
+        }
+
+        .modal .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal .form-group.checkbox,
+        .modal .form-group.checkbox-group {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .modal .form-group.checkbox label,
+        .modal .form-group.checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--color-text);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .modal .form-group.checkbox input,
+        .modal .form-group.checkbox-group input {
+            width: auto;
+            accent-color: var(--color-primary);
+        }
+
+        .modal .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--color-primary);
+            color: var(--color-bg);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .modal .submit-btn:hover {
+            background: var(--color-primary-light);
+        }
+
+        .modal .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .modal .btn-secondary {
+            padding: 8px 20px;
+            background: var(--color-bg-hover);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            color: var(--color-text);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .modal .btn-secondary:hover {
+            background: var(--color-border);
+        }
+
+        .modal .btn-danger {
+            padding: 8px 20px;
+            background: rgba(231, 76, 60, 0.15);
+            border: 1px solid rgba(231, 76, 60, 0.2);
+            border-radius: var(--radius-sm);
+            color: var(--color-error);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .modal .btn-danger:hover {
+            background: rgba(231, 76, 60, 0.25);
+        }
+
+        /* ===== IMAGE UPLOAD ===== */
+        .image-upload-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .upload-option input[type="file"] {
+            padding: 8px;
+            background: var(--color-bg);
+            border: 1px dashed var(--color-border);
+            border-radius: var(--radius-sm);
+            color: var(--color-text-muted);
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .upload-option input[type="file"]::-webkit-file-upload-button {
+            padding: 6px 16px;
+            background: var(--color-primary);
+            color: var(--color-bg);
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+        }
+
+        .upload-divider {
+            text-align: center;
+            color: var(--color-text-dark);
+            font-size: 0.85rem;
+        }
+
+        .upload-preview {
+            margin-top: 8px;
+        }
+
+        .upload-preview img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--color-border);
+        }
+
+        .upload-progress {
+            margin-top: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--color-border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--color-primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* ===== TOAST ===== */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        body.ltr .toast-container {
+            right: auto;
+            left: 24px;
+        }
+
+        .toast {
+            padding: 14px 20px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--color-border);
+            background: var(--color-bg-card);
+            color: var(--color-text);
+            animation: toastIn 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+
+        .toast.success { border-color: var(--color-success); }
+        .toast.error { border-color: var(--color-error); }
+        .toast.warning { border-color: var(--color-warning); }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            body.rtl .sidebar {
+                transform: translateX(100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            body.rtl .main-content {
+                margin-right: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-content {
+                padding: 16px;
+            }
+
+            .dashboard-header {
+                padding: 0 16px;
+                height: 60px;
+            }
+
+            .dashboard-header h1 {
+                font-size: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            .stat-card {
+                padding: 14px;
+            }
+
+            .stat-number {
+                font-size: 1.2rem;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .section-header h2 {
+                font-size: 1.1rem;
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th, td {
+                padding: 8px 12px;
+            }
+
+            td .image-thumb {
+                width: 36px;
+                height: 36px;
+            }
+
+            .table-actions {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .btn-edit, .btn-delete, .btn-toggle {
+                font-size: 0.7rem;
+                padding: 2px 8px;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-large {
+                max-width: 100%;
+                margin: 10px;
+            }
+
+            .toast-container {
+                max-width: 90%;
+                bottom: 12px;
+                right: 12px;
+            }
+
+            body.ltr .toast-container {
+                right: auto;
+                left: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .stat-card {
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .stat-icon {
+                font-size: 1.4rem;
+                width: 36px;
+                height: 36px;
+            }
+
+            .stat-number {
+                font-size: 1rem;
+            }
+
+            .stat-info h3 {
+                font-size: 0.7rem;
+            }
+
+            .modal-content {
+                padding: 16px;
+            }
+
+            .dashboard-header h1 {
+                font-size: 0.85rem;
+            }
+
+            .lang-switch {
+                padding: 4px 10px;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- ===== SIDEBAR OVERLAY ===== -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="sidebar-logo">
+                <h2>Shulamith</h2>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-section="overview">
+                    📊 نظرة عامة
+                </button>
+                <button class="nav-item" data-section="galleries">
+                    🖼️ المعارض
+                </button>
+                <button class="nav-item" data-section="artworks">
+                    🎨 الأعمال الفنية
+                </button>
+                <button class="nav-item" data-section="messages">
+                    ✉️ الرسائل
+                    <span class="badge" id="unreadBadge" style="display:none;">0</span>
+                </button>
+                <button class="nav-item" data-section="settings">
+                    ⚙️ الإعدادات
+                </button>
+            </nav>
+            
+            <button class="sidebar-logout" id="logoutBtn">
+                🚪 تسجيل الخروج
+            </button>
+        </aside>
+        
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="main-content">
+            <header class="dashboard-header">
+                <div class="header-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+                    <h1 id="pageTitle">نظرة عامة</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="lang-switch" id="langSwitch">
+                        <span class="lang-text">AR</span>
+                    </button>
+                </div>
+            </header>
+            
+            <div class="dashboard-content">
+                <!-- ===== OVERVIEW SECTION ===== -->
+                <section id="section-overview" class="section active">
+                    <div class="stats-grid" id="statsGrid">
+                        <div class="stat-card">
+                            <div class="stat-icon">🖼️</div>
+                            <div class="stat-info">
+                                <h3>المعارض</h3>
+                                <p class="stat-number" id="statGalleries">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🎨</div>
+                            <div class="stat-info">
+                                <h3>الأعمال الفنية</h3>
+                                <p class="stat-number" id="statArtworks">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">✉️</div>
+                            <div class="stat-info">
+                                <h3>الرسائل</h3>
+                                <p class="stat-number" id="statMessages">0</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⭐</div>
+                            <div class="stat-info">
+                                <h3>المميزة</h3>
+                                <p class="stat-number" id="statFeatured">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="recent-section">
+                        <h3>آخر الرسائل</h3>
+                        <div class="recent-list" id="recentMessages">
+                            <div class="empty-state">لا توجد رسائل حالياً</div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- ===== GALLERIES SECTION ===== -->
+                <section id="section-galleries" class="section">
+                    <div class="section-header">
+                        <h2>إدارة المعارض</h2>
+                        <button class="add-btn" id="addGalleryBtn">+ إضافة معرض</button>
+                    </div>
+                    <div class="table-container" id="galleriesContainer">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p>جاري التحميل...</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- ===== ARTWORKS SECTION ===== -->
+                <section id="section-artworks" class="section">
+                    <div class="section-header">
+                        <h2>إدارة الأعمال الفنية</h2>
+                        <button class="add-btn" id="addArtworkBtn">+ إضافة عمل فني</button>
+                    </div>
+                    <div class="table-container" id="artworksContainer">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p>جاري التحميل...</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- ===== MESSAGES SECTION ===== -->
+                <section id="section-messages" class="section">
+                    <div class="section-header">
+                        <h2>الرسائل</h2>
+                        <div class="filter-group">
+                            <select id="messageFilter" class="filter-select">
+                                <option value="all">الكل</option>
+                                <option value="unread">غير مقروء</option>
+                                <option value="read">مقروء</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-container" id="messagesContainer">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p>جاري التحميل...</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- ===== SETTINGS SECTION ===== -->
+                <section id="section-settings" class="section">
+                    <div class="section-header">
+                        <h2>إعدادات الموقع</h2>
+                    </div>
+                    <form id="settingsForm" class="settings-form">
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="siteName">اسم الموقع</label>
+                                <input type="text" id="siteName" name="siteName" required style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="siteLogo">رابط الشعار</label>
+                                <input type="url" id="siteLogo" name="logo" required style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="aboutText">نص عن الفنانة</label>
+                                <textarea id="aboutText" name="aboutText" rows="4" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem; resize:vertical;"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="sitePhone">الهاتف</label>
+                                <input type="text" id="sitePhone" name="phone" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                            </div>
+                            <div class="form-group">
+                                <label for="siteEmail">البريد الإلكتروني</label>
+                                <input type="email" id="siteEmail" name="email" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                            </div>
+                            <div class="form-group">
+                                <label for="siteAddress">العنوان</label>
+                                <input type="text" id="siteAddress" name="address" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                            </div>
+                            <div class="form-group">
+                                <label for="instagramUrl">إنستغرام</label>
+                                <input type="text" id="instagramUrl" name="instagram" placeholder="username" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                            </div>
+                            <div class="form-group">
+                                <label for="facebookUrl">فيسبوك</label>
+                                <input type="text" id="facebookUrl" name="facebook" placeholder="page_id" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                            </div>
+                            <div class="form-group">
+                                <label for="whatsappNumber">واتساب</label>
+                                <input type="text" id="whatsappNumber" name="whatsapp" placeholder="201234567890" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="heroText">نص الهيرو</label>
+                                <input type="text" id="heroText" name="heroText" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="footerText">نص الفوتر</label>
+                                <input type="text" id="footerText" name="footerText" style="width:100%; padding:10px 14px; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); color:var(--color-text); font-size:0.95rem;">
+                            </div>
+                        </div>
+                        <button type="submit" class="add-btn" id="settingsSubmit" style="margin-top:16px; width:100%; padding:12px;">
+                            <span>حفظ الإعدادات</span>
+                            <span class="btn-loading" style="display:none;">جاري الحفظ...</span>
+                        </button>
+                        <div class="form-status" id="settingsStatus" style="margin-top:12px; padding:12px; border-radius:var(--radius-sm); display:none; text-align:center;"></div>
+                    </form>
+                </section>
+            </div>
+        </main>
+    </div>
+    
+    <!-- ===== MODALS ===== -->
+    <!-- Gallery Modal -->
+    <div class="modal" id="galleryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="galleryModalTitle">إضافة معرض</h3>
+                <button class="modal-close" data-modal="galleryModal">✕</button>
+            </div>
+            <form id="galleryForm">
+                <input type="hidden" id="galleryId" value="">
+                <div class="form-group">
+                    <label for="galleryName">اسم المعرض</label>
+                    <input type="text" id="galleryName" required>
+                </div>
+                <div class="form-group">
+                    <label for="galleryDescription">الوصف</label>
+                    <textarea id="galleryDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="galleryCover">رابط صورة الغلاف</label>
+                    <input type="url" id="galleryCover" placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="form-group">
+                    <label for="galleryOrder">الترتيب</label>
+                    <input type="number" id="galleryOrder" value="0">
+                </div>
+                <div class="form-group checkbox">
+                    <label>
+                        <input type="checkbox" id="galleryVisible" checked>
+                        <span>ظاهر</span>
+                    </label>
+                </div>
+                <button type="submit" class="submit-btn" id="gallerySubmit">
+                    <span>حفظ</span>
+                    <span class="btn-loading" style="display:none;">جاري الحفظ...</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Artwork Modal -->
+    <div class="modal" id="artworkModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="artworkModalTitle">إضافة عمل فني</h3>
+                <button class="modal-close" data-modal="artworkModal">✕</button>
+            </div>
+            <form id="artworkForm">
+                <input type="hidden" id="artworkId" value="">
+                <div class="form-group">
+                    <label for="artworkGallery">المعرض</label>
+                    <select id="artworkGallery" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="artworkTitle">العنوان</label>
+                    <input type="text" id="artworkTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="artworkDescription">الوصف</label>
+                    <textarea id="artworkDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>الصورة</label>
+                    <div class="image-upload-group">
+                        <div class="upload-option">
+                            <label for="artworkImageUrl">رابط الصورة</label>
+                            <input type="url" id="artworkImageUrl" placeholder="https://example.com/image.jpg">
+                        </div>
+                        <div class="upload-divider"><span>أو</span></div>
+                        <div class="upload-option">
+                            <label for="artworkImageFile">رفع صورة</label>
+                            <input type="file" id="artworkImageFile" accept="image/*">
+                            <div class="upload-preview" id="uploadPreview"></div>
+                            <div class="upload-progress" id="uploadProgress" style="display:none;">
+                                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+                                <span class="progress-text" id="progressText">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="artworkMaterial">الخامة</label>
+                    <input type="text" id="artworkMaterial">
+                </div>
+                <div class="form-group">
+                    <label for="artworkDimensions">المقاس</label>
+                    <input type="text" id="artworkDimensions" placeholder="60×80 سم">
+                </div>
+                <div class="form-group">
+                    <label for="artworkPrice">السعر (اختياري)</label>
+                    <input type="number" id="artworkPrice" step="0.01" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="artworkOrder">الترتيب</label>
+                    <input type="number" id="artworkOrder" value="0">
+                </div>
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="artworkFeatured">
+                        <span>مميز</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="artworkVisible" checked>
+                        <span>ظاهر</span>
+                    </label>
+                </div>
+                <button type="submit" class="submit-btn" id="artworkSubmit">
+                    <span>حفظ</span>
+                    <span class="btn-loading" style="display:none;">جاري الحفظ...</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Confirm Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>تأكيد</h3>
+                <button class="modal-close" data-modal="confirmModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">هل أنت متأكد من حذف هذا العنصر؟</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" data-modal="confirmModal">إلغاء</button>
+                <button class="btn-danger" id="confirmDelete">حذف</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ===== TOAST ===== -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <script>
+        // ===== STATE =====
+        let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
+        let token = localStorage.getItem('shulamith-token');
+        let galleries = [];
+        let artworks = [];
+        let messages = [];
+        let deleteTarget = { type: '', id: '' };
+
+        // ===== DOM REFS =====
+        const $ = (sel) => document.querySelector(sel);
+        const $$ = (sel) => document.querySelectorAll(sel);
+
+        // ===== TOAST =====
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ===== AUTH =====
+        function getHeaders() {
+            return {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            };
+        }
+
+        async function checkAuth() {
+            if (!token) {
+                window.location.href = '/login.html';
+                return false;
+            }
+            try {
+                const res = await fetch('/api/verify', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if (!data.valid) {
+                    localStorage.removeItem('shulamith-token');
+                    window.location.href = '/login.html';
+                    return false;
+                }
+                return true;
+            } catch {
+                window.location.href = '/login.html';
+                return false;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('shulamith-token');
+            window.location.href = '/login.html';
+        }
+
+        // ===== LANGUAGE =====
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('shulamith-lang', lang);
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            document.body.className = lang === 'ar' ? 'rtl' : 'ltr';
+            document.querySelector('.lang-text').textContent = lang.toUpperCase();
+        }
+
+        function toggleLanguage() {
+            setLanguage(currentLang === 'ar' ? 'en' : 'ar');
+        }
+
+        // ===== SIDEBAR =====
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+
+        // ===== NAVIGATION =====
+        function navigateTo(section) {
+            // Update nav items
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.toggle('active', el.dataset.section === section);
+            });
+            
+            // Update sections
+            document.querySelectorAll('.section').forEach(el => {
+                el.classList.toggle('active', el.id === 'section-' + section);
+            });
+            
+            // Update title
+            const titles = {
+                overview: 'نظرة عامة',
+                galleries: 'المعارض',
+                artworks: 'الأعمال الفنية',
+                messages: 'الرسائل',
+                settings: 'الإعدادات'
+            };
+            document.getElementById('pageTitle').textContent = titles[section] || section;
+            
+            // Close sidebar on mobile
+            closeSidebar();
+            
+            // Load data if needed
+            if (section === 'overview') loadStats();
+            if (section === 'galleries') loadGalleries();
+            if (section === 'artworks') loadArtworks();
+            if (section === 'messages') loadMessages();
+            if (section === 'settings') loadSettings();
+        }
+
+        // ===== API =====
+        async function apiFetch(url, options = {}) {
+            const res = await fetch(url, {
+                ...options,
+                headers: options.body ? getHeaders() : { 'Authorization': 'Bearer ' + token }
+            });
+            if (res.status === 401) {
+                localStorage.removeItem('shulamith-token');
+                window.location.href = '/login.html';
+                throw new Error('Unauthorized');
+            }
+            return res.json();
+        }
+
+        // ===== LOAD STATS =====
+        async function loadStats() {
+            try {
+                const data = await apiFetch('/api/stats');
+                document.getElementById('statGalleries').textContent = data.galleries || 0;
+                document.getElementById('statArtworks').textContent = data.artworks || 0;
+                document.getElementById('statMessages').textContent = data.messages || 0;
+                document.getElementById('statFeatured').textContent = data.featured || 0;
+                
+                // Update unread badge
+                const badge = document.getElementById('unreadBadge');
+                if (data.unreadMessages > 0) {
+                    badge.textContent = data.unreadMessages;
+                    badge.style.display = 'inline';
+                } else {
+                    badge.style.display = 'none';
+                }
+                
+                // Load recent messages
+                await loadRecentMessages();
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function loadRecentMessages() {
+            try {
+                const data = await apiFetch('/api/messages?limit=5');
+                const container = document.getElementById('recentMessages');
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<div class="empty-state">لا توجد رسائل حالياً</div>';
+                    return;
+                }
+                let html = '';
+                data.slice(0, 5).forEach(msg => {
+                    const status = msg.read ? 'مقروءة' : 'غير مقروءة';
+                    const statusClass = msg.read ? 'read' : 'unread';
+                    const time = msg.createdAt ? new Date(msg.createdAt).toLocaleDateString('ar') : '';
+                    html += `
+                        <div class="message-item">
+                            <div class="msg-info">
+                                <span class="msg-name">${msg.name}</span>
+                                <span class="msg-preview">${msg.message.substring(0, 60)}${msg.message.length > 60 ? '...' : ''}</span>
+                                <span class="msg-time">${time}</span>
+                            </div>
+                            <span class="msg-status ${statusClass}">${status}</span>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading recent messages:', error);
+            }
+        }
+
+        // ===== LOAD GALLERIES =====
+        async function loadGalleries() {
+            const container = document.getElementById('galleriesContainer');
+            try {
+                const data = await apiFetch('/api/galleries');
+                galleries = data;
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<div class="empty-state">لا توجد معارض حالياً</div>';
+                    return;
+                }
+                let html = `
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>الاسم</th>
+                                    <th>الوصف</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                data.forEach((g, i) => {
+                    html += `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${g.name}</td>
+                            <td>${g.description ? g.description.substring(0, 30) + (g.description.length > 30 ? '...' : '') : '-'}</td>
+                            <td><span class="badge-status ${g.visible !== false ? 'visible' : 'hidden'}">${g.visible !== false ? 'ظاهر' : 'مخفي'}</span></td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="btn-edit" onclick="editGallery('${g.id}')">✏️ تعديل</button>
+                                    <button class="btn-toggle ${g.visible !== false ? '' : 'hidden'}" onclick="toggleGallery('${g.id}')">${g.visible !== false ? '👁️ إخفاء' : '👁️ إظهار'}</button>
+                                    <button class="btn-delete" onclick="confirmDelete('gallery', '${g.id}')">🗑️ حذف</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading galleries:', error);
+                container.innerHTML = '<div class="empty-state">حدث خطأ في تحميل المعارض</div>';
+            }
+        }
+
+        // ===== LOAD ARTWORKS =====
+        async function loadArtworks() {
+            const container = document.getElementById('artworksContainer');
+            try {
+                const data = await apiFetch('/api/artworks');
+                artworks = data;
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<div class="empty-state">لا توجد أعمال فنية حالياً</div>';
+                    return;
+                }
+                let html = `
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>الصورة</th>
+                                    <th>العنوان</th>
+                                    <th>الخامة</th>
+                                    <th>المقاس</th>
+                                    <th>المعرض</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                for (const a of data) {
+                    // Get gallery name
+                    let galleryName = '';
+                    const gallery = galleries.find(g => g.id === a.galleryId);
+                    if (gallery) galleryName = gallery.name;
+                    
+                    html += `
+                        <tr>
+                            <td><img src="${a.imageUrl}" alt="${a.title}" class="image-thumb"></td>
+                            <td>${a.title}</td>
+                            <td>${a.material || '-'}</td>
+                            <td>${a.dimensions || '-'}</td>
+                            <td>${galleryName || '-'}</td>
+                            <td><span class="badge-status ${a.visible !== false ? 'visible' : 'hidden'}">${a.visible !== false ? 'ظاهر' : 'مخفي'}</span></td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="btn-edit" onclick="editArtwork('${a.id}')">✏️ تعديل</button>
+                                    <button class="btn-toggle ${a.visible !== false ? '' : 'hidden'}" onclick="toggleArtwork('${a.id}')">${a.visible !== false ? '👁️ إخفاء' : '👁️ إظهار'}</button>
+                                    <button class="btn-delete" onclick="confirmDelete('artwork', '${a.id}')">🗑️ حذف</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading artworks:', error);
+                container.innerHTML = '<div class="empty-state">حدث خطأ في تحميل الأعمال الفنية</div>';
+            }
+        }
+
+        // ===== LOAD MESSAGES =====
+        async function loadMessages(filter = 'all') {
+            const container = document.getElementById('messagesContainer');
+            try {
+                let url = '/api/messages';
+                if (filter === 'unread') url += '?unread=true';
+                const data = await apiFetch(url);
+                messages = data;
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<div class="empty-state">لا توجد رسائل حالياً</div>';
+                    return;
+                }
+                let html = `
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>البريد</th>
+                                    <th>الهاتف</th>
+                                    <th>الرسالة</th>
+                                    <th>التاريخ</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                data.forEach(msg => {
+                    const status = msg.read ? 'مقروءة' : 'غير مقروءة';
+                    const statusClass = msg.read ? 'read' : 'unread';
+                    const time = msg.createdAt ? new Date(msg.createdAt).toLocaleDateString('ar') : '';
+                    html += `
+                        <tr>
+                            <td>${msg.name}</td>
+                            <td>${msg.email}</td>
+                            <td>${msg.phone || '-'}</td>
+                            <td>${msg.message.substring(0, 40)}${msg.message.length > 40 ? '...' : ''}</td>
+                            <td>${time}</td>
+                            <td><span class="badge-status ${statusClass}">${status}</span></td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="btn-toggle ${msg.read ? '' : 'hidden'}" onclick="toggleMessage('${msg.id}', ${!msg.read})">${msg.read ? '📩 غير مقروء' : '📩 قراءة'}</button>
+                                    <button class="btn-delete" onclick="confirmDelete('message', '${msg.id}')">🗑️ حذف</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                container.innerHTML = '<div class="empty-state">حدث خطأ في تحميل الرسائل</div>';
+            }
+        }
+
+        // ===== LOAD SETTINGS =====
+        async function loadSettings() {
+            try {
+                const data = await apiFetch('/api/settings');
+                document.getElementById('siteName').value = data.siteName || '';
+                document.getElementById('siteLogo').value = data.logo || '';
+                document.getElementById('aboutText').value = data.aboutText || '';
+                document.getElementById('sitePhone').value = data.phone || '';
+                document.getElementById('siteEmail').value = data.email || '';
+                document.getElementById('siteAddress').value = data.address || '';
+                document.getElementById('instagramUrl').value = data.instagram || '';
+                document.getElementById('facebookUrl').value = data.facebook || '';
+                document.getElementById('whatsappNumber').value = data.whatsapp || '';
+                document.getElementById('heroText').value = data.heroText || '';
+                document.getElementById('footerText').value = data.footerText || '';
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+
+        // ===== GALLERY CRUD =====
+        function openGalleryModal(id = null) {
+            const modal = document.getElementById('galleryModal');
+            const title = document.getElementById('galleryModalTitle');
+            const form = document.getElementById('galleryForm');
+            form.reset();
+            document.getElementById('galleryId').value = '';
+            
+            if (id) {
+                title.textContent = 'تعديل معرض';
+                const gallery = galleries.find(g => g.id === id);
+                if (gallery) {
+                    document.getElementById('galleryId').value = id;
+                    document.getElementById('galleryName').value = gallery.name;
+                    document.getElementById('galleryDescription').value = gallery.description || '';
+                    document.getElementById('galleryCover').value = gallery.coverImage || '';
+                    document.getElementById('galleryOrder').value = gallery.order || 0;
+                    document.getElementById('galleryVisible').checked = gallery.visible !== false;
+                }
+            } else {
+                title.textContent = 'إضافة معرض';
+            }
+            modal.classList.add('active');
+        }
+
+        document.getElementById('addGalleryBtn').addEventListener('click', () => openGalleryModal());
+        document.querySelector('[data-modal="galleryModal"]').addEventListener('click', () => {
+            document.getElementById('galleryModal').classList.remove('active');
+        });
+
+        document.getElementById('galleryForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('galleryId').value;
+            const data = {
+                name: document.getElementById('galleryName').value.trim(),
+                description: document.getElementById('galleryDescription').value.trim(),
+                coverImage: document.getElementById('galleryCover').value.trim(),
+                order: parseInt(document.getElementById('galleryOrder').value) || 0,
+                visible: document.getElementById('galleryVisible').checked
+            };
+            
+            const submitBtn = document.getElementById('gallerySubmit');
+            submitBtn.disabled = true;
+            submitBtn.querySelector('span:first-child').style.display = 'none';
+            submitBtn.querySelector('.btn-loading').style.display = 'inline';
+            
+            try {
+                const url = id ? `/api/galleries/${id}` : '/api/galleries';
+                const method = id ? 'PUT' : 'POST';
+                const res = await fetch(url, {
+                    method,
+                    headers: getHeaders(),
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    showToast(id ? 'تم تحديث المعرض بنجاح' : 'تم إضافة المعرض بنجاح');
+                    document.getElementById('galleryModal').classList.remove('active');
+                    loadGalleries();
+                    loadStats();
+                } else {
+                    showToast(result.error || 'حدث خطأ', 'error');
+                }
+            } catch (error) {
+                showToast('حدث خطأ في الاتصال', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.querySelector('span:first-child').style.display = 'inline';
+                submitBtn.querySelector('.btn-loading').style.display = 'none';
+            }
+        });
+
+        function editGallery(id) {
+            openGalleryModal(id);
+        }
+
+        async function toggleGallery(id) {
+            const gallery = galleries.find(g => g.id === id);
+            if (!gallery) return;
+            try {
+                const res = await fetch(`/api/galleries/${id}`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        ...gallery,
+                        visible: gallery.visible === false ? true : false
+                    })
+                });
+                if (res.ok) {
+                    showToast('تم تغيير حالة المعرض');
+                    loadGalleries();
+                    loadStats();
+                }
+            } catch (error) {
+                showToast('حدث خطأ', 'error');
+            }
+        }
+
+        // ===== ARTWORK CRUD =====
+        async function openArtworkModal(id = null) {
+            const modal = document.getElementById('artworkModal');
+            const title = document.getElementById('artworkModalTitle');
+            const form = document.getElementById('artworkForm');
+            form.reset();
+            document.getElementById('artworkId').value = '';
+            document.getElementById('uploadPreview').innerHTML = '';
+            document.getElementById('uploadProgress').style.display = 'none';
+            
+            // Load galleries for dropdown
+            const select = document.getElementById('artworkGallery');
+            select.innerHTML = '';
+            const galleryData = await apiFetch('/api/galleries');
+            galleryData.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.textContent = g.name;
+                select.appendChild(opt);
+            });
+            
+            if (id) {
+                title.textContent = 'تعديل عمل فني';
+                const artwork = artworks.find(a => a.id === id);
+                if (artwork) {
+                    document.getElementById('artworkId').value = id;
+                    document.getElementById('artworkGallery').value = artwork.galleryId || '';
+                    document.getElementById('artworkTitle').value = artwork.title;
+                    document.getElementById('artworkDescription').value = artwork.description || '';
+                    document.getElementById('artworkImageUrl').value = artwork.imageUrl || '';
+                    document.getElementById('artworkMaterial').value = artwork.material || '';
+                    document.getElementById('artworkDimensions').value = artwork.dimensions || '';
+                    document.getElementById('artworkPrice').value = artwork.price || 0;
+                    document.getElementById('artworkOrder').value = artwork.order || 0;
+                    document.getElementById('artworkFeatured').checked = artwork.featured || false;
+                    document.getElementById('artworkVisible').checked = artwork.visible !== false;
+                    
+                    if (artwork.imageUrl) {
+                        document.getElementById('uploadPreview').innerHTML = `<img src="${artwork.imageUrl}" alt="Preview">`;
+                    }
+                }
+            } else {
+                title.textContent = 'إضافة عمل فني';
+            }
+            modal.classList.add('active');
+        }
+
+        document.getElementById('addArtworkBtn').addEventListener('click', () => openArtworkModal());
+        document.querySelector('[data-modal="artworkModal"]').addEventListener('click', () => {
+            document.getElementById('artworkModal').classList.remove('active');
+        });
+
+        // Image upload
+        document.getElementById('artworkImageFile').addEventListener('change', async function(e) {
+            const file = this.files[0];
+            if (!file) return;
+            
+            const progress = document.getElementById('uploadProgress');
+            const fill = document.getElementById('progressFill');
+            const text = document.getElementById('progressText');
+            progress.style.display = 'block';
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/api/upload');
+                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                
+                xhr.upload.onprogress = function(e) {
+                    if (e.lengthComputable) {
+                        const pct = Math.round((e.loaded / e.total) * 100);
+                        fill.style.width = pct + '%';
+                        text.textContent = pct + '%';
+                    }
+                };
+                
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        const data = JSON.parse(xhr.response);
+                        document.getElementById('artworkImageUrl').value = data.url;
+                        document.getElementById('uploadPreview').innerHTML = `<img src="${data.url}" alt="Uploaded">`;
+                        showToast('تم رفع الصورة بنجاح');
+                    } else {
+                        showToast('فشل رفع الصورة', 'error');
+                    }
+                    progress.style.display = 'none';
+                };
+                
+                xhr.onerror = function() {
+                    showToast('حدث خطأ في الرفع', 'error');
+                    progress.style.display = 'none';
+                };
+                
+                xhr.send(formData);
+            } catch (error) {
+                showToast('حدث خطأ', 'error');
+                progress.style.display = 'none';
+            }
+        });
+
+        document.getElementById('artworkForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('artworkId').value;
+            const data = {
+                galleryId: document.getElementById('artworkGallery').value,
+                title: document.getElementById('artworkTitle').value.trim(),
+                description: document.getElementById('artworkDescription').value.trim(),
+                imageUrl: document.getElementById('artworkImageUrl').value.trim(),
+                material: document.getElementById('artworkMaterial').value.trim(),
+                dimensions: document.getElementById('artworkDimensions').value.trim(),
+                price: parseFloat(document.getElementById('artworkPrice').value) || 0,
+                order: parseInt(document.getElementById('artworkOrder').value) || 0,
+                featured: document.getElementById('artworkFeatured').checked,
+                visible: document.getElementById('artworkVisible').checked
+            };
+            
+            const submitBtn = document.getElementById('artworkSubmit');
+            submitBtn.disabled = true;
+            submitBtn.querySelector('span:first-child').style.display = 'none';
+            submitBtn.querySelector('.btn-loading').style.display = 'inline';
+            
+            try {
+                const url = id ? `/api/artworks/${id}` : '/api/artworks';
+                const method = id ? 'PUT' : 'POST';
+                const res = await fetch(url, {
+                    method,
+                    headers: getHeaders(),
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    showToast(id ? 'تم تحديث العمل الفني بنجاح' : 'تم إضافة العمل الفني بنجاح');
+                    document.getElementById('artworkModal').classList.remove('active');
+                    loadArtworks();
+                    loadStats();
+                } else {
+                    showToast(result.error || 'حدث خطأ', 'error');
+                }
+            } catch (error) {
+                showToast('حدث خطأ في الاتصال', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.querySelector('span:first-child').style.display = 'inline';
+                submitBtn.querySelector('.btn-loading').style.display = 'none';
+            }
+        });
+
+        function editArtwork(id) {
+            openArtworkModal(id);
+        }
+
+        async function toggleArtwork(id) {
+            const artwork = artworks.find(a => a.id === id);
+            if (!artwork) return;
+            try {
+                const res = await fetch(`/api/artworks/${id}`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        ...artwork,
+                        visible: artwork.visible === false ? true : false
+                    })
+                });
+                if (res.ok) {
+                    showToast('تم تغيير حالة العمل الفني');
+                    loadArtworks();
+                    loadStats();
+                }
+            } catch (error) {
+                showToast('حدث خطأ', 'error');
+            }
+        }
+
+        // ===== MESSAGE FUNCTIONS =====
+        async function toggleMessage(id, read) {
+            try {
+                const res = await fetch(`/api/messages/${id}/read`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ read })
+                });
+                if (res.ok) {
+                    showToast('تم تحديث حالة الرسالة');
+                    loadMessages(document.getElementById('messageFilter').value);
+                    loadStats();
+                }
+            } catch (error) {
+                showToast('حدث خطأ', 'error');
+            }
+        }
+
+        document.getElementById('messageFilter').addEventListener('change', function() {
+            loadMessages(this.value);
+        });
+
+        // ===== SETTINGS =====
+        document.getElementById('settingsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const data = {
+                siteName: document.getElementById('siteName').value.trim(),
+                logo: document.getElementById('siteLogo').value.trim(),
+                aboutText: document.getElementById('aboutText').value.trim(),
+                phone: document.getElementById('sitePhone').value.trim(),
+                email: document.getElementById('siteEmail').value.trim(),
+                address: document.getElementById('siteAddress').value.trim(),
+                instagram: document.getElementById('instagramUrl').value.trim(),
+                facebook: document.getElementById('facebookUrl').value.trim(),
+                whatsapp: document.getElementById('whatsappNumber').value.trim(),
+                heroText: document.getElementById('heroText').value.trim(),
+                footerText: document.getElementById('footerText').value.trim()
+            };
+            
+            const submitBtn = document.getElementById('settingsSubmit');
+            const status = document.getElementById('settingsStatus');
+            submitBtn.disabled = true;
+            submitBtn.querySelector('span:first-child').style.display = 'none';
+            submitBtn.querySelector('.btn-loading').style.display = 'inline';
+            status.style.display = 'none';
+            
+            try {
+                const res = await fetch('/api/settings', {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    status.className = 'form-status';
+                    status.style.display = 'block';
+                    status.style.background = 'rgba(46,204,113,0.15)';
+                    status.style.color = '#2ecc71';
+                    status.style.border = '1px solid rgba(46,204,113,0.3)';
+                    status.textContent = '✓ تم حفظ الإعدادات بنجاح';
+                    showToast('تم حفظ الإعدادات بنجاح');
+                } else {
+                    status.className = 'form-status';
+                    status.style.display = 'block';
+                    status.style.background = 'rgba(231,76,60,0.15)';
+                    status.style.color = '#e74c3c';
+                    status.style.border = '1px solid rgba(231,76,60,0.3)';
+                    status.textContent = result.error || 'حدث خطأ';
+                }
+            } catch (error) {
+                status.className = 'form-status';
+                status.style.display = 'block';
+                status.style.background = 'rgba(231,76,60,0.15)';
+                status.style.color = '#e74c3c';
+                status.style.border = '1px solid rgba(231,76,60,0.3)';
+                status.textContent = 'حدث خطأ في الاتصال';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.querySelector('span:first-child').style.display = 'inline';
+                submitBtn.querySelector('.btn-loading').style.display = 'none';
+            }
+        });
+
+        // ===== CONFIRM DELETE =====
+        function confirmDelete(type, id) {
+            deleteTarget = { type, id };
+            const messages = {
+                gallery: 'هل أنت متأكد من حذف هذا المعرض؟',
+                artwork: 'هل أنت متأكد من حذف هذا العمل الفني؟',
+                message: 'هل أنت متأكد من حذف هذه الرسالة؟'
+            };
+            document.getElementById('confirmMessage').textContent = messages[type] || 'هل أنت متأكد من حذف هذا العنصر؟';
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        document.querySelector('[data-modal="confirmModal"]').addEventListener('click', () => {
+            document.getElementById('confirmModal').classList.remove('active');
+        });
+
+        document.getElementById('confirmDelete').addEventListener('click', async function() {
+            const { type, id } = deleteTarget;
+            const modal = document.getElementById('confirmModal');
+            
+            try {
+                let url = '';
+                if (type === 'gallery') url = `/api/galleries/${id}`;
+                else if (type === 'artwork') url = `/api/artworks/${id}`;
+                else if (type === 'message') url = `/api/messages/${id}`;
+                
+                const res = await fetch(url, {
+                    method: 'DELETE',
+                    headers: getHeaders()
+                });
+                
+                if (res.ok) {
+                    showToast('تم الحذف بنجاح');
+                    modal.classList.remove('active');
+                    if (type === 'gallery') { loadGalleries(); loadStats(); }
+                    else if (type === 'artwork') { loadArtworks(); loadStats(); }
+                    else if (type === 'message') { loadMessages(document.getElementById('messageFilter').value); loadStats(); }
+                } else {
+                    const data = await res.json();
+                    showToast(data.error || 'حدث خطأ', 'error');
+                }
+            } catch (error) {
+                showToast('حدث خطأ في الاتصال', 'error');
+            }
+        });
+
+        // ===== INIT =====
+        async function init() {
+            // Check auth
+            const valid = await checkAuth();
+            if (!valid) return;
+            
+            // Set language
+            setLanguage(currentLang);
+            
+            // Events
+            document.getElementById('langSwitch').addEventListener('click', toggleLanguage);
+            document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
+            document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    navigateTo(this.dataset.section);
+                });
+            });
+            
+            // Close modals on overlay click
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) this.classList.remove('active');
+                });
+            });
+            
+            // Load initial data
+            loadStats();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

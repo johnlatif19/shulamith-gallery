@@ -762,6 +762,40 @@ app.get('/api/rates', async (req, res) => {
     }
 });
 
+// ---------- Update Rate ----------
+app.put('/api/rates/:id', requireAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, email, rating, opinion } = req.body;
+
+        if (!name || !email || !rating || !opinion) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        if (!validateEmail(email)) {
+            return res.status(400).json({ error: 'Invalid email format' });
+        }
+
+        if (rating < 1 || rating > 5) {
+            return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+        }
+
+        const updateData = {
+            name: name.trim(),
+            email: email.trim(),
+            rating: parseInt(rating),
+            opinion: opinion.trim(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        await db.collection('rates').doc(id).update(updateData);
+        res.json({ id, ...updateData });
+    } catch (error) {
+        console.error('Error updating rate:', error);
+        res.status(500).json({ error: 'Failed to update rate' });
+    }
+});
+
 app.delete('/api/rates/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
@@ -834,6 +868,46 @@ app.get('/api/orders', async (req, res) => {
     }
 });
 
+// ---------- Update Order ----------
+app.put('/api/orders/:id', requireAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, phone, email, orderText, status } = req.body;
+
+        if (!name || !phone || !email || !orderText) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        if (!validateEmail(email)) {
+            return res.status(400).json({ error: 'Invalid email format' });
+        }
+
+        if (!validatePhone(phone)) {
+            return res.status(400).json({ error: 'Invalid phone format' });
+        }
+
+        const validStatuses = ['pending', 'processing', 'completed', 'cancelled'];
+        if (status && !validStatuses.includes(status)) {
+            return res.status(400).json({ error: 'Invalid status' });
+        }
+
+        const updateData = {
+            name: name.trim(),
+            phone: phone.trim(),
+            email: email.trim(),
+            orderText: orderText.trim(),
+            status: status || 'pending',
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        await db.collection('orders').doc(id).update(updateData);
+        res.json({ id, ...updateData });
+    } catch (error) {
+        console.error('Error updating order:', error);
+        res.status(500).json({ error: 'Failed to update order' });
+    }
+});
+
 app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
@@ -848,10 +922,54 @@ app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
             status,
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
+
+        // Send email notification when status changes
+        try {
+            const orderDoc = await db.collection('orders').doc(id).get();
+            if (orderDoc.exists) {
+                const order = orderDoc.data();
+                const statusMap = {
+                    pending: 'قيد الانتظار',
+                    processing: 'قيد التنفيذ',
+                    completed: 'مكتمل',
+                    cancelled: 'ملغي'
+                };
+                
+                const transporterInstance = await getTransporter();
+                if (transporterInstance && order.email) {
+                    await transporterInstance.sendMail({
+                        from: `"Shulamith Gallery" <${process.env.SMTP_FROM_EMAIL}>`,
+                        to: order.email,
+                        subject: `تحديث حالة الطلب #${id.substring(0, 8)}`,
+                        html: `
+                            <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #1a1a1a; color: #e8e0d4; border-radius: 12px; border: 1px solid #333;">
+                                <div style="text-align: center; margin-bottom: 30px;">
+                                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" style="max-width: 150px; height: auto; border-radius: 8px;">
+                                </div>
+                                <h2 style="color: #d4b892; margin-bottom: 20px;">مرحباً ${order.name}،</h2>
+                                <p style="line-height: 1.8; color: #d4c8b8;">تم تحديث حالة طلبك إلى: <strong style="color: #d4b892;">${statusMap[status] || status}</strong></p>
+                                <div style="margin: 20px 0; padding: 20px; background: #252525; border-radius: 8px; border-right: 3px solid #d4b892;">
+                                    <p style="margin: 5px 0; color: #d4c8b8;"><strong style="color: #d4b892;">تفاصيل الطلب:</strong></p>
+                                    <p style="margin: 10px 0 0 0; color: #e8e0d4;">${order.orderText}</p>
+                                </div>
+                                <hr style="border: none; border-top: 1px solid #333; margin: 30px 0;">
+                                <p style="color: #999; font-size: 14px; text-align: center;">
+                                    © 2026 Shulamith Gallery. All rights reserved.
+                                </p>
+                            </div>
+                        `
+                    });
+                    console.log('✅ Status update email sent to:', order.email);
+                }
+            }
+        } catch (emailError) {
+            console.error('❌ Error sending status email:', emailError.message);
+        }
+
         res.json({ success: true });
     } catch (error) {
-        console.error('Error updating order:', error);
-        res.status(500).json({ error: 'Failed to update order' });
+        console.error('Error updating order status:', error);
+        res.status(500).json({ error: 'Failed to update order status' });
     }
 });
 
@@ -975,7 +1093,7 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
         const mailOptions = {
             from: `"Shulamith Gallery" <${process.env.SMTP_FROM_EMAIL}>`,
             to: email,
-            subject: `📧 رسالة من Shulamith Gallery`,
+            subject: `رسالة من Shulamith Gallery`,
             html: `
                 <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #1a1a1a; color: #e8e0d4; border-radius: 12px; border: 1px solid #333;">
                     <div style="text-align: center; margin-bottom: 30px;">

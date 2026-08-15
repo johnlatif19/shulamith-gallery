@@ -461,7 +461,7 @@
     <!-- ===== PAGE HEADER ===== -->
     <section class="page-header">
         <div class="container">
-            <h1>🖼️ المعارض الفنية</h1>
+            <h1>المعارض الفنية</h1>
             <p>استكشف مجموعاتنا الفنية المميزة</p>
         </div>
     </section>
@@ -502,6 +502,7 @@
     <script>
         // ===== LANGUAGE =====
         let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
+        let refreshInterval = null;
 
         function setLanguage(lang) {
             currentLang = lang;
@@ -526,6 +527,9 @@
             const grid = document.getElementById('galleriesGrid');
             try {
                 const res = await fetch('/api/galleries');
+                if (!res.ok) {
+                    throw new Error('Network response was not ok');
+                }
                 const data = await res.json();
                 const visible = data.filter(g => g.visible !== false);
 
@@ -537,24 +541,40 @@
                 let html = '';
                 for (const gallery of visible) {
                     // Count artworks in this gallery
-                    const artworksRes = await fetch(`/api/artworks?galleryId=${gallery.id}`);
-                    const artworks = await artworksRes.json();
-                    const visibleArtworks = artworks.filter(a => a.visible !== false);
-                    const count = visibleArtworks.length;
+                    try {
+                        const artworksRes = await fetch(`/api/artworks?galleryId=${gallery.id}`);
+                        const artworks = await artworksRes.json();
+                        const visibleArtworks = artworks.filter(a => a.visible !== false);
+                        const count = visibleArtworks.length;
 
-                    html += `
-                        <div class="gallery-card" data-id="${gallery.id}">
-                            <img src="${gallery.coverImage || 'https://via.placeholder.com/400x220/1e1a18/d4b892?text=Shulamith'}" 
-                                 alt="${gallery.name}" 
-                                 class="gallery-card-image"
-                                 onerror="this.src='https://via.placeholder.com/400x220/1e1a18/d4b892?text=Shulamith'">
-                            <div class="gallery-card-content">
-                                <h3>${gallery.name}</h3>
-                                <p>${gallery.description || ''}</p>
-                                <span class="artwork-count">🎨 ${count} عمل فني</span>
+                        html += `
+                            <div class="gallery-card" data-id="${gallery.id}">
+                                <img src="${gallery.coverImage || 'https://via.placeholder.com/400x220/1e1a18/d4b892?text=Shulamith'}" 
+                                     alt="${gallery.name}" 
+                                     class="gallery-card-image"
+                                     onerror="this.src='https://via.placeholder.com/400x220/1e1a18/d4b892?text=Shulamith'">
+                                <div class="gallery-card-content">
+                                    <h3>${gallery.name}</h3>
+                                    <p>${gallery.description || ''}</p>
+                                    <span class="artwork-count">${count} عمل فني</span>
+                                </div>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    } catch (err) {
+                        html += `
+                            <div class="gallery-card" data-id="${gallery.id}">
+                                <img src="${gallery.coverImage || 'https://via.placeholder.com/400x220/1e1a18/d4b892?text=Shulamith'}" 
+                                     alt="${gallery.name}" 
+                                     class="gallery-card-image"
+                                     onerror="this.src='https://via.placeholder.com/400x220/1e1a18/d4b892?text=Shulamith'">
+                                <div class="gallery-card-content">
+                                    <h3>${gallery.name}</h3>
+                                    <p>${gallery.description || ''}</p>
+                                    <span class="artwork-count">0 عمل فني</span>
+                                </div>
+                            </div>
+                        `;
+                    }
                 }
                 grid.innerHTML = html;
 
@@ -610,8 +630,8 @@
                             <img src="${a.imageUrl}" alt="${a.title}" onerror="this.src='https://via.placeholder.com/200x180/1e1a18/d4b892?text=Art'">
                             <div class="info">
                                 <h4>${a.title}</h4>
-                                ${a.material ? `<p>🖌️ ${a.material}</p>` : ''}
-                                ${a.dimensions ? `<p>📐 ${a.dimensions}</p>` : ''}
+                                ${a.material ? `<p>${a.material}</p>` : ''}
+                                ${a.dimensions ? `<p>${a.dimensions}</p>` : ''}
                             </div>
                         </div>
                     `;
@@ -638,9 +658,27 @@
             document.body.style.overflow = '';
         }
 
+        // ===== REFRESH FUNCTION =====
+        function startAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            refreshInterval = setInterval(() => {
+                loadGalleries();
+            }, 5000);
+        }
+
         // ===== INIT =====
         setLanguage(currentLang);
-        loadGalleries();
+        await loadGalleries();
+        startAutoRefresh();
+
+        // Clean up interval on page unload
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
     </script>
 </body>
 </html>

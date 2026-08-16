@@ -1950,19 +1950,23 @@
                 document.getElementById('statMessages').textContent = data.messages || 0;
                 document.getElementById('statFeatured').textContent = data.featured || 0;
                 
-                // Get rates count
+                // Get rates count - استخدم fetch عادي
                 try {
                     const ratesRes = await fetch('/api/rates');
                     const ratesData = await ratesRes.json();
                     document.getElementById('statRates').textContent = ratesData.length || 0;
-                } catch (e) {}
+                } catch (e) {
+                    console.error('Error fetching rates count:', e);
+                }
                 
-                // Get orders count
+                // Get orders count - استخدم fetch عادي
                 try {
                     const ordersRes = await fetch('/api/orders');
                     const ordersData = await ordersRes.json();
                     document.getElementById('statOrders').textContent = ordersData.length || 0;
-                } catch (e) {}
+                } catch (e) {
+                    console.error('Error fetching orders count:', e);
+                }
                 
                 const badge = document.getElementById('unreadBadge');
                 if (data.unreadMessages > 0) {
@@ -2342,7 +2346,12 @@
             try {
                 let url = '/api/rates';
                 if (filter !== 'all') url += `?rating=${filter}`;
-                const data = await apiFetch(url);
+                
+                // استخدم fetch عادي مش apiFetch عشان ميحتاجش توكن
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Failed to fetch rates');
+                const data = await res.json();
+                
                 rates = data;
                 if (!data || data.length === 0) {
                     container.innerHTML = '<div class="empty-state">لا توجد تقييمات حالياً</div>';
@@ -2426,7 +2435,12 @@
             try {
                 let url = '/api/orders';
                 if (filter !== 'all') url += `?status=${filter}`;
-                const data = await apiFetch(url);
+                
+                // استخدم fetch عادي مش apiFetch عشان ميحتاجش توكن
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Failed to fetch orders');
+                const data = await res.json();
+                
                 orders = data;
                 if (!data || data.length === 0) {
                     container.innerHTML = '<div class="empty-state">لا توجد طلبات حالياً</div>';

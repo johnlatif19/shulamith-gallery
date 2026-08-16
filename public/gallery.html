@@ -449,6 +449,7 @@
                 <li><a href="/">الرئيسية</a></li>
                 <li><a href="/gallery.html" class="active">المعارض</a></li>
                 <li><a href="/rate.html">التقييمات</a></li>
+                <li><a href="/order.html">طلب عمل</a></li>
                 <li><a href="/#contact">تواصل</a></li>
             </ul>
             <div class="nav-actions">
@@ -499,10 +500,11 @@
         </div>
     </footer>
 
-<script>
+    <script>
         // ===== LANGUAGE =====
         let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
         let refreshInterval = null;
+        let allGalleries = [];
 
         function setLanguage(lang) {
             currentLang = lang;
@@ -532,6 +534,7 @@
                     throw new Error('Network response was not ok');
                 }
                 const data = await res.json();
+                allGalleries = data;
                 const visible = data.filter(g => g.visible !== false);
 
                 if (visible.length === 0) {
@@ -544,8 +547,11 @@
                     // Count artworks in this gallery
                     try {
                         const artworksRes = await fetch(`/api/artworks?galleryId=${gallery.id}`);
+                        if (!artworksRes.ok) {
+                            throw new Error('Failed to fetch artworks');
+                        }
                         const artworks = await artworksRes.json();
-                        const visibleArtworks = artworks.filter(a => a.visible !== false);
+                        const visibleArtworks = Array.isArray(artworks) ? artworks.filter(a => a.visible !== false) : [];
                         const count = visibleArtworks.length;
 
                         html += `
@@ -562,6 +568,7 @@
                             </div>
                         `;
                     } catch (err) {
+                        console.error('Error counting artworks for gallery:', err);
                         html += `
                             <div class="gallery-card" data-id="${gallery.id}">
                                 <img src="${gallery.coverImage || 'https://via.placeholder.com/400x220/1e1a18/d4b892?text=Shulamith'}" 
@@ -583,7 +590,7 @@
                 document.querySelectorAll('.gallery-card').forEach(card => {
                     card.addEventListener('click', function() {
                         const id = this.dataset.id;
-                        openGalleryModal(id);
+                        if (id) openGalleryModal(id);
                     });
                 });
 
@@ -605,19 +612,33 @@
             grid.innerHTML = '<div class="empty-artworks">جاري التحميل...</div>';
 
             try {
-                // Get gallery info
-                const galleryRes = await fetch('/api/galleries');
-                const galleries = await galleryRes.json();
-                const gallery = galleries.find(g => g.id === galleryId);
+                // Get gallery info from cached data
+                const gallery = allGalleries.find(g => g.id === galleryId);
                 if (gallery) {
                     title.textContent = gallery.name;
                     desc.textContent = gallery.description || '';
+                } else {
+                    // Fallback: fetch gallery info
+                    const galleryRes = await fetch('/api/galleries');
+                    const galleries = await galleryRes.json();
+                    const found = galleries.find(g => g.id === galleryId);
+                    if (found) {
+                        title.textContent = found.name;
+                        desc.textContent = found.description || '';
+                    }
                 }
 
-                // Get artworks
+                // Get artworks - IMPORTANT: use fetch with proper error handling
                 const artworksRes = await fetch(`/api/artworks?galleryId=${galleryId}`);
+                
+                if (!artworksRes.ok) {
+                    throw new Error(`HTTP error! status: ${artworksRes.status}`);
+                }
+                
                 const artworks = await artworksRes.json();
-                const visible = artworks.filter(a => a.visible !== false);
+                
+                // Filter only visible artworks
+                const visible = Array.isArray(artworks) ? artworks.filter(a => a.visible !== false) : [];
 
                 if (visible.length === 0) {
                     grid.innerHTML = '<div class="empty-artworks">لا توجد أعمال فنية في هذا المعرض</div>';
@@ -626,11 +647,13 @@
 
                 let html = '';
                 visible.forEach(a => {
+                    // Ensure image URL is valid
+                    const imgSrc = a.imageUrl || 'https://via.placeholder.com/200x180/1e1a18/d4b892?text=Art';
                     html += `
                         <div class="modal-artwork-item">
-                            <img src="${a.imageUrl}" alt="${a.title}" onerror="this.src='https://via.placeholder.com/200x180/1e1a18/d4b892?text=Art'">
+                            <img src="${imgSrc}" alt="${a.title || 'عمل فني'}" onerror="this.src='https://via.placeholder.com/200x180/1e1a18/d4b892?text=Art'">
                             <div class="info">
-                                <h4>${a.title}</h4>
+                                <h4>${a.title || 'بدون عنوان'}</h4>
                                 ${a.material ? `<p>${a.material}</p>` : ''}
                                 ${a.dimensions ? `<p>${a.dimensions}</p>` : ''}
                             </div>
@@ -641,7 +664,17 @@
 
             } catch (error) {
                 console.error('Error loading gallery artworks:', error);
-                grid.innerHTML = '<div class="empty-artworks">حدث خطأ في تحميل الأعمال</div>';
+                grid.innerHTML = `
+                    <div class="empty-artworks">
+                        حدث خطأ في تحميل الأعمال<br>
+                        <small style="color: var(--color-text-dark);">${error.message || 'يرجى المحاولة مرة أخرى'}</small>
+                        <br><br>
+                        <button onclick="openGalleryModal('${galleryId}')" 
+                                style="padding:8px 20px;background:var(--color-primary);color:var(--color-bg);border:none;border-radius:8px;cursor:pointer;">
+                            إعادة المحاولة
+                        </button>
+                    </div>
+                `;
             }
         }
 
@@ -665,12 +698,15 @@
                 clearInterval(refreshInterval);
             }
             refreshInterval = setInterval(() => {
-                loadGalleries();
+                // Only refresh if modal is not open
+                const modal = document.getElementById('artworksModal');
+                if (!modal.classList.contains('active')) {
+                    loadGalleries();
+                }
             }, 5000);
         }
 
         // ===== INIT =====
-        // إزالة await لأن الدالة مش async
         setLanguage(currentLang);
         loadGalleries();
         startAutoRefresh();

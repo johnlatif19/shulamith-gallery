@@ -821,7 +821,7 @@
             document.body.style.overflow = '';
         }
 
-        // ===== AUTO REFRESH (كل 5 ثواني - داخلي فقط) =====
+        // ===== AUTO REFRESH (كل 30 ثانية - داخلي فقط) =====
         function startAutoRefresh() {
             if (refreshInterval) {
                 clearInterval(refreshInterval);
@@ -835,7 +835,7 @@
                 } else {
                     console.log('⏸️ Auto-refresh paused (modal open)');
                 }
-            }, 5000); // 5 ثواني
+            }, 30000); // 30 ثانية
         }
 
         // ===== INIT =====

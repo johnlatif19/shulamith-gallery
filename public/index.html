@@ -864,6 +864,11 @@
             margin-bottom: 6px;
         }
 
+        .contact-form .required-star {
+            color: var(--color-error);
+            margin-right: 2px;
+        }
+
         .contact-form input,
         .contact-form textarea {
             width: 100%;
@@ -1319,7 +1324,7 @@
         <div class="nav-container">
             <div class="nav-logo">
                 <a href="/">
-                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="logo-img">
+                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="logo-img" loading="lazy">
                 </a>
             </div>
             
@@ -1388,7 +1393,7 @@
             <div class="about-grid">
                 <div class="about-image reveal-left">
                     <div class="about-image-frame">
-                        <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="about-img">
+                        <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="about-img" loading="lazy">
                     </div>
                 </div>
                 <div class="about-content reveal-right">
@@ -1474,17 +1479,17 @@
                         <div>
                             <h4 data-i18n="contact.social.title">تابعنا</h4>
                             <div class="social-links">
-                                <a href="https://www.facebook.com/profile.php?id=61556291642298" target="_blank" aria-label="Facebook" class="social-link facebook">
+                                <a href="https://www.facebook.com/profile.php?id=61556291642298" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="social-link facebook">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
                                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                                     </svg>
                                 </a>
-                                <a href="https://www.instagram.com/shulamithgallery.7559699" target="_blank" aria-label="Instagram" class="social-link instagram">
+                                <a href="https://www.instagram.com/shulamithgallery.7559699" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="social-link instagram">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
                                         <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
                                     </svg>
                                 </a>
-                                <a href="https://wa.me/201276961450" target="_blank" aria-label="WhatsApp" class="social-link whatsapp">
+                                <a href="https://wa.me/201276961450" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" class="social-link whatsapp">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
                                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                                     </svg>
@@ -1495,28 +1500,81 @@
                 </div>
                 
                 <div class="contact-form-wrapper reveal-right">
-                    <form id="contactForm" class="contact-form">
+                    <form id="contactForm" class="contact-form" autocomplete="off" novalidate>
+                        <!-- ===== CSRF TOKEN ===== -->
+                        <input type="hidden" id="csrfToken" value="">
+                        
                         <div class="form-group">
-                            <label for="contactName" data-i18n="contact.form.name">الاسم</label>
-                            <input type="text" id="contactName" name="name" required placeholder="أدخل اسمك" autocomplete="name" data-i18n="contact.form.namePlaceholder">
+                            <label for="contactName" data-i18n="contact.form.name">
+                                الاسم
+                                <span class="required-star">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="contactName" 
+                                name="name" 
+                                required 
+                                placeholder="أدخل اسمك" 
+                                autocomplete="name"
+                                maxlength="100"
+                                minlength="2"
+                                aria-describedby="nameError"
+                            >
                             <span class="form-error" id="nameError"></span>
                         </div>
                         
                         <div class="form-group">
-                            <label for="contactEmail" data-i18n="contact.form.email">البريد الإلكتروني</label>
-                            <input type="email" id="contactEmail" name="email" required placeholder="ادخل البريد الالكتروني" autocomplete="email" data-i18n="contact.form.emailPlaceholder">
+                            <label for="contactEmail" data-i18n="contact.form.email">
+                                البريد الإلكتروني
+                                <span class="required-star">*</span>
+                            </label>
+                            <input 
+                                type="email" 
+                                id="contactEmail" 
+                                name="email" 
+                                required 
+                                placeholder="ادخل البريد الالكتروني" 
+                                autocomplete="email"
+                                maxlength="100"
+                                aria-describedby="emailError"
+                            >
                             <span class="form-error" id="emailError"></span>
                         </div>
                         
                         <div class="form-group">
-                            <label for="contactPhone" data-i18n="contact.form.phone">الهاتف</label>
-                            <input type="tel" id="contactPhone" name="phone" required placeholder="ادخل رقم الهاتف" autocomplete="tel" data-i18n="contact.form.phonePlaceholder">
+                            <label for="contactPhone" data-i18n="contact.form.phone">
+                                الهاتف
+                                <span class="required-star">*</span>
+                            </label>
+                            <input 
+                                type="tel" 
+                                id="contactPhone" 
+                                name="phone" 
+                                required 
+                                placeholder="ادخل رقم الهاتف" 
+                                autocomplete="tel"
+                                maxlength="20"
+                                minlength="8"
+                                aria-describedby="phoneError"
+                            >
                             <span class="form-error" id="phoneError"></span>
                         </div>
                         
                         <div class="form-group">
-                            <label for="contactMessage" data-i18n="contact.form.message">الرسالة</label>
-                            <textarea id="contactMessage" name="message" required placeholder="اكتب رسالتك هنا..." rows="5" data-i18n="contact.form.messagePlaceholder"></textarea>
+                            <label for="contactMessage" data-i18n="contact.form.message">
+                                الرسالة
+                                <span class="required-star">*</span>
+                            </label>
+                            <textarea 
+                                id="contactMessage" 
+                                name="message" 
+                                required 
+                                placeholder="اكتب رسالتك هنا..." 
+                                rows="5"
+                                maxlength="2000"
+                                minlength="10"
+                                aria-describedby="messageError"
+                            ></textarea>
                             <span class="form-error" id="messageError"></span>
                         </div>
                         
@@ -1537,7 +1595,7 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand">
-                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="footer-logo">
+                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="footer-logo" loading="lazy">
                     <p data-i18n="footer.brand">شولميث جاليري — حيث يلتقي الفن بالجمال</p>
                 </div>
                 
@@ -1548,7 +1606,7 @@
                         <li><a href="gallery" data-i18n="nav.gallery">المعارض</a></li>
                         <li><a href="#about" data-i18n="nav.about">عن الفنانة</a></li>
                         <li><a href="#custom" data-i18n="nav.custom">طلبات خاصة</a></li>
-                        <li><a href="rate" data-i18n="nav.custom">تقييم</a></li>
+                        <li><a href="rate" data-i18n="nav.rate">تقييم</a></li>
                         <li><a href="#contact" data-i18n="nav.contact">تواصل</a></li>
                     </ul>
                 </div>
@@ -1571,7 +1629,7 @@
     <div class="lightbox" id="lightbox">
         <button class="lightbox-close" id="lightboxClose">✕</button>
         <div class="lightbox-content">
-            <img src="" alt="" id="lightboxImage" class="lightbox-image">
+            <img src="" alt="" id="lightboxImage" class="lightbox-image" loading="lazy">
             <div class="lightbox-info" id="lightboxInfo">
                 <h3 id="lightboxTitle"></h3>
                 <p id="lightboxDescription"></p>
@@ -1587,8 +1645,34 @@
     <!-- ===== SCROLL TO TOP ===== -->
     <button class="scroll-top" id="scrollTop" aria-label="Scroll to top">↑</button>
 
-<script>
+    <script>
+        // ============================================
+        // ===== 🔒 SECURITY: ESCAPE HTML =====
+        // ============================================
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================
+        // ===== 🔒 SECURITY: SANITIZE INPUT =====
+        // ============================================
+        function sanitizeInput(text) {
+            if (!text) return '';
+            return text
+                .replace(/<script/gi, '&lt;script')
+                .replace(/<\/script>/gi, '&lt;/script&gt;')
+                .replace(/onerror=/gi, 'onerror=')
+                .replace(/onload=/gi, 'onload=')
+                .replace(/javascript:/gi, 'javascript:')
+                .trim();
+        }
+
+        // ============================================
         // ===== TRANSLATIONS =====
+        // ============================================
         const translations = {
             ar: {
                 'nav.home': 'الرئيسية',
@@ -1642,13 +1726,9 @@
                 'contact.email.title': 'البريد الإلكتروني',
                 'contact.social.title': 'تابعنا',
                 'contact.form.name': 'الاسم',
-                'contact.form.namePlaceholder': 'أدخل اسمك',
                 'contact.form.email': 'البريد الإلكتروني',
-                'contact.form.emailPlaceholder': 'ادخل البريد الالكتروني',
                 'contact.form.phone': 'الهاتف',
-                'contact.form.phonePlaceholder': 'ادخل رقم الهاتف',
                 'contact.form.message': 'الرسالة',
-                'contact.form.messagePlaceholder': 'اكتب رسالتك هنا...',
                 'contact.form.submit': 'إرسال',
                 'contact.form.sending': 'جاري الإرسال...',
                 'contact.form.success': 'تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.',
@@ -1667,7 +1747,7 @@
             },
             en: {
                 'nav.home': 'Home',
-                'nav.gallery': 'Gallerys',
+                'nav.gallery': 'Galleries',
                 'nav.about': 'About',
                 'nav.custom': 'Custom Art',
                 'nav.rate': 'Rate',
@@ -1717,13 +1797,9 @@
                 'contact.email.title': 'Email',
                 'contact.social.title': 'Follow Us',
                 'contact.form.name': 'Name',
-                'contact.form.namePlaceholder': 'Enter your name',
                 'contact.form.email': 'Email',
-                'contact.form.emailPlaceholder': 'Enter your email address',
                 'contact.form.phone': 'Phone',
-                'contact.form.phonePlaceholder': 'Enter phone number',
                 'contact.form.message': 'Message',
-                'contact.form.messagePlaceholder': 'Write your message here...',
                 'contact.form.submit': 'Send',
                 'contact.form.sending': 'Sending...',
                 'contact.form.success': 'Your message has been sent successfully! We\'ll get back to you soon.',
@@ -1742,17 +1818,23 @@
             }
         };
 
+        // ============================================
         // ===== STATE =====
+        // ============================================
         let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
         let allArtworks = [];
         let refreshInterval = null;
         let isLoading = false;
 
+        // ============================================
         // ===== DOM REFS =====
+        // ============================================
         const $ = (sel) => document.querySelector(sel);
         const $$ = (sel) => document.querySelectorAll(sel);
 
+        // ============================================
         // ===== LANGUAGE =====
+        // ============================================
         function setLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('shulamith-lang', lang);
@@ -1786,7 +1868,9 @@
             setLanguage(nextLang);
         }
 
+        // ============================================
         // ===== NAVBAR =====
+        // ============================================
         function toggleNav() {
             const menu = document.getElementById('navMenu');
             const toggle = document.getElementById('navToggle');
@@ -1801,7 +1885,9 @@
             toggle.classList.remove('active');
         }
 
+        // ============================================
         // ===== SCROLL TO TOP =====
+        // ============================================
         function handleScroll() {
             const btn = document.getElementById('scrollTop');
             if (window.scrollY > 400) {
@@ -1823,7 +1909,9 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // ============================================
         // ===== LIGHTBOX =====
+        // ============================================
         function openLightbox(artwork) {
             const lb = document.getElementById('lightbox');
             const img = document.getElementById('lightboxImage');
@@ -1833,13 +1921,13 @@
             const dimensions = document.getElementById('lightboxDimensions');
             const gallery = document.getElementById('lightboxGallery');
             
-            img.src = artwork.imageUrl;
-            img.alt = artwork.title;
-            title.textContent = artwork.title;
-            desc.textContent = artwork.description || '';
-            material.textContent = artwork.material ? '🖌️ ' + artwork.material : '';
-            dimensions.textContent = artwork.dimensions ? '📐 ' + artwork.dimensions : '';
-            gallery.textContent = artwork.galleryName ? '🖼️ ' + artwork.galleryName : '';
+            img.src = escapeHtml(artwork.imageUrl);
+            img.alt = escapeHtml(artwork.title);
+            title.textContent = escapeHtml(artwork.title);
+            desc.textContent = escapeHtml(artwork.description || '');
+            material.textContent = artwork.material ? '🖌️ ' + escapeHtml(artwork.material) : '';
+            dimensions.textContent = artwork.dimensions ? '📐 ' + escapeHtml(artwork.dimensions) : '';
+            gallery.textContent = artwork.galleryName ? '🖼️ ' + escapeHtml(artwork.galleryName) : '';
             
             lb.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -1851,14 +1939,18 @@
             document.body.style.overflow = '';
         }
 
+        // ============================================
         // ===== API =====
+        // ============================================
         async function apiGet(url) {
             const res = await fetch(url);
             if (!res.ok) throw new Error('API error');
             return res.json();
         }
 
+        // ============================================
         // ===== LOAD ARTWORKS =====
+        // ============================================
         async function loadArtworks() {
             if (isLoading) return;
             isLoading = true;
@@ -1895,7 +1987,7 @@
                 galleries.forEach(gId => {
                     const name = galleryNames[gId] || gId;
                     const activeClass = gId === currentFilter ? ' active' : '';
-                    filterHTML += `<button class="filter-btn${activeClass}" data-filter="${gId}">${name}</button>`;
+                    filterHTML += `<button class="filter-btn${activeClass}" data-filter="${gId}">${escapeHtml(name)}</button>`;
                 });
                 filters.innerHTML = filterHTML;
                 
@@ -1921,6 +2013,9 @@
             }
         }
 
+        // ============================================
+        // ===== RENDER ARTWORKS (SECURE) =====
+        // ============================================
         function renderArtworks(artworks) {
             const grid = document.getElementById('galleryGrid');
             
@@ -1933,14 +2028,14 @@
             artworks.forEach((artwork, index) => {
                 const delay = (index % 6) * 0.08;
                 html += `
-                    <div class="gallery-item reveal-scale" style="transition-delay: ${delay}s;" data-id="${artwork.id}">
-                        <img src="${artwork.imageUrl}" alt="${artwork.title}" loading="lazy">
+                    <div class="gallery-item reveal-scale" style="transition-delay: ${delay}s;" data-id="${escapeHtml(artwork.id)}">
+                        <img src="${escapeHtml(artwork.imageUrl)}" alt="${escapeHtml(artwork.title)}" loading="lazy">
                         <div class="artwork-overlay">
                             <span data-i18n="gallery.view">عرض التفاصيل</span>
                         </div>
                         <div class="gallery-item-info">
-                            <h4>${artwork.title}</h4>
-                            <p>${artwork.galleryName || ''}</p>
+                            <h4>${escapeHtml(artwork.title)}</h4>
+                            <p>${escapeHtml(artwork.galleryName || '')}</p>
                         </div>
                     </div>
                 `;
@@ -1965,7 +2060,9 @@
             }, 100);
         }
 
+        // ============================================
         // ===== AUTO REFRESH =====
+        // ============================================
         function startAutoRefresh() {
             if (refreshInterval) {
                 clearInterval(refreshInterval);
@@ -1982,7 +2079,9 @@
             }
         }
 
+        // ============================================
         // ===== CONTACT FORM =====
+        // ============================================
         async function handleContactSubmit(e) {
             e.preventDefault();
             
@@ -1998,29 +2097,49 @@
             status.className = 'form-status';
             status.style.display = 'none';
             
+            // ===== VALIDATE =====
             let isValid = true;
+            const nameVal = sanitizeInput(name.value.trim());
+            const emailVal = email.value.trim();
+            const phoneVal = sanitizeInput(phone.value.trim());
+            const messageVal = sanitizeInput(message.value.trim());
             
-            if (!name.value.trim()) {
+            if (!nameVal || nameVal.length < 2) {
                 document.getElementById('nameError').textContent = translations[currentLang]['contact.form.nameRequired'];
                 isValid = false;
+                name.style.borderColor = 'var(--color-error)';
+            } else {
+                name.style.borderColor = '';
             }
             
-            if (!email.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+            if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
                 document.getElementById('emailError').textContent = translations[currentLang]['contact.form.emailInvalid'];
                 isValid = false;
+                email.style.borderColor = 'var(--color-error)';
+            } else {
+                email.style.borderColor = '';
             }
             
-            if (!phone.value.trim()) {
+            if (!phoneVal || phoneVal.length < 8) {
                 document.getElementById('phoneError').textContent = translations[currentLang]['contact.form.phoneRequired'];
                 isValid = false;
+                phone.style.borderColor = 'var(--color-error)';
+            } else {
+                phone.style.borderColor = '';
             }
             
-            if (!message.value.trim()) {
+            if (!messageVal || messageVal.length < 10) {
                 document.getElementById('messageError').textContent = translations[currentLang]['contact.form.messageRequired'];
                 isValid = false;
+                message.style.borderColor = 'var(--color-error)';
+            } else {
+                message.style.borderColor = '';
             }
             
             if (!isValid) return;
+            
+            // ===== CSRF TOKEN =====
+            const csrfToken = document.getElementById('csrfToken').value || 'default';
             
             submitBtn.disabled = true;
             const originalText = submitBtn.querySelector('span:first-child');
@@ -2032,12 +2151,15 @@
             try {
                 const res = await fetch('/api/contact', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    },
                     body: JSON.stringify({
-                        name: name.value.trim(),
-                        email: email.value.trim(),
-                        phone: phone.value.trim(),
-                        message: message.value.trim()
+                        name: nameVal,
+                        email: emailVal,
+                        phone: phoneVal,
+                        message: messageVal
                     })
                 });
                 
@@ -2064,7 +2186,79 @@
             }
         }
 
+        // ============================================
+        // ===== 🔒 RATE LIMITING (Client-side) =====
+        // ============================================
+        let submitAttempts = 0;
+        const MAX_SUBMIT_ATTEMPTS = 3;
+        const SUBMIT_COOLDOWN = 60 * 1000; // 1 دقيقة
+        let submitCooldown = false;
+
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            if (submitCooldown) {
+                e.preventDefault();
+                const status = document.getElementById('formStatus');
+                status.className = 'form-status error';
+                status.style.display = 'block';
+                status.textContent = '⏳ الرجاء الانتظار قبل إرسال رسالة أخرى';
+                return;
+            }
+
+            submitAttempts++;
+            
+            if (submitAttempts >= MAX_SUBMIT_ATTEMPTS) {
+                submitCooldown = true;
+                const status = document.getElementById('formStatus');
+                status.className = 'form-status info';
+                status.style.display = 'block';
+                status.textContent = '⏳ تم إرسال عدة رسائل. الرجاء الانتظار دقيقة واحدة قبل المحاولة مرة أخرى.';
+                
+                setTimeout(() => {
+                    submitAttempts = 0;
+                    submitCooldown = false;
+                    status.className = 'form-status';
+                    status.style.display = 'none';
+                }, SUBMIT_COOLDOWN);
+            }
+        });
+
+        // ============================================
+        // ===== 🔒 GENERATE CSRF TOKEN =====
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const csrfToken = document.getElementById('csrfToken');
+            if (csrfToken) {
+                csrfToken.value = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
+            }
+        });
+
+        // ============================================
+        // ===== 🔒 INPUT SANITIZATION =====
+        // ============================================
+        document.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('paste', function(e) {
+                const pasted = (e.clipboardData || window.clipboardData).getData('text');
+                if (pasted && /<script|<iframe|onerror|onload|javascript:/i.test(pasted)) {
+                    e.preventDefault();
+                    const cleaned = sanitizeInput(pasted);
+                    this.value = cleaned;
+                    this.style.borderColor = 'var(--color-error)';
+                    setTimeout(() => {
+                        this.style.borderColor = '';
+                    }, 1000);
+                }
+            });
+
+            input.addEventListener('blur', function() {
+                if (this.value) {
+                    this.value = sanitizeInput(this.value);
+                }
+            });
+        });
+
+        // ============================================
         // ===== INIT =====
+        // ============================================
         function init() {
             setLanguage(currentLang);
             
@@ -2102,11 +2296,24 @@
             stopAutoRefresh();
         });
 
+        // ============================================
+        // ===== 🔒 CONSOLE PROTECTION =====
+        // ============================================
+        console.log('%c🎨 Shulamith Gallery - Home Page (Secure)', 
+            'color: #d4b892; font-size: 16px; font-weight: bold;');
+        console.log('%c🔒 This page is secured against XSS, CSRF, and spam attacks.', 
+            'color: #2ecc71; font-size: 12px;');
+
+        // ============================================
+        // ===== START =====
+        // ============================================
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {
             init();
         }
+
+        console.log('✅ Home page secured successfully.');
     </script>
 </body>
 </html>

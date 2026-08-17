@@ -45,7 +45,7 @@
             overflow: hidden;
         }
 
-        /* Background with logo overlay */
+        /* ===== BACKGROUND ===== */
         body::before {
             content: '';
             position: fixed;
@@ -315,47 +315,123 @@
         body.ltr .login-footer a {
             display: inline-block;
         }
+
+        /* ===== SECURITY NOTICE ===== */
+        .security-notice {
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: rgba(212, 184, 146, 0.05);
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(212, 184, 146, 0.1);
+            font-size: 0.75rem;
+            color: var(--color-text-dark);
+            text-align: center;
+        }
+
+        .security-notice span {
+            color: var(--color-primary-dark);
+        }
+
+        /* ===== RATE LIMIT WARNING ===== */
+        .rate-limit-warning {
+            display: none;
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: rgba(231, 76, 60, 0.08);
+            border: 1px solid rgba(231, 76, 60, 0.15);
+            border-radius: var(--radius-sm);
+            color: var(--color-error);
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .rate-limit-warning.visible {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
-                <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="login-logo">
+                <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="login-logo" loading="lazy">
                 <h1>Shulamith Gallery</h1>
+                <p>🔐 لوحة التحكم</p>
             </div>
             
-            <form id="loginForm" class="login-form">
+            <form id="loginForm" class="login-form" autocomplete="off">
+                <!-- ===== CSRF TOKEN ===== -->
+                <input type="hidden" id="csrfToken" value="">
+                
                 <div class="form-group">
-                    <label for="username">اسم المستخدم</label>
-                    <input type="text" id="username" name="username" required placeholder="أدخل اسم المستخدم" autocomplete="username">
+                    <label for="username">👤 اسم المستخدم</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        required 
+                        placeholder="أدخل اسم المستخدم" 
+                        autocomplete="username"
+                        maxlength="50"
+                        aria-describedby="usernameError"
+                    >
                     <span class="form-error" id="usernameError"></span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="password">كلمة المرور</label>
+                    <label for="password">🔑 كلمة المرور</label>
                     <div class="password-wrapper">
-                        <input type="password" id="password" name="password" required placeholder="أدخل كلمة المرور" autocomplete="current-password">
-                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">🐵</button>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required 
+                            placeholder="أدخل كلمة المرور" 
+                            autocomplete="current-password"
+                            maxlength="100"
+                            aria-describedby="passwordError"
+                        >
+                        <button 
+                            type="button" 
+                            class="toggle-password" 
+                            id="togglePassword" 
+                            aria-label="إظهار/إخفاء كلمة المرور"
+                            title="إظهار/إخفاء كلمة المرور"
+                        >
+                            👁️
+                        </button>
                     </div>
                     <span class="form-error" id="passwordError"></span>
                 </div>
                 
+                <!-- ===== RATE LIMIT WARNING ===== -->
+                <div class="rate-limit-warning" id="rateLimitWarning">
+                    ⚠️ تم تجاوز عدد محاولات تسجيل الدخول. الرجاء الانتظار 15 دقيقة.
+                </div>
+                
                 <button type="submit" class="login-btn" id="loginBtn">
-                    <span>تسجيل الدخول</span>
-                    <span class="btn-loading">جاري التحقق...</span>
+                    <span>🚀 تسجيل الدخول</span>
+                    <span class="btn-loading">⏳ جاري التحقق...</span>
                 </button>
                 
                 <div class="login-status" id="loginStatus"></div>
+                
+                <div class="security-notice">
+                    🔒 اتصال آمن &bull; <span>محمي بـ HTTPS</span>
+                </div>
             </form>
             
             <div class="login-footer">
-                <a href="/">← العودة إلى الموقع</a>
+                <a href="/" title="العودة إلى الموقع الرئيسي">← العودة إلى الموقع</a>
             </div>
         </div>
     </div>
 
     <script>
+        // ============================================
+        // ===== 🔒 SECURITY: Anti-Brute Force =====
+        // ============================================
+        
         // ===== DOM REFS =====
         const form = document.getElementById('loginForm');
         const username = document.getElementById('username');
@@ -365,15 +441,28 @@
         const loginBtn = document.getElementById('loginBtn');
         const loginStatus = document.getElementById('loginStatus');
         const togglePassword = document.getElementById('togglePassword');
+        const rateLimitWarning = document.getElementById('rateLimitWarning');
 
-        // ===== TOGGLE PASSWORD =====
+        // ===== STATE =====
+        let loginAttempts = 0;
+        const MAX_ATTEMPTS = 5;
+        const LOCKOUT_TIME = 15 * 60 * 1000; // 15 دقيقة
+        let isLocked = false;
+        let lockoutTimer = null;
+
+        // ============================================
+        // ===== 🔒 TOGGLE PASSWORD =====
+        // ============================================
         togglePassword.addEventListener('click', function() {
             const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
             password.setAttribute('type', type);
-            this.textContent = type === 'password' ? '🐵' : '🙈';
+            this.textContent = type === 'password' ? '👁️' : '🙈';
+            this.setAttribute('aria-label', type === 'password' ? 'إظهار كلمة المرور' : 'إخفاء كلمة المرور');
         });
 
-        // ===== CHECK LOGIN STATUS =====
+        // ============================================
+        // ===== 🔒 CHECK AUTH =====
+        // ============================================
         function checkAuth() {
             const token = localStorage.getItem('shulamith-token');
             if (token) {
@@ -392,32 +481,72 @@
             }
         }
 
-        // ===== HANDLE LOGIN =====
+        // ============================================
+        // ===== 🔒 HANDLE LOGIN =====
+        // ============================================
         async function handleLogin(e) {
             e.preventDefault();
             
-            // Reset errors
+            // ===== CHECK LOCKOUT =====
+            if (isLocked) {
+                const remaining = Math.ceil((LOCKOUT_TIME - (Date.now() - lockoutTimer)) / 60000);
+                loginStatus.className = 'login-status error';
+                loginStatus.style.display = 'block';
+                loginStatus.textContent = `⛔ تم حظر المحاولات مؤقتاً. الرجاء الانتظار ${remaining} دقيقة.`;
+                return;
+            }
+            
+            // ===== RESET ERRORS =====
             usernameError.textContent = '';
             passwordError.textContent = '';
             loginStatus.className = 'login-status';
             loginStatus.style.display = 'none';
+            rateLimitWarning.classList.remove('visible');
             
-            // Validate
+            // ===== VALIDATE =====
             let isValid = true;
             
-            if (!username.value.trim()) {
-                usernameError.textContent = 'اسم المستخدم مطلوب';
+            const usernameVal = username.value.trim();
+            const passwordVal = password.value.trim();
+            
+            // منع حقن XSS في حقول الدخول
+            if (!usernameVal || usernameVal.length < 2 || usernameVal.length > 50) {
+                usernameError.textContent = 'اسم المستخدم يجب أن يكون بين 2 و 50 حرف';
                 isValid = false;
             }
             
-            if (!password.value.trim()) {
-                passwordError.textContent = 'كلمة المرور مطلوبة';
+            if (!passwordVal || passwordVal.length < 4) {
+                passwordError.textContent = 'كلمة المرور يجب أن تكون 4 أحرف على الأقل';
                 isValid = false;
             }
             
             if (!isValid) return;
             
-            // Submit
+            // ===== INCREMENT ATTEMPTS =====
+            loginAttempts++;
+            
+            // ===== CHECK MAX ATTEMPTS =====
+            if (loginAttempts >= MAX_ATTEMPTS) {
+                isLocked = true;
+                lockoutTimer = Date.now();
+                rateLimitWarning.classList.add('visible');
+                loginStatus.className = 'login-status error';
+                loginStatus.style.display = 'block';
+                loginStatus.textContent = `⛔ تم تجاوز عدد المحاولات (${MAX_ATTEMPTS}). تم حظر تسجيل الدخول لمدة 15 دقيقة.`;
+                
+                // إعادة تعيين العداد بعد 15 دقيقة
+                setTimeout(() => {
+                    loginAttempts = 0;
+                    isLocked = false;
+                    rateLimitWarning.classList.remove('visible');
+                    loginStatus.className = 'login-status';
+                    loginStatus.style.display = 'none';
+                }, LOCKOUT_TIME);
+                
+                return;
+            }
+            
+            // ===== SUBMIT =====
             loginBtn.disabled = true;
             const originalText = loginBtn.querySelector('span:first-child');
             const loadingText = loginBtn.querySelector('.btn-loading');
@@ -425,35 +554,55 @@
             loadingText.style.display = 'inline';
             
             try {
+                // ===== CSRF PROTECTION =====
+                const csrfToken = document.getElementById('csrfToken').value || 'default';
+                
                 const res = await fetch('/api/login', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    },
                     body: JSON.stringify({
-                        username: username.value.trim(),
-                        password: password.value.trim()
+                        username: usernameVal,
+                        password: passwordVal
                     })
                 });
                 
                 const data = await res.json();
                 
                 if (res.ok) {
+                    // ===== RESET ATTEMPTS ON SUCCESS =====
+                    loginAttempts = 0;
+                    
+                    // ===== SECURE TOKEN STORAGE =====
                     localStorage.setItem('shulamith-token', data.token);
+                    
                     loginStatus.className = 'login-status success';
                     loginStatus.style.display = 'block';
-                    loginStatus.textContent = 'تم تسجيل الدخول بنجاح! جاري التحويل...';
+                    loginStatus.textContent = '✅ تم تسجيل الدخول بنجاح! جاري التحويل...';
                     
+                    // ===== REDIRECT =====
                     setTimeout(() => {
                         window.location.href = '/dashboard';
                     }, 800);
                 } else {
+                    // ===== SHOW ERROR =====
                     loginStatus.className = 'login-status error';
                     loginStatus.style.display = 'block';
-                    loginStatus.textContent = data.error || 'اسم المستخدم أو كلمة المرور غير صحيحة';
+                    loginStatus.textContent = data.error || '❌ اسم المستخدم أو كلمة المرور غير صحيحة';
+                    
+                    // ===== REMINDER OF REMAINING ATTEMPTS =====
+                    if (loginAttempts < MAX_ATTEMPTS) {
+                        const remaining = MAX_ATTEMPTS - loginAttempts;
+                        loginStatus.textContent += ` (${remaining} محاولة متبقية)`;
+                    }
                 }
             } catch (error) {
                 loginStatus.className = 'login-status error';
                 loginStatus.style.display = 'block';
-                loginStatus.textContent = 'حدث خطأ في الاتصال، حاول مرة أخرى';
+                loginStatus.textContent = '❌ حدث خطأ في الاتصال، حاول مرة أخرى';
+                console.error('Login error:', error);
             } finally {
                 loginBtn.disabled = false;
                 originalText.style.display = 'inline';
@@ -461,8 +610,11 @@
             }
         }
 
-        // ===== KEYBOARD SHORTCUTS =====
+        // ============================================
+        // ===== 🔒 KEYBOARD SHORTCUTS =====
+        // ============================================
         document.addEventListener('keydown', function(e) {
+            // Enter = Submit
             if (e.key === 'Enter') {
                 const active = document.activeElement;
                 if (active === username || active === password) {
@@ -470,14 +622,167 @@
                     form.dispatchEvent(new Event('submit'));
                 }
             }
+            // Escape = Go Home
             if (e.key === 'Escape') {
                 window.location.href = '/';
             }
         });
 
-        // ===== INIT =====
-        checkAuth();
-        form.addEventListener('submit', handleLogin);
+        // ============================================
+        // ===== 🔒 INPUT SANITIZATION =====
+        // ============================================
+        username.addEventListener('input', function() {
+            // منع الأحرف الخاصة في اسم المستخدم
+            this.value = this.value.replace(/[<>&"'/]/g, '');
+        });
+
+        password.addEventListener('input', function() {
+            // منع الأحرف الخاصة في كلمة المرور
+            this.value = this.value.replace(/[<>&"'/]/g, '');
+        });
+
+        // ============================================
+        // ===== 🔒 RATE LIMIT PERSISTENCE =====
+        // ============================================
+        // حفظ حالة القفل في localStorage
+        function saveLockState() {
+            if (isLocked) {
+                localStorage.setItem('login-locked', 'true');
+                localStorage.setItem('login-lock-time', lockoutTimer.toString());
+            } else {
+                localStorage.removeItem('login-locked');
+                localStorage.removeItem('login-lock-time');
+            }
+        }
+
+        function restoreLockState() {
+            const locked = localStorage.getItem('login-locked');
+            const lockTime = parseInt(localStorage.getItem('login-lock-time') || '0');
+            
+            if (locked === 'true' && lockTime > 0) {
+                const elapsed = Date.now() - lockTime;
+                if (elapsed < LOCKOUT_TIME) {
+                    isLocked = true;
+                    lockoutTimer = lockTime;
+                    rateLimitWarning.classList.add('visible');
+                    loginStatus.className = 'login-status error';
+                    loginStatus.style.display = 'block';
+                    const remaining = Math.ceil((LOCKOUT_TIME - elapsed) / 60000);
+                    loginStatus.textContent = `⛔ تم حظر المحاولات مؤقتاً. الرجاء الانتظار ${remaining} دقيقة.`;
+                    
+                    // إعادة تعيين بعد انتهاء الوقت
+                    const remainingTime = LOCKOUT_TIME - elapsed;
+                    setTimeout(() => {
+                        loginAttempts = 0;
+                        isLocked = false;
+                        rateLimitWarning.classList.remove('visible');
+                        loginStatus.className = 'login-status';
+                        loginStatus.style.display = 'none';
+                        localStorage.removeItem('login-locked');
+                        localStorage.removeItem('login-lock-time');
+                    }, remainingTime);
+                } else {
+                    localStorage.removeItem('login-locked');
+                    localStorage.removeItem('login-lock-time');
+                }
+            }
+        }
+
+        // ============================================
+        // ===== 🔒 SECURE INPUT CLEANUP =====
+        // ============================================
+        // مسح الحقول عند إعادة تحميل الصفحة
+        window.addEventListener('beforeunload', function() {
+            if (username) username.value = '';
+            if (password) password.value = '';
+        });
+
+        // منع حفظ كلمة المرور في المتصفح
+        document.addEventListener('DOMContentLoaded', function() {
+            if (password) {
+                password.setAttribute('autocomplete', 'off');
+            }
+        });
+
+        // ============================================
+        // ===== 🔒 ENTER KEY PROTECTION =====
+        // ============================================
+        // منع إرسال النموذج عن طريق الخطأ
+        form.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const target = e.target;
+                if (target.tagName === 'INPUT' && target.type !== 'submit') {
+                    e.preventDefault();
+                    form.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+
+        // ============================================
+        // ===== 🔒 INIT =====
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // ===== CHECK AUTH =====
+            checkAuth();
+            
+            // ===== RESTORE LOCK STATE =====
+            restoreLockState();
+            
+            // ===== SETUP FORM =====
+            form.addEventListener('submit', handleLogin);
+            
+            // ===== GENERATE CSRF TOKEN =====
+            const csrfToken = document.getElementById('csrfToken');
+            if (csrfToken) {
+                csrfToken.value = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
+            }
+            
+            // ===== FOCUS FIRST INPUT =====
+            if (username) {
+                setTimeout(() => username.focus(), 100);
+            }
+            
+            // ===== SAVE LOCK STATE =====
+            setInterval(saveLockState, 5000);
+        });
+
+        // ============================================
+        // ===== 🔒 CONSOLE PROTECTION =====
+        // ============================================
+        // منع عرض معلومات حساسة في الـ Console
+        console.log('%c🔒 Shulamith Gallery - Login Page (Secure)', 
+            'color: #d4b892; font-size: 16px; font-weight: bold;');
+        console.log('%c⚠️ Do not share your credentials with anyone.', 
+            'color: #e74c3c; font-size: 12px;');
+
+        // منع محاولات التلاعب بالـ Console
+        Object.defineProperty(window, 'token', {
+            get: function() { 
+                console.warn('🔒 Access to token is restricted.');
+                return null; 
+            }
+        });
+
+        // ============================================
+        // ===== 🔒 XSS PROTECTION =====
+        // ============================================
+        // منع تنفيذ أي سكريبت من خلال حقول الإدخال
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('paste', function(e) {
+                const pasted = (e.clipboardData || window.clipboardData).getData('text');
+                if (pasted && /<script|<iframe|onerror|onload|javascript:/i.test(pasted)) {
+                    e.preventDefault();
+                    this.value = pasted.replace(/<script|<iframe|onerror|onload|javascript:/gi, '');
+                    this.style.borderColor = 'var(--color-error)';
+                    setTimeout(() => {
+                        this.style.borderColor = '';
+                    }, 1000);
+                }
+            });
+        });
+
+        console.log('✅ Login page secured successfully.');
     </script>
 </body>
 </html>

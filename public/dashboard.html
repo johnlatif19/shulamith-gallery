@@ -1268,9 +1268,18 @@
                 <button class="nav-item active" data-section="overview">نظرة عامة</button>
                 <button class="nav-item" data-section="galleries">المعارض</button>
                 <button class="nav-item" data-section="artworks">الأعمال الفنية</button>
-                <button class="nav-item" data-section="messages">الرسائل</button>
-                <button class="nav-item" data-section="rates">التقييمات</button>
-                <button class="nav-item" data-section="orders">الطلبات</button>
+                <button class="nav-item" data-section="messages">
+                    الرسائل
+                    <span class="badge" id="unreadBadge" style="display:none;">0</span>
+                </button>
+                <button class="nav-item" data-section="rates">
+                    التقييمات
+                    <span class="badge" id="ratesBadge" style="display:none;">0</span>
+                </button>
+                <button class="nav-item" data-section="orders">
+                    الطلبات
+                    <span class="badge" id="ordersBadge" style="display:none;">0</span>
+                </button>
                 <button class="nav-item" data-section="send">إرسال رسالة</button>
                 <button class="nav-item" data-section="settings">الإعدادات</button>
             </nav>
@@ -1968,12 +1977,13 @@
                     console.error('Error fetching orders count:', e);
                 }
                 
-                const badge = document.getElementById('unreadBadge');
+                // تحديث الـ Badges
+                const unreadBadge = document.getElementById('unreadBadge');
                 if (data.unreadMessages > 0) {
-                    badge.textContent = data.unreadMessages;
-                    badge.style.display = 'inline';
+                    unreadBadge.textContent = data.unreadMessages;
+                    unreadBadge.style.display = 'inline';
                 } else {
-                    badge.style.display = 'none';
+                    unreadBadge.style.display = 'none';
                 }
                 
                 await loadRecentMessages();
@@ -2394,12 +2404,15 @@
                 html += '</tbody></table></div>';
                 container.innerHTML = html;
 
+                // تحديث البادج
                 const badge = document.getElementById('ratesBadge');
-                if (data.length > 0) {
-                    badge.textContent = data.length;
-                    badge.style.display = 'inline';
-                } else {
-                    badge.style.display = 'none';
+                if (badge) {
+                    if (data.length > 0) {
+                        badge.textContent = data.length;
+                        badge.style.display = 'inline';
+                    } else {
+                        badge.style.display = 'none';
+                    }
                 }
             } catch (error) {
                 console.error('Error loading rates:', error);
@@ -2497,13 +2510,16 @@
                 html += '</tbody></table></div>';
                 container.innerHTML = html;
 
+                // تحديث البادج
                 const badge = document.getElementById('ordersBadge');
-                const pending = data.filter(o => o.status === 'pending' || o.status === 'processing');
-                if (pending.length > 0) {
-                    badge.textContent = pending.length;
-                    badge.style.display = 'inline';
-                } else {
-                    badge.style.display = 'none';
+                if (badge) {
+                    const pending = data.filter(o => o.status === 'pending' || o.status === 'processing');
+                    if (pending.length > 0) {
+                        badge.textContent = pending.length;
+                        badge.style.display = 'inline';
+                    } else {
+                        badge.style.display = 'none';
+                    }
                 }
             } catch (error) {
                 console.error('Error loading orders:', error);

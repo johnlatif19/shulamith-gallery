@@ -440,10 +440,10 @@
                     localStorage.setItem('shulamith-token', data.token);
                     loginStatus.className = 'login-status success';
                     loginStatus.style.display = 'block';
-                    loginStatus.textContent = '✓ تم تسجيل الدخول بنجاح! جاري التحويل...';
+                    loginStatus.textContent = 'تم تسجيل الدخول بنجاح! جاري التحويل...';
                     
                     setTimeout(() => {
-                        window.location.href = '/dashboard.';
+                        window.location.href = '/dashboard';
                     }, 800);
                 } else {
                     loginStatus.className = 'login-status error';

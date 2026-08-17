@@ -1126,7 +1126,7 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
                         <p style="color: #b0a89a; margin: 5px 0 0 0;">${new Date().toLocaleDateString('ar-EG')}</p>
                     </div>
                     <div style="background: #252525; padding: 20px; border-radius: 8px; border-right: 3px solid #d4b892;">
-                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">المرسل:</strong> ${name}</p>
+                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">رسالة الى:</strong> ${name}</p>
                         <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">البريد:</strong> ${email}</p>
                         <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
                             <p style="color: #d4c8b8; margin: 0 0 8px 0;"><strong style="color: #d4b892;">الرسالة:</strong></p>

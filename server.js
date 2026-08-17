@@ -300,14 +300,15 @@ app.post('/api/verify', requireAuth, (req, res) => {
 // ---------- Galleries ----------
 app.get('/api/galleries', async (req, res) => {
     try {
-        const snapshot = await db.collection('galleries')
-            .orderBy('order', 'asc')
-            .get();
+        const snapshot = await db.collection('galleries').get();
 
         const galleries = [];
         snapshot.forEach(doc => {
             galleries.push({ id: doc.id, ...doc.data() });
         });
+
+        // 🔥 فرز يدوي حسب order
+        galleries.sort((a, b) => (a.order || 0) - (b.order || 0));
 
         res.json(galleries);
     } catch (error) {
@@ -404,13 +405,14 @@ app.get('/api/artworks', async (req, res) => {
             query = query.where('featured', '==', true);
         }
 
-        query = query.orderBy('order', 'asc');
-
         const snapshot = await query.get();
         const artworks = [];
         snapshot.forEach(doc => {
             artworks.push({ id: doc.id, ...doc.data() });
         });
+
+        // 🔥 فرز يدوي حسب order
+        artworks.sort((a, b) => (a.order || 0) - (b.order || 0));
 
         res.json(artworks);
     } catch (error) {
@@ -650,8 +652,7 @@ app.post('/api/contact', async (req, res) => {
 app.get('/api/messages', requireAuth, async (req, res) => {
     try {
         const { unread } = req.query;
-        let query = db.collection('messages')
-            .orderBy('createdAt', 'desc');
+        let query = db.collection('messages');
 
         if (unread === 'true') {
             query = query.where('read', '==', false);
@@ -666,6 +667,13 @@ app.get('/api/messages', requireAuth, async (req, res) => {
                 ...data,
                 createdAt: data.createdAt?.toDate?.()?.toISOString() || null
             });
+        });
+
+        // 🔥 فرز يدوي حسب createdAt (الأحدث أولاً)
+        messages.sort((a, b) => {
+            if (!a.createdAt) return 1;
+            if (!b.createdAt) return -1;
+            return new Date(b.createdAt) - new Date(a.createdAt);
         });
 
         res.json(messages);
@@ -739,7 +747,7 @@ app.post('/api/rates', async (req, res) => {
 app.get('/api/rates', async (req, res) => {
     try {
         const { rating } = req.query;
-        let query = db.collection('rates').orderBy('createdAt', 'desc');
+        let query = db.collection('rates');
 
         if (rating) {
             query = query.where('rating', '==', parseInt(rating));
@@ -755,6 +763,14 @@ app.get('/api/rates', async (req, res) => {
                 createdAt: data.createdAt?.toDate?.()?.toISOString() || null
             });
         });
+
+        // 🔥 فرز يدوي حسب createdAt (الأحدث أولاً)
+        rates.sort((a, b) => {
+            if (!a.createdAt) return 1;
+            if (!b.createdAt) return -1;
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+
         res.json(rates);
     } catch (error) {
         console.error('Error fetching rates:', error);
@@ -844,7 +860,7 @@ app.post('/api/orders', async (req, res) => {
 app.get('/api/orders', async (req, res) => {
     try {
         const { status } = req.query;
-        let query = db.collection('orders').orderBy('createdAt', 'desc');
+        let query = db.collection('orders');
 
         if (status && status !== 'all') {
             query = query.where('status', '==', status);
@@ -860,6 +876,14 @@ app.get('/api/orders', async (req, res) => {
                 createdAt: data.createdAt?.toDate?.()?.toISOString() || null
             });
         });
+
+        // 🔥 فرز يدوي حسب createdAt (الأحدث أولاً)
+        orders.sort((a, b) => {
+            if (!a.createdAt) return 1;
+            if (!b.createdAt) return -1;
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+
         res.json(orders);
     } catch (error) {
         console.error('Error fetching orders:', error);

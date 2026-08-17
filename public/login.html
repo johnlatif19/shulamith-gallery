@@ -385,7 +385,7 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.valid) {
-                        window.location.href = '/dashboard.html';
+                        window.location.href = '/dashboard';
                     }
                 })
                 .catch(() => {});
@@ -443,7 +443,7 @@
                     loginStatus.textContent = '✓ تم تسجيل الدخول بنجاح! جاري التحويل...';
                     
                     setTimeout(() => {
-                        window.location.href = '/dashboard.html';
+                        window.location.href = '/dashboard.';
                     }, 800);
                 } else {
                     loginStatus.className = 'login-status error';

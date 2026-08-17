@@ -1821,7 +1821,7 @@
 
         async function checkAuth() {
             if (!token) {
-                window.location.href = '/login.html';
+                window.location.href = '/login';
                 return false;
             }
             try {
@@ -1831,14 +1831,14 @@
                 
                 if (res.status === 401) {
                     localStorage.removeItem('shulamith-token');
-                    window.location.href = '/login.html';
+                    window.location.href = '/login';
                     return false;
                 }
                 
                 const data = await res.json();
                 if (!data.valid) {
                     localStorage.removeItem('shulamith-token');
-                    window.location.href = '/login.html';
+                    window.location.href = '/login';
                     return false;
                 }
                 return true;
@@ -1850,7 +1850,7 @@
 
         function logout() {
             localStorage.removeItem('shulamith-token');
-            window.location.href = '/login.html';
+            window.location.href = '/login';
         }
 
         // ============================================
@@ -1866,7 +1866,7 @@
                 
                 if (res.status === 401 && !url.includes('/verify')) {
                     localStorage.removeItem('shulamith-token');
-                    window.location.href = '/login.html';
+                    window.location.href = '/login';
                     throw new Error('Unauthorized');
                 }
                 
@@ -2798,7 +2798,7 @@
                         showToast('تم رفع الصورة بنجاح');
                     } else if (xhr.status === 401) {
                         localStorage.removeItem('shulamith-token');
-                        window.location.href = '/login.html';
+                        window.location.href = '/login';
                     } else {
                         showToast('فشل رفع الصورة', 'error');
                     }

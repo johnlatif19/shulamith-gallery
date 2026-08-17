@@ -7,14 +7,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "keywords": [
-    "art",
-    "gallery",
-    "shulamith",
-    "fullstack",
-    "firebase",
-    "cloudinary"
-  ],
+  "keywords": ["art", "gallery", "shulamith", "fullstack", "firebase", "cloudinary"],
   "author": "Shulamith Gallery",
   "license": "ISC",
   "dependencies": {

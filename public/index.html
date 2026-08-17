@@ -54,6 +54,13 @@
             --hero-background-image: url('https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg');
             --header-height: 70px;
             --container-max: 1200px;
+            
+            /* Fluid Variables */
+            --container-padding: clamp(12px, 3vw, 30px);
+            --section-padding: clamp(40px, 8vw, 80px);
+            --gap-sm: clamp(8px, 1vw, 16px);
+            --gap-md: clamp(16px, 2vw, 30px);
+            --gap-lg: clamp(24px, 3vw, 50px);
         }
 
         /* ============================================
@@ -69,6 +76,9 @@
             scroll-behavior: smooth;
             -webkit-text-size-adjust: 100%;
             -webkit-tap-highlight-color: transparent;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
         }
 
         body {
@@ -79,6 +89,9 @@
             overflow-x: hidden;
             min-height: 100vh;
             min-height: 100dvh;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
         }
 
         body.rtl {
@@ -100,7 +113,9 @@
             color: var(--color-primary-light);
         }
 
-        img {
+        img,
+        video,
+        iframe {
             max-width: 100%;
             height: auto;
             display: block;
@@ -112,27 +127,15 @@
         .container {
             max-width: var(--container-max);
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 var(--container-padding);
             width: 100%;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 0 16px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 0 12px;
-            }
         }
 
         /* ============================================
            SECTION TITLES
            ============================================ */
         .section-title {
-            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-size: clamp(1.6rem, 4vw, 2.5rem);
             font-weight: 300;
             letter-spacing: 2px;
             color: var(--color-primary);
@@ -143,8 +146,8 @@
         .section-subtitle {
             color: var(--color-text-muted);
             text-align: center;
-            font-size: clamp(0.95rem, 1.5vw, 1.1rem);
-            margin-bottom: 40px;
+            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+            margin-bottom: clamp(24px, 4vw, 40px);
         }
 
         /* ============================================
@@ -187,18 +190,12 @@
         .nav-container {
             max-width: var(--container-max);
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 var(--container-padding);
             display: flex;
             align-items: center;
             justify-content: space-between;
             height: 100%;
             width: 100%;
-        }
-
-        @media (max-width: 768px) {
-            .nav-container {
-                padding: 0 16px;
-            }
         }
 
         .nav-logo a {
@@ -208,7 +205,7 @@
         }
 
         .logo-img {
-            height: clamp(35px, 5vw, 45px);
+            height: clamp(30px, 5vw, 45px);
             width: auto;
             border-radius: var(--radius-sm);
             transition: var(--transition);
@@ -222,10 +219,14 @@
         .nav-menu {
             display: flex;
             align-items: center;
-            gap: clamp(16px, 3vw, 32px);
+            gap: clamp(12px, 3vw, 32px);
             list-style: none;
             margin: 0;
             padding: 0;
+        }
+
+        .nav-menu li {
+            min-width: 0;
         }
 
         .nav-menu li a {
@@ -263,7 +264,7 @@
         .nav-actions {
             display: flex;
             align-items: center;
-            gap: clamp(8px, 1.5vw, 16px);
+            gap: clamp(6px, 1.5vw, 16px);
             flex-shrink: 0;
         }
 
@@ -274,10 +275,10 @@
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
             color: var(--color-text);
-            padding: clamp(4px, 0.6vw, 6px) clamp(10px, 1.5vw, 14px);
+            padding: clamp(3px, 0.6vw, 6px) clamp(8px, 1.5vw, 14px);
             border-radius: 20px;
             cursor: pointer;
-            font-size: clamp(0.7rem, 0.8vw, 0.85rem);
+            font-size: clamp(0.65rem, 0.8vw, 0.85rem);
             transition: var(--transition);
             font-family: inherit;
             line-height: 1;
@@ -289,7 +290,7 @@
         }
 
         .lang-text {
-            font-size: clamp(0.7rem, 0.8vw, 0.85rem);
+            font-size: clamp(0.65rem, 0.8vw, 0.85rem);
         }
 
         /* ===== Hamburger Toggle (Mobile) ===== */
@@ -362,11 +363,12 @@
             }
 
             .nav-menu li a {
-                font-size: 1rem;
+                font-size: clamp(0.9rem, 2.5vw, 1rem);
                 padding: 10px 0;
                 display: block;
                 text-align: center;
                 width: 100%;
+                white-space: normal;
             }
 
             .nav-menu li a::after {
@@ -385,40 +387,13 @@
             }
 
             .nav-menu li a {
-                font-size: 0.95rem;
+                font-size: clamp(0.85rem, 2.5vw, 0.95rem);
                 padding: 8px 0;
             }
 
             .nav-toggle span {
                 width: 22px;
                 height: 2px;
-            }
-        }
-
-        /* ===== Extra Small Screens (<= 360px) ===== */
-        @media (max-width: 360px) {
-            .nav-container {
-                padding: 0 10px;
-            }
-
-            .nav-menu li a {
-                font-size: 0.85rem;
-                padding: 6px 0;
-            }
-
-            .lang-switch {
-                padding: 3px 8px;
-                font-size: 0.65rem;
-            }
-
-            .logo-img {
-                height: 30px;
-            }
-
-            .nav-toggle span {
-                width: 18px;
-                height: 2px;
-                gap: 4px;
             }
         }
 
@@ -432,9 +407,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: calc(var(--header-height) + 40px) 20px 60px;
+            padding: clamp(60px, 12vh, 100px) var(--container-padding) clamp(40px, 6vh, 60px);
             background: var(--color-bg);
             overflow: hidden;
+            width: 100%;
+            max-width: 100%;
         }
 
         .hero::before {
@@ -466,6 +443,7 @@
             text-align: center;
             animation: heroFadeIn 1.2s ease-out;
             padding: 0 10px;
+            width: 100%;
         }
 
         @keyframes heroFadeIn {
@@ -474,7 +452,7 @@
         }
 
         .hero-logo {
-            margin-bottom: 30px;
+            margin-bottom: clamp(16px, 3vw, 30px);
         }
 
         .hero-logo-img {
@@ -499,14 +477,14 @@
             color: var(--color-text-muted);
             font-weight: 300;
             letter-spacing: clamp(1px, 0.3vw, 2px);
-            margin-bottom: 30px;
+            margin-bottom: clamp(16px, 3vw, 30px);
             text-shadow: 0 2px 40px rgba(0, 0, 0, 0.8);
         }
 
         .hero-text {
             max-width: 700px;
-            margin: 0 auto 35px;
-            font-size: clamp(0.9rem, 1.3vw, 1.05rem);
+            margin: 0 auto clamp(20px, 4vw, 35px);
+            font-size: clamp(0.85rem, 1.3vw, 1.05rem);
             color: var(--color-text);
             line-height: 2;
         }
@@ -530,16 +508,16 @@
 
         .hero-highlight {
             color: var(--color-primary);
-            font-size: clamp(1rem, 1.5vw, 1.2rem);
+            font-size: clamp(0.95rem, 1.5vw, 1.2rem);
             font-weight: 400;
         }
 
         .hero-cta {
             display: inline-block;
-            padding: clamp(12px, 1.5vw, 14px) clamp(30px, 4vw, 45px);
+            padding: clamp(10px, 1.5vw, 14px) clamp(24px, 4vw, 45px);
             background: var(--color-primary);
             color: var(--color-bg);
-            font-size: clamp(0.9rem, 1.2vw, 1.05rem);
+            font-size: clamp(0.85rem, 1.2vw, 1.05rem);
             font-weight: 500;
             letter-spacing: 1px;
             border-radius: 50px;
@@ -562,43 +540,8 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        @media (max-width: 480px) {
-            .hero {
-                padding: calc(var(--header-height) + 20px) 16px 40px;
-            }
-            
-            .hero::before {
-                opacity: 0.5;
-            }
-
-            .hero-text {
-                font-size: 0.9rem;
-                line-height: 1.8;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .hero {
-                padding: calc(var(--header-height) + 12px) 10px 30px;
-            }
-
-            .hero-title {
-                font-size: 1.8rem;
-            }
-
-            .hero-text {
-                font-size: 0.8rem;
-                line-height: 1.6;
-            }
-
-            .hero-cta {
-                padding: 10px 20px;
-                font-size: 0.8rem;
-            }
-        }
-
         /* ============================================
-           REST OF STYLES (unchanged but responsive)
+           REVEAL ANIMATIONS
            ============================================ */
         .reveal {
             opacity: 0;
@@ -648,8 +591,11 @@
            GALLERY SECTION
            ============================================ */
         .gallery-section {
-            padding: clamp(50px, 8vw, 80px) 0;
+            padding: var(--section-padding) 0;
             background: var(--color-bg-secondary);
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .gallery-filters {
@@ -657,17 +603,17 @@
             flex-wrap: wrap;
             justify-content: center;
             gap: clamp(6px, 1vw, 10px);
-            margin-bottom: 40px;
+            margin-bottom: clamp(24px, 4vw, 40px);
         }
 
         .filter-btn {
-            padding: clamp(6px, 0.8vw, 8px) clamp(16px, 2vw, 22px);
+            padding: clamp(6px, 0.8vw, 8px) clamp(14px, 2vw, 22px);
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
             color: var(--color-text-muted);
             border-radius: 30px;
             cursor: pointer;
-            font-size: clamp(0.8rem, 0.9vw, 0.9rem);
+            font-size: clamp(0.75rem, 0.9vw, 0.9rem);
             transition: var(--transition);
             font-family: inherit;
             white-space: nowrap;
@@ -686,8 +632,9 @@
 
         .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(clamp(220px, 25vw, 280px), 1fr));
-            gap: clamp(16px, 2vw, 24px);
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+            gap: clamp(10px, 2vw, 24px);
+            width: 100%;
         }
 
         .gallery-item {
@@ -698,6 +645,7 @@
             transition: var(--transition);
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
+            min-width: 0;
         }
 
         .gallery-item:hover {
@@ -708,7 +656,7 @@
 
         .gallery-item img {
             width: 100%;
-            height: clamp(200px, 30vw, 300px);
+            height: clamp(180px, 30vw, 300px);
             object-fit: cover;
             transition: var(--transition);
         }
@@ -718,19 +666,19 @@
         }
 
         .gallery-item-info {
-            padding: clamp(12px, 1.5vw, 16px) clamp(14px, 2vw, 20px) clamp(14px, 2vw, 20px);
+            padding: clamp(10px, 1.5vw, 16px) clamp(12px, 2vw, 20px) clamp(12px, 2vw, 20px);
         }
 
         .gallery-item-info h4 {
             color: var(--color-primary);
-            font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+            font-size: clamp(0.9rem, 1.2vw, 1.1rem);
             font-weight: 400;
             margin-bottom: 4px;
         }
 
         .gallery-item-info p {
             color: var(--color-text-muted);
-            font-size: clamp(0.8rem, 0.9vw, 0.9rem);
+            font-size: clamp(0.75rem, 0.9vw, 0.9rem);
         }
 
         .gallery-item .artwork-overlay {
@@ -755,10 +703,10 @@
 
         .gallery-item .artwork-overlay span {
             color: var(--color-white);
-            font-size: clamp(0.8rem, 0.9vw, 0.9rem);
+            font-size: clamp(0.75rem, 0.9vw, 0.9rem);
             letter-spacing: 1px;
             border: 1px solid var(--color-primary);
-            padding: clamp(6px, 0.8vw, 8px) clamp(18px, 2vw, 24px);
+            padding: clamp(6px, 0.8vw, 8px) clamp(14px, 2vw, 24px);
             border-radius: 30px;
         }
 
@@ -788,32 +736,24 @@
             text-align: center;
             padding: 60px 20px;
             color: var(--color-text-muted);
-            font-size: clamp(0.95rem, 1.2vw, 1.1rem);
-        }
-
-        @media (max-width: 480px) {
-            .gallery-grid {
-                grid-template-columns: 1fr;
-                gap: 14px;
-            }
-
-            .gallery-item img {
-                height: 220px;
-            }
+            font-size: clamp(0.9rem, 1.2vw, 1.1rem);
         }
 
         /* ============================================
            ABOUT SECTION
            ============================================ */
         .about-section {
-            padding: clamp(50px, 8vw, 80px) 0;
+            padding: var(--section-padding) 0;
             background: var(--color-bg);
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .about-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: clamp(30px, 5vw, 60px);
+            gap: clamp(24px, 5vw, 50px);
             align-items: center;
         }
 
@@ -844,12 +784,12 @@
         .about-text p {
             margin-bottom: 16px;
             color: var(--color-text);
-            font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+            font-size: clamp(0.9rem, 1.1vw, 1.05rem);
             line-height: 1.9;
         }
 
         .about-services {
-            margin-top: 30px;
+            margin-top: clamp(20px, 3vw, 30px);
         }
 
         .about-services h3 {
@@ -863,12 +803,12 @@
             list-style: none;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: clamp(8px, 1vw, 10px) clamp(20px, 3vw, 30px);
+            gap: clamp(6px, 1vw, 10px) clamp(16px, 3vw, 30px);
         }
 
         .about-services ul li {
             color: var(--color-text-muted);
-            font-size: clamp(0.9rem, 1vw, 1rem);
+            font-size: clamp(0.85rem, 1vw, 1rem);
             padding: 4px 0;
         }
 
@@ -891,10 +831,13 @@
            CUSTOM SECTION
            ============================================ */
         .custom-section {
-            padding: clamp(50px, 8vw, 80px) 0;
+            padding: var(--section-padding) 0;
             background: var(--color-bg-secondary);
             border-top: 1px solid var(--color-border);
             border-bottom: 1px solid var(--color-border);
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .custom-content {
@@ -905,14 +848,14 @@
 
         .custom-features {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: clamp(16px, 2vw, 30px);
-            margin: 40px 0;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+            gap: clamp(14px, 2vw, 30px);
+            margin: clamp(24px, 4vw, 40px) 0;
         }
 
         .custom-feature {
             background: var(--color-bg-card);
-            padding: clamp(20px, 3vw, 30px) clamp(16px, 2vw, 20px);
+            padding: clamp(18px, 3vw, 30px) clamp(14px, 2vw, 20px);
             border-radius: var(--radius);
             border: 1px solid var(--color-border);
             transition: var(--transition);
@@ -924,29 +867,29 @@
         }
 
         .feature-icon {
-            font-size: clamp(2rem, 3vw, 2.5rem);
+            font-size: clamp(1.8rem, 3vw, 2.5rem);
             display: block;
             margin-bottom: 12px;
         }
 
         .custom-feature h4 {
             color: var(--color-primary);
-            font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+            font-size: clamp(0.9rem, 1.2vw, 1.1rem);
             font-weight: 400;
             margin-bottom: 8px;
         }
 
         .custom-feature p {
             color: var(--color-text-muted);
-            font-size: clamp(0.85rem, 0.9vw, 0.95rem);
+            font-size: clamp(0.8rem, 0.9vw, 0.95rem);
         }
 
         .custom-cta {
             display: inline-block;
-            padding: clamp(12px, 1.5vw, 14px) clamp(30px, 4vw, 45px);
+            padding: clamp(10px, 1.5vw, 14px) clamp(24px, 4vw, 45px);
             background: transparent;
             color: var(--color-primary);
-            font-size: clamp(0.9rem, 1.2vw, 1.05rem);
+            font-size: clamp(0.85rem, 1.2vw, 1.05rem);
             font-weight: 400;
             letter-spacing: 1px;
             border: 1px solid var(--color-primary);
@@ -962,60 +905,57 @@
             box-shadow: 0 10px 40px rgba(212, 184, 146, 0.2);
         }
 
-        @media (max-width: 768px) {
-            .custom-features {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-        }
-
         /* ============================================
            CONTACT SECTION
            ============================================ */
         .contact-section {
-            padding: clamp(50px, 8vw, 80px) 0;
+            padding: var(--section-padding) 0;
             background: var(--color-bg);
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .contact-grid {
             display: grid;
             grid-template-columns: 1fr 2fr;
-            gap: clamp(30px, 4vw, 50px);
+            gap: clamp(20px, 4vw, 40px);
             margin-top: 20px;
         }
 
         .contact-info {
             display: flex;
             flex-direction: column;
-            gap: clamp(16px, 2vw, 24px);
+            gap: clamp(14px, 2vw, 24px);
         }
 
         .contact-info-item {
             display: flex;
             align-items: flex-start;
             gap: 16px;
-            padding: clamp(14px, 1.5vw, 16px) clamp(16px, 2vw, 20px);
+            padding: clamp(12px, 1.5vw, 16px) clamp(14px, 2vw, 20px);
             background: var(--color-bg-card);
             border-radius: var(--radius);
             border: 1px solid var(--color-border);
+            min-width: 0;
         }
 
         .info-icon {
-            font-size: clamp(1.2rem, 1.5vw, 1.5rem);
+            font-size: clamp(1.1rem, 1.5vw, 1.5rem);
             flex-shrink: 0;
             margin-top: 2px;
         }
 
         .contact-info-item h4 {
             color: var(--color-primary);
-            font-size: clamp(0.85rem, 0.95vw, 0.95rem);
+            font-size: clamp(0.8rem, 0.95vw, 0.95rem);
             font-weight: 400;
             margin-bottom: 2px;
         }
 
         .contact-info-item p {
             color: var(--color-text-muted);
-            font-size: clamp(0.85rem, 0.9vw, 0.95rem);
+            font-size: clamp(0.8rem, 0.9vw, 0.95rem);
             word-break: break-word;
         }
 
@@ -1029,7 +969,7 @@
 
         .social-links {
             display: flex;
-            gap: clamp(8px, 1vw, 12px);
+            gap: clamp(6px, 1vw, 12px);
             margin-top: 4px;
             flex-wrap: wrap;
         }
@@ -1038,8 +978,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: clamp(36px, 4vw, 40px);
-            height: clamp(36px, 4vw, 40px);
+            width: clamp(34px, 4vw, 40px);
+            height: clamp(34px, 4vw, 40px);
             border-radius: 50%;
             transition: var(--transition);
             opacity: 0.8;
@@ -1065,27 +1005,27 @@
         }
 
         .social-link svg {
-            width: clamp(18px, 2vw, 22px);
-            height: clamp(18px, 2vw, 22px);
+            width: clamp(16px, 2vw, 22px);
+            height: clamp(16px, 2vw, 22px);
             fill: white;
             flex-shrink: 0;
         }
 
         .contact-form-wrapper {
             background: var(--color-bg-card);
-            padding: clamp(24px, 3vw, 36px);
+            padding: clamp(18px, 3vw, 36px);
             border-radius: var(--radius);
             border: 1px solid var(--color-border);
         }
 
         .contact-form .form-group {
-            margin-bottom: 20px;
+            margin-bottom: clamp(14px, 2vw, 20px);
         }
 
         .contact-form label {
             display: block;
             color: var(--color-text-muted);
-            font-size: clamp(0.85rem, 0.9vw, 0.9rem);
+            font-size: clamp(0.8rem, 0.9vw, 0.9rem);
             margin-bottom: 6px;
         }
 
@@ -1097,15 +1037,17 @@
         .contact-form input,
         .contact-form textarea {
             width: 100%;
-            padding: clamp(10px, 1.2vw, 12px) clamp(12px, 1.5vw, 16px);
+            max-width: 100%;
+            padding: clamp(10px, 1.2vw, 14px) clamp(12px, 1.5vw, 16px);
             background: var(--color-bg);
             border: 1px solid var(--color-border);
             border-radius: var(--radius-sm);
             color: var(--color-text);
-            font-size: clamp(0.9rem, 1vw, 1rem);
+            font-size: clamp(0.85rem, 1vw, 1rem);
             transition: var(--transition);
             font-family: inherit;
             -webkit-appearance: none;
+            box-sizing: border-box;
         }
 
         .contact-form input:focus,
@@ -1117,12 +1059,12 @@
 
         .contact-form textarea {
             resize: vertical;
-            min-height: clamp(100px, 15vw, 120px);
+            min-height: clamp(80px, 15vw, 120px);
         }
 
         .form-error {
             color: var(--color-error);
-            font-size: clamp(0.8rem, 0.85vw, 0.85rem);
+            font-size: clamp(0.75rem, 0.85vw, 0.85rem);
             display: block;
             margin-top: 4px;
             min-height: 20px;
@@ -1135,7 +1077,7 @@
             color: var(--color-bg);
             border: none;
             border-radius: var(--radius-sm);
-            font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+            font-size: clamp(0.9rem, 1.1vw, 1.05rem);
             font-weight: 500;
             cursor: pointer;
             transition: var(--transition);
@@ -1163,7 +1105,7 @@
             padding: clamp(10px, 1.2vw, 12px);
             border-radius: var(--radius-sm);
             display: none;
-            font-size: clamp(0.85rem, 0.95vw, 0.95rem);
+            font-size: clamp(0.8rem, 0.95vw, 0.95rem);
         }
 
         .form-status.success {
@@ -1191,17 +1133,7 @@
             }
 
             .contact-form-wrapper {
-                padding: 20px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .contact-form-wrapper {
-                padding: 14px;
-            }
-
-            .contact-info-item {
-                padding: 12px 14px;
+                padding: clamp(16px, 2vw, 20px);
             }
         }
 
@@ -1219,7 +1151,7 @@
             background: rgba(0, 0, 0, 0.92);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            padding: clamp(20px, 3vw, 40px) clamp(12px, 2vw, 20px);
+            padding: clamp(12px, 3vw, 30px);
             animation: fadeIn 0.3s ease;
         }
 
@@ -1241,7 +1173,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: clamp(12px, 2vw, 20px);
         }
 
         .lightbox-image {
@@ -1253,12 +1185,12 @@
 
         .lightbox-close {
             position: fixed;
-            top: clamp(12px, 2vw, 20px);
-            right: clamp(16px, 2vw, 30px);
+            top: clamp(10px, 2vw, 20px);
+            right: clamp(12px, 2vw, 30px);
             background: none;
             border: none;
             color: var(--color-white);
-            font-size: clamp(1.8rem, 3vw, 2.5rem);
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
             cursor: pointer;
             transition: var(--transition);
             z-index: 2001;
@@ -1280,14 +1212,14 @@
 
         .lightbox-info h3 {
             color: var(--color-primary);
-            font-size: clamp(1.1rem, 2vw, 1.5rem);
+            font-size: clamp(1rem, 2vw, 1.5rem);
             font-weight: 300;
             margin-bottom: 8px;
         }
 
         .lightbox-info p {
             color: var(--color-text-muted);
-            font-size: clamp(0.85rem, 1vw, 1rem);
+            font-size: clamp(0.8rem, 1vw, 1rem);
             margin-bottom: 12px;
         }
 
@@ -1295,14 +1227,14 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: clamp(8px, 1.5vw, 16px);
+            gap: clamp(6px, 1.5vw, 16px);
         }
 
         .lightbox-details span {
             color: var(--color-text-dark);
-            font-size: clamp(0.8rem, 0.85vw, 0.9rem);
+            font-size: clamp(0.75rem, 0.85vw, 0.9rem);
             background: var(--color-bg-card);
-            padding: clamp(4px, 0.5vw, 4px) clamp(12px, 1.5vw, 16px);
+            padding: clamp(4px, 0.5vw, 4px) clamp(10px, 1.5vw, 16px);
             border-radius: 20px;
             border: 1px solid var(--color-border);
         }
@@ -1313,24 +1245,27 @@
         .footer {
             background: var(--color-bg-secondary);
             border-top: 1px solid var(--color-border);
-            padding: clamp(40px, 6vw, 60px) 0 clamp(16px, 2vw, 20px);
+            padding: clamp(30px, 6vw, 60px) 0 clamp(12px, 2vw, 20px);
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .footer-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr 1.5fr;
-            gap: clamp(24px, 3vw, 40px);
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+            gap: clamp(20px, 3vw, 40px);
+            margin-bottom: clamp(24px, 4vw, 40px);
         }
 
         .footer-brand p {
             color: var(--color-text-muted);
-            font-size: clamp(0.85rem, 0.95vw, 0.95rem);
+            font-size: clamp(0.8rem, 0.95vw, 0.95rem);
             margin-top: 12px;
         }
 
         .footer-logo {
-            height: clamp(40px, 5vw, 50px);
+            height: clamp(35px, 5vw, 50px);
             width: auto;
             border-radius: var(--radius-sm);
         }
@@ -1338,9 +1273,9 @@
         .footer-links h4,
         .footer-contact h4 {
             color: var(--color-primary);
-            font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+            font-size: clamp(0.9rem, 1.1vw, 1.05rem);
             font-weight: 400;
-            margin-bottom: 16px;
+            margin-bottom: clamp(10px, 1.5vw, 16px);
         }
 
         .footer-links ul {
@@ -1348,12 +1283,12 @@
         }
 
         .footer-links ul li {
-            margin-bottom: clamp(6px, 0.8vw, 8px);
+            margin-bottom: clamp(4px, 0.8vw, 8px);
         }
 
         .footer-links ul li a {
             color: var(--color-text-muted);
-            font-size: clamp(0.85rem, 0.9vw, 0.95rem);
+            font-size: clamp(0.8rem, 0.9vw, 0.95rem);
             transition: var(--transition);
         }
 
@@ -1363,7 +1298,7 @@
 
         .footer-contact p {
             color: var(--color-text-muted);
-            font-size: clamp(0.85rem, 0.9vw, 0.95rem);
+            font-size: clamp(0.8rem, 0.9vw, 0.95rem);
             margin-bottom: 8px;
             word-break: break-word;
         }
@@ -1378,13 +1313,13 @@
 
         .footer-bottom {
             border-top: 1px solid var(--color-border);
-            padding-top: 20px;
+            padding-top: clamp(14px, 2vw, 20px);
             text-align: center;
         }
 
         .footer-bottom p {
             color: var(--color-text-dark);
-            font-size: clamp(0.75rem, 0.8vw, 0.85rem);
+            font-size: clamp(0.7rem, 0.8vw, 0.85rem);
         }
 
         @media (max-width: 768px) {
@@ -1423,15 +1358,15 @@
            ============================================ */
         .scroll-top {
             position: fixed;
-            bottom: clamp(20px, 3vw, 30px);
-            right: clamp(20px, 3vw, 30px);
-            width: clamp(42px, 5vw, 48px);
-            height: clamp(42px, 5vw, 48px);
+            bottom: clamp(16px, 3vw, 30px);
+            right: clamp(16px, 3vw, 30px);
+            width: clamp(38px, 5vw, 48px);
+            height: clamp(38px, 5vw, 48px);
             background: var(--color-primary);
             color: var(--color-bg);
             border: none;
             border-radius: 50%;
-            font-size: clamp(1.2rem, 1.5vw, 1.4rem);
+            font-size: clamp(1rem, 1.5vw, 1.4rem);
             cursor: pointer;
             opacity: 0;
             visibility: hidden;
@@ -1497,7 +1432,7 @@
 
         body.ltr .lightbox-close {
             right: auto;
-            left: clamp(16px, 2vw, 30px);
+            left: clamp(12px, 2vw, 30px);
         }
 
         /* ============================================

@@ -372,10 +372,12 @@
             border-radius: var(--radius-sm);
             overflow: hidden;
             transition: var(--transition);
+            cursor: pointer;
         }
 
         .modal-artwork-item:hover {
             border-color: var(--color-primary-dark);
+            transform: scale(1.02);
         }
 
         .modal-artwork-item img {
@@ -407,6 +409,77 @@
             grid-column: 1 / -1;
         }
 
+        /* ===== IMAGE FULLSCREEN OVERLAY ===== */
+        .image-fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            animation: fadeIn 0.3s ease;
+            cursor: pointer;
+        }
+
+        .image-fullscreen-container {
+            max-width: 90vw;
+            max-height: 90vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .image-fullscreen-container img {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 12px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+            object-fit: contain;
+            background: var(--color-bg-card);
+        }
+
+        .image-fullscreen-caption {
+            color: var(--color-primary);
+            margin-top: 16px;
+            font-size: 1.1rem;
+            text-align: center;
+            font-weight: 300;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .image-fullscreen-close {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: var(--color-primary);
+            color: var(--color-bg);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        .image-fullscreen-close:hover {
+            transform: scale(1.1);
+            background: var(--color-primary-light);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
         /* ===== FOOTER ===== */
         .footer {
             background: var(--color-bg-secondary);
@@ -426,6 +499,7 @@
             .galleries-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
             .modal-content { padding: 20px; }
             .modal-artworks-grid { grid-template-columns: 1fr 1fr; }
+            .image-fullscreen-overlay { padding: 20px; }
         }
 
         @media (max-width: 480px) {
@@ -433,6 +507,7 @@
             .modal-artworks-grid { grid-template-columns: 1fr; }
             .page-header { padding: 100px 0 24px; }
             .page-header h1 { font-size: 1.6rem; }
+            .image-fullscreen-container img { max-height: 70vh; }
         }
     </style>
 </head>
@@ -525,6 +600,65 @@
             this.classList.toggle('active');
         });
 
+        // ===== OPEN IMAGE FULLSCREEN =====
+        function openImageFullscreen(imageUrl, title) {
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'image-fullscreen-overlay';
+
+            // Create container
+            const container = document.createElement('div');
+            container.className = 'image-fullscreen-container';
+
+            // Close button
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'image-fullscreen-close';
+            closeBtn.textContent = '✕';
+            closeBtn.onclick = function(e) {
+                e.stopPropagation();
+                document.body.removeChild(overlay);
+            };
+
+            // Image
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = title || 'عمل فني';
+            img.onerror = function() {
+                this.src = 'https://via.placeholder.com/800x600/1e1a18/d4b892?text=Shulamith';
+            };
+
+            // Caption
+            const caption = document.createElement('div');
+            caption.className = 'image-fullscreen-caption';
+            caption.textContent = title || '';
+
+            // Assemble
+            container.appendChild(closeBtn);
+            container.appendChild(img);
+            if (title) container.appendChild(caption);
+            overlay.appendChild(container);
+
+            // Close on background click
+            overlay.onclick = function(e) {
+                if (e.target === overlay) {
+                    document.body.removeChild(overlay);
+                }
+            };
+
+            // Close on ESC
+            const escHandler = function(e) {
+                if (e.key === 'Escape') {
+                    if (document.body.contains(overlay)) {
+                        document.body.removeChild(overlay);
+                        document.removeEventListener('keydown', escHandler);
+                    }
+                }
+            };
+            document.addEventListener('keydown', escHandler);
+
+            document.body.appendChild(overlay);
+        }
+
         // ===== LOAD GALLERIES =====
         async function loadGalleries() {
             const grid = document.getElementById('galleriesGrid');
@@ -544,7 +678,6 @@
 
                 let html = '';
                 for (const gallery of visible) {
-                    // Count artworks in this gallery
                     try {
                         const artworksRes = await fetch(`/api/artworks?galleryId=${gallery.id}`);
                         if (!artworksRes.ok) {
@@ -618,7 +751,6 @@
                     title.textContent = gallery.name;
                     desc.textContent = gallery.description || '';
                 } else {
-                    // Fallback: fetch gallery info
                     const galleryRes = await fetch('/api/galleries');
                     const galleries = await galleryRes.json();
                     const found = galleries.find(g => g.id === galleryId);
@@ -628,7 +760,7 @@
                     }
                 }
 
-                // Get artworks - IMPORTANT: use fetch with proper error handling
+                // Get artworks
                 const artworksRes = await fetch(`/api/artworks?galleryId=${galleryId}`);
                 
                 if (!artworksRes.ok) {
@@ -636,8 +768,6 @@
                 }
                 
                 const artworks = await artworksRes.json();
-                
-                // Filter only visible artworks
                 const visible = Array.isArray(artworks) ? artworks.filter(a => a.visible !== false) : [];
 
                 if (visible.length === 0) {
@@ -647,10 +777,9 @@
 
                 let html = '';
                 visible.forEach(a => {
-                    // Ensure image URL is valid
                     const imgSrc = a.imageUrl || 'https://via.placeholder.com/200x180/1e1a18/d4b892?text=Art';
                     html += `
-                        <div class="modal-artwork-item">
+                        <div class="modal-artwork-item" onclick="openImageFullscreen('${imgSrc}', '${a.title || 'عمل فني'}')">
                             <img src="${imgSrc}" alt="${a.title || 'عمل فني'}" onerror="this.src='https://via.placeholder.com/200x180/1e1a18/d4b892?text=Art'">
                             <div class="info">
                                 <h4>${a.title || 'بدون عنوان'}</h4>
@@ -692,18 +821,21 @@
             document.body.style.overflow = '';
         }
 
-        // ===== REFRESH FUNCTION =====
+        // ===== AUTO REFRESH (كل 5 ثواني - داخلي فقط) =====
         function startAutoRefresh() {
             if (refreshInterval) {
                 clearInterval(refreshInterval);
             }
             refreshInterval = setInterval(() => {
-                // Only refresh if modal is not open
+                // Only refresh if modal is NOT open (داخلي فقط)
                 const modal = document.getElementById('artworksModal');
                 if (!modal.classList.contains('active')) {
+                    console.log('🔄 Auto-refresh galleries... (5s)');
                     loadGalleries();
+                } else {
+                    console.log('⏸️ Auto-refresh paused (modal open)');
                 }
-            }, 5000);
+            }, 5000); // 5 ثواني
         }
 
         // ===== INIT =====

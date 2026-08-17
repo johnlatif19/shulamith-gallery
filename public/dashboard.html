@@ -1782,6 +1782,16 @@
     
     <script>
         // ============================================
+        // ===== 🔒 ESCAPE HTML (XSS Protection) =====
+        // ============================================
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================
         // ===== STATE & VARIABLES =====
         // ============================================
         let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
@@ -1848,7 +1858,13 @@
             }
         }
 
-        function logout() {
+        async function logout() {
+            try {
+                await fetch('/api/logout', {
+                    method: 'POST',
+                    headers: getHeaders()
+                });
+            } catch (e) {}
             localStorage.removeItem('shulamith-token');
             window.location.href = '/login';
         }
@@ -1958,26 +1974,9 @@
                 document.getElementById('statArtworks').textContent = data.artworks || 0;
                 document.getElementById('statMessages').textContent = data.messages || 0;
                 document.getElementById('statFeatured').textContent = data.featured || 0;
+                document.getElementById('statRates').textContent = data.rates || 0;
+                document.getElementById('statOrders').textContent = data.orders || 0;
                 
-                // Get rates count - استخدم fetch عادي
-                try {
-                    const ratesRes = await fetch('/api/rates');
-                    const ratesData = await ratesRes.json();
-                    document.getElementById('statRates').textContent = ratesData.length || 0;
-                } catch (e) {
-                    console.error('Error fetching rates count:', e);
-                }
-                
-                // Get orders count - استخدم fetch عادي
-                try {
-                    const ordersRes = await fetch('/api/orders');
-                    const ordersData = await ordersRes.json();
-                    document.getElementById('statOrders').textContent = ordersData.length || 0;
-                } catch (e) {
-                    console.error('Error fetching orders count:', e);
-                }
-                
-                // تحديث الـ Badges
                 const unreadBadge = document.getElementById('unreadBadge');
                 if (data.unreadMessages > 0) {
                     unreadBadge.textContent = data.unreadMessages;
@@ -2008,8 +2007,8 @@
                     html += `
                         <div class="message-item">
                             <div class="msg-info">
-                                <span class="msg-name">${msg.name}</span>
-                                <span class="msg-preview">${msg.message.substring(0, 60)}${msg.message.length > 60 ? '...' : ''}</span>
+                                <span class="msg-name">${escapeHtml(msg.name)}</span>
+                                <span class="msg-preview">${escapeHtml(msg.message.substring(0, 60))}${msg.message.length > 60 ? '...' : ''}</span>
                                 <span class="msg-time">${time}</span>
                             </div>
                             <span class="msg-status ${statusClass}">${status}</span>
@@ -2052,14 +2051,14 @@
                     html += `
                         <tr>
                             <td>${i + 1}</td>
-                            <td>${g.name}</td>
-                            <td>${g.description ? g.description.substring(0, 30) + (g.description.length > 30 ? '...' : '') : '-'}</td>
+                            <td>${escapeHtml(g.name)}</td>
+                            <td>${escapeHtml(g.description ? g.description.substring(0, 30) + (g.description.length > 30 ? '...' : '') : '-')}</td>
                             <td><span class="badge-status ${g.visible !== false ? 'visible' : 'hidden'}">${g.visible !== false ? 'ظاهر' : 'مخفي'}</span></td>
                             <td>
                                 <div class="table-actions">
-                                    <button class="btn-edit" onclick="window.editGallery('${g.id}')">تعديل</button>
-                                    <button class="btn-toggle ${g.visible !== false ? '' : 'hidden'}" onclick="window.toggleGallery('${g.id}')">${g.visible !== false ? 'إخفاء' : 'إظهار'}</button>
-                                    <button class="btn-delete" onclick="window.confirmDelete('gallery', '${g.id}')">حذف</button>
+                                    <button class="btn-edit" onclick="window.editGallery('${escapeHtml(g.id)}')">تعديل</button>
+                                    <button class="btn-toggle ${g.visible !== false ? '' : 'hidden'}" onclick="window.toggleGallery('${escapeHtml(g.id)}')">${g.visible !== false ? 'إخفاء' : 'إظهار'}</button>
+                                    <button class="btn-delete" onclick="window.confirmDelete('gallery', '${escapeHtml(g.id)}')">حذف</button>
                                 </div>
                             </td>
                         </tr>
@@ -2097,7 +2096,7 @@
                     document.getElementById('galleryVisible').checked = gallery.visible !== false;
                     
                     if (gallery.coverImage) {
-                        document.getElementById('galleryUploadPreview').innerHTML = `<img src="${gallery.coverImage}" alt="Preview">`;
+                        document.getElementById('galleryUploadPreview').innerHTML = `<img src="${escapeHtml(gallery.coverImage)}" alt="Preview">`;
                     }
                 }
             } else {
@@ -2167,17 +2166,17 @@
                     
                     html += `
                         <tr>
-                            <td><img src="${a.imageUrl}" alt="${a.title}" class="image-thumb"></td>
-                            <td>${a.title}</td>
-                            <td>${a.material || '-'}</td>
-                            <td>${a.dimensions || '-'}</td>
-                            <td>${galleryName || '-'}</td>
+                            <td><img src="${escapeHtml(a.imageUrl)}" alt="${escapeHtml(a.title)}" class="image-thumb"></td>
+                            <td>${escapeHtml(a.title)}</td>
+                            <td>${escapeHtml(a.material || '-')}</td>
+                            <td>${escapeHtml(a.dimensions || '-')}</td>
+                            <td>${escapeHtml(galleryName || '-')}</td>
                             <td><span class="badge-status ${a.visible !== false ? 'visible' : 'hidden'}">${a.visible !== false ? 'ظاهر' : 'مخفي'}</span></td>
                             <td>
                                 <div class="table-actions">
-                                    <button class="btn-edit" onclick="window.editArtwork('${a.id}')">تعديل</button>
-                                    <button class="btn-toggle ${a.visible !== false ? '' : 'hidden'}" onclick="window.toggleArtwork('${a.id}')">${a.visible !== false ? 'إخفاء' : 'إظهار'}</button>
-                                    <button class="btn-delete" onclick="window.confirmDelete('artwork', '${a.id}')">حذف</button>
+                                    <button class="btn-edit" onclick="window.editArtwork('${escapeHtml(a.id)}')">تعديل</button>
+                                    <button class="btn-toggle ${a.visible !== false ? '' : 'hidden'}" onclick="window.toggleArtwork('${escapeHtml(a.id)}')">${a.visible !== false ? 'إخفاء' : 'إظهار'}</button>
+                                    <button class="btn-delete" onclick="window.confirmDelete('artwork', '${escapeHtml(a.id)}')">حذف</button>
                                 </div>
                             </td>
                         </tr>
@@ -2234,7 +2233,7 @@
                     document.getElementById('artworkVisible').checked = artwork.visible !== false;
                     
                     if (artwork.imageUrl) {
-                        document.getElementById('uploadPreview').innerHTML = `<img src="${artwork.imageUrl}" alt="Preview">`;
+                        document.getElementById('uploadPreview').innerHTML = `<img src="${escapeHtml(artwork.imageUrl)}" alt="Preview">`;
                     }
                 }
             } else {
@@ -2305,16 +2304,16 @@
                     const time = msg.createdAt ? new Date(msg.createdAt).toLocaleDateString('ar') : '';
                     html += `
                         <tr>
-                            <td>${msg.name}</td>
-                            <td>${msg.email}</td>
-                            <td>${msg.phone || '-'}</td>
-                            <td>${msg.message.substring(0, 40)}${msg.message.length > 40 ? '...' : ''}</td>
+                            <td>${escapeHtml(msg.name)}</td>
+                            <td>${escapeHtml(msg.email)}</td>
+                            <td>${escapeHtml(msg.phone || '-')}</td>
+                            <td>${escapeHtml(msg.message.substring(0, 40))}${msg.message.length > 40 ? '...' : ''}</td>
                             <td>${time}</td>
                             <td><span class="badge-status ${statusClass}">${status}</span></td>
                             <td>
                                 <div class="table-actions">
-                                    <button class="btn-toggle ${msg.read ? '' : 'hidden'}" onclick="window.toggleMessage('${msg.id}', ${!msg.read})">${msg.read ? 'غير مقروء' : 'قراءة'}</button>
-                                    <button class="btn-delete" onclick="window.confirmDelete('message', '${msg.id}')">حذف</button>
+                                    <button class="btn-toggle ${msg.read ? '' : 'hidden'}" onclick="window.toggleMessage('${escapeHtml(msg.id)}', ${!msg.read})">${msg.read ? 'غير مقروء' : 'قراءة'}</button>
+                                    <button class="btn-delete" onclick="window.confirmDelete('message', '${escapeHtml(msg.id)}')">حذف</button>
                                 </div>
                             </td>
                         </tr>
@@ -2357,7 +2356,6 @@
                 let url = '/api/rates';
                 if (filter !== 'all') url += `?rating=${filter}`;
                 
-                // استخدم fetch عادي مش apiFetch عشان ميحتاجش توكن
                 const res = await fetch(url);
                 if (!res.ok) throw new Error('Failed to fetch rates');
                 const data = await res.json();
@@ -2387,15 +2385,15 @@
                     const date = rate.createdAt ? new Date(rate.createdAt).toLocaleDateString('ar') : '';
                     html += `
                         <tr>
-                            <td>${rate.name}</td>
-                            <td>${rate.email}</td>
+                            <td>${escapeHtml(rate.name)}</td>
+                            <td>${escapeHtml(rate.email)}</td>
                             <td style="color:#f1c40f;">${stars}</td>
-                            <td>${rate.opinion.substring(0, 40)}${rate.opinion.length > 40 ? '...' : ''}</td>
+                            <td>${escapeHtml(rate.opinion.substring(0, 40))}${rate.opinion.length > 40 ? '...' : ''}</td>
                             <td>${date}</td>
                             <td>
                                 <div class="table-actions">
-                                    <button class="btn-edit" onclick="window.editRate('${rate.id}')">تعديل</button>
-                                    <button class="btn-delete" onclick="window.confirmDelete('rate', '${rate.id}')">حذف</button>
+                                    <button class="btn-edit" onclick="window.editRate('${escapeHtml(rate.id)}')">تعديل</button>
+                                    <button class="btn-delete" onclick="window.confirmDelete('rate', '${escapeHtml(rate.id)}')">حذف</button>
                                 </div>
                             </td>
                         </tr>
@@ -2404,7 +2402,6 @@
                 html += '</tbody></table></div>';
                 container.innerHTML = html;
 
-                // تحديث البادج
                 const badge = document.getElementById('ratesBadge');
                 if (badge) {
                     if (data.length > 0) {
@@ -2432,7 +2429,6 @@
             document.getElementById('editRateEmail').value = rate.email;
             document.getElementById('editRateOpinion').value = rate.opinion;
             
-            // Set rating stars
             document.querySelectorAll('#editStarRating input').forEach(input => {
                 input.checked = parseInt(input.value) === rate.rating;
             });
@@ -2449,8 +2445,9 @@
                 let url = '/api/orders';
                 if (filter !== 'all') url += `?status=${filter}`;
                 
-                // استخدم fetch عادي مش apiFetch عشان ميحتاجش توكن
-                const res = await fetch(url);
+                const res = await fetch(url, {
+                    headers: getHeaders()
+                });
                 if (!res.ok) throw new Error('Failed to fetch orders');
                 const data = await res.json();
                 
@@ -2486,22 +2483,22 @@
                     const date = order.createdAt ? new Date(order.createdAt).toLocaleDateString('ar') : '';
                     html += `
                         <tr>
-                            <td>${order.name}</td>
-                            <td>${order.phone}</td>
-                            <td>${order.email}</td>
-                            <td>${order.orderText.substring(0, 40)}${order.orderText.length > 40 ? '...' : ''}</td>
+                            <td>${escapeHtml(order.name)}</td>
+                            <td>${escapeHtml(order.phone)}</td>
+                            <td>${escapeHtml(order.email)}</td>
+                            <td>${escapeHtml(order.orderText.substring(0, 40))}${order.orderText.length > 40 ? '...' : ''}</td>
                             <td><span class="badge-status ${order.status}">${statusText}</span></td>
                             <td>${date}</td>
                             <td>
                                 <div class="table-actions">
-                                    <button class="btn-edit" onclick="window.editOrder('${order.id}')">تعديل</button>
-                                    <select class="filter-select" onchange="window.updateOrderStatus('${order.id}', this.value)" style="padding:2px 8px; font-size:0.75rem;">
+                                    <button class="btn-edit" onclick="window.editOrder('${escapeHtml(order.id)}')">تعديل</button>
+                                    <select class="filter-select" onchange="window.updateOrderStatus('${escapeHtml(order.id)}', this.value)" style="padding:2px 8px; font-size:0.75rem;">
                                         <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>قيد الانتظار</option>
                                         <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>قيد التنفيذ</option>
                                         <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>مكتمل</option>
                                         <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>ملغي</option>
                                     </select>
-                                    <button class="btn-delete" onclick="window.confirmDelete('order', '${order.id}')">حذف</button>
+                                    <button class="btn-delete" onclick="window.confirmDelete('order', '${escapeHtml(order.id)}')">حذف</button>
                                 </div>
                             </td>
                         </tr>
@@ -2510,7 +2507,6 @@
                 html += '</tbody></table></div>';
                 container.innerHTML = html;
 
-                // تحديث البادج
                 const badge = document.getElementById('ordersBadge');
                 if (badge) {
                     const pending = data.filter(o => o.status === 'pending' || o.status === 'processing');
@@ -2794,7 +2790,7 @@
                     if (xhr.status === 200) {
                         const data = JSON.parse(xhr.response);
                         document.getElementById('galleryCover').value = data.url;
-                        document.getElementById('galleryUploadPreview').innerHTML = `<img src="${data.url}" alt="Uploaded">`;
+                        document.getElementById('galleryUploadPreview').innerHTML = `<img src="${escapeHtml(data.url)}" alt="Uploaded">`;
                         showToast('تم رفع الصورة بنجاح');
                     } else if (xhr.status === 401) {
                         localStorage.removeItem('shulamith-token');
@@ -2991,7 +2987,7 @@
                         if (xhr.status === 200) {
                             const data = JSON.parse(xhr.response);
                             document.getElementById('artworkImageUrl').value = data.url;
-                            document.getElementById('uploadPreview').innerHTML = `<img src="${data.url}" alt="Uploaded">`;
+                            document.getElementById('uploadPreview').innerHTML = `<img src="${escapeHtml(data.url)}" alt="Uploaded">`;
                             showToast('تم رفع الصورة بنجاح');
                         } else if (xhr.status === 401) {
                             localStorage.removeItem('shulamith-token');

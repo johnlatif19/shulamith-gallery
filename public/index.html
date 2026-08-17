@@ -168,7 +168,7 @@
         }
 
         /* ============================================
-           NAVBAR
+           NAVBAR — Fully Responsive
            ============================================ */
         .navbar {
             position: fixed;
@@ -218,6 +218,7 @@
             opacity: 0.85;
         }
 
+        /* ===== Desktop Nav Menu ===== */
         .nav-menu {
             display: flex;
             align-items: center;
@@ -291,6 +292,7 @@
             font-size: clamp(0.7rem, 0.8vw, 0.85rem);
         }
 
+        /* ===== Hamburger Toggle (Mobile) ===== */
         .nav-toggle {
             display: none;
             flex-direction: column;
@@ -390,6 +392,33 @@
             .nav-toggle span {
                 width: 22px;
                 height: 2px;
+            }
+        }
+
+        /* ===== Extra Small Screens (<= 360px) ===== */
+        @media (max-width: 360px) {
+            .nav-container {
+                padding: 0 10px;
+            }
+
+            .nav-menu li a {
+                font-size: 0.85rem;
+                padding: 6px 0;
+            }
+
+            .lang-switch {
+                padding: 3px 8px;
+                font-size: 0.65rem;
+            }
+
+            .logo-img {
+                height: 30px;
+            }
+
+            .nav-toggle span {
+                width: 18px;
+                height: 2px;
+                gap: 4px;
             }
         }
 
@@ -548,8 +577,28 @@
             }
         }
 
+        @media (max-width: 360px) {
+            .hero {
+                padding: calc(var(--header-height) + 12px) 10px 30px;
+            }
+
+            .hero-title {
+                font-size: 1.8rem;
+            }
+
+            .hero-text {
+                font-size: 0.8rem;
+                line-height: 1.6;
+            }
+
+            .hero-cta {
+                padding: 10px 20px;
+                font-size: 0.8rem;
+            }
+        }
+
         /* ============================================
-           SCROLL ANIMATION
+           REST OF STYLES (unchanged but responsive)
            ============================================ */
         .reveal {
             opacity: 0;
@@ -978,7 +1027,6 @@
             color: var(--color-primary);
         }
 
-        /* ===== SOCIAL LINKS ===== */
         .social-links {
             display: flex;
             gap: clamp(8px, 1vw, 12px);
@@ -1023,7 +1071,6 @@
             flex-shrink: 0;
         }
 
-        /* ===== CONTACT FORM ===== */
         .contact-form-wrapper {
             background: var(--color-bg-card);
             padding: clamp(24px, 3vw, 36px);
@@ -2213,11 +2260,6 @@
                 item.addEventListener('click', () => {
                     const artwork = artworks[index];
                     if (artwork) openLightbox(artwork);
-                });
-                
-                // Touch support for mobile
-                item.addEventListener('touchstart', function() {
-                    // Small delay to prevent accidental double taps
                 });
             });
             

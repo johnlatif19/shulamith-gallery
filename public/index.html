@@ -1501,7 +1501,7 @@
             
             <div class="nav-actions">
                 <button class="lang-switch" id="langSwitch" aria-label="تبديل اللغة" title="تبديل اللغة">
-                    <span class="lang-text">AR</span>
+                    <span class="lang-text">EN</span>
                 </button>
                 <button class="nav-toggle" id="navToggle" aria-label="فتح/إغلاق القائمة" title="القائمة">
                     <span></span>
@@ -1936,7 +1936,7 @@
         // ============================================
         // STATE
         // ============================================
-        let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
+        let currentLang = localStorage.getItem('language') || 'ar';
         let allArtworks = [];
         let refreshInterval = null;
         let isLoading = false;
@@ -1952,14 +1952,16 @@
         // ============================================
         function setLanguage(lang) {
             currentLang = lang;
-            localStorage.setItem('shulamith-lang', lang);
+            localStorage.setItem('language', lang);
             
             document.documentElement.lang = lang;
             document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
             document.body.className = lang === 'ar' ? 'rtl' : 'ltr';
             
             const langText = document.querySelector('.lang-text');
-            if (langText) langText.textContent = lang.toUpperCase();
+            if (langText) {
+                langText.textContent = lang === 'ar' ? 'EN' : 'AR';
+            }
             
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');

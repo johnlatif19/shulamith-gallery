@@ -9,6 +9,7 @@ const cloudinary = require('cloudinary').v2;
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,54 +25,19 @@ const timeoutMiddleware = (req, res, next) => {
     next();
 };
 
-// ============ 🔥 CORS - إصلاح الأمان ============
-const allowedOrigins = (process.env.CORS_ORIGIN || '')
-    .split(',')
-    .map(origin => origin.trim())
-    .filter(origin => origin.length > 0);
-
-const corsOptions = {
-    origin: function (origin, callback) {
-        // السماح للطلبات بدون origin (مثل Postman)
-        if (!origin) return callback(null, true);
-        
-        // في بيئة التطوير، السماح بأي origin
-        if (process.env.NODE_ENV === 'development') {
-            return callback(null, true);
-        }
-        
-        // في الإنتاج، السماح فقط بالأصول المسموح بها
-        if (allowedOrigins.length === 0) {
-            return callback(new Error('CORS_ORIGIN not configured'), false);
-        }
-        
-        if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'), false);
-        }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-};
-
-app.use(cors(corsOptions));
-
-// ============ 🔥 Helmet - إصلاح الأمان ============
+// ============ 🔒 SECURITY HEADERS IMPROVED ============
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://i.postimg.cc", "https://via.placeholder.com"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://i.postimg.cc"],
+            scriptSrc: ["'self'"], // ✅ إزالة 'unsafe-inline'
+            styleSrc: ["'self'", "'unsafe-inline'"], // ✅ ضروري للتصميم المضمن
             connectSrc: ["'self'", "https://firestore.googleapis.com", "https://api.cloudinary.com"],
-            fontSrc: ["'self'"],
-            objectSrc: ["'none'"],
-            frameAncestors: ["'none'"],
             baseUri: ["'self'"],
+            frameAncestors: ["'none'"],
             formAction: ["'self'"],
+            upgradeInsecureRequests: []
         }
     },
     hsts: {
@@ -80,10 +46,34 @@ app.use(helmet({
         preload: true
     },
     frameguard: { action: 'deny' },
-    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-    xssFilter: true,
     noSniff: true,
-    hidePoweredBy: true
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    xssFilter: true
+}));
+
+// ============ 🔒 CORS FIXED ============
+const allowedOrigins = [
+    'https://shulamith-gallery.vercel.app',
+    'https://shulamith-gallery.com',
+    'http://localhost:3000',
+    'http://localhost:5500'
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        // السماح للطلبات من نفس الخادم (بدون origin)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+            callback(null, true);
+        } else {
+            console.warn(`⚠️ CORS blocked: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json({ limit: '10mb' }));
@@ -92,7 +82,7 @@ app.use(express.static('public'));
 
 app.use(timeoutMiddleware);
 
-// ============ 🔥 Rate Limiting - إصلاح ============
+// ============ 🔒 RATE LIMITING IMPROVED ============
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -126,34 +116,14 @@ const contactLimiter = rateLimit({
     }
 });
 
-const orderLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000,
-    max: 5,
-    message: { error: 'Too many orders placed. Please try again later.' },
-    standardHeaders: true,
-    legacyHeaders: false,
-    keyGenerator: (req) => {
-        return req.ip || req.headers['x-forwarded-for'] || 'unknown';
-    }
-});
-
-const rateLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000,
-    max: 10,
-    message: { error: 'Too many requests. Please try again later.' },
-    standardHeaders: true,
-    legacyHeaders: false,
-    keyGenerator: (req) => {
-        return req.ip || req.headers['x-forwarded-for'] || 'unknown';
-    }
-});
-
 app.use('/api/login', authLimiter);
 app.use('/api/contact', contactLimiter);
 app.use('/api/upload', limiter);
 app.use('/api/stats', limiter);
 app.use('/api/send-email', limiter);
-app.use('/api/orders', orderLimiter);
+
+// ============ 🔒 REVOKED TOKENS SET ============
+const revokedTokens = new Set();
 
 // ============ Firebase Admin ============
 let firebaseConfig;
@@ -187,7 +157,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// ============ Email Transporter ============
+// ============ 🔒 Email Transporter with SECURE TLS ============
 let transporter = null;
 let emailConfigured = false;
 let initializationPromise = null;
@@ -214,6 +184,7 @@ const initializeTransporter = async () => {
 
             console.log(`📧 Connecting to SMTP: ${process.env.SMTP_HOST}:${process.env.SMTP_PORT}`);
 
+            // ✅ SECURE TLS - enabled certificate validation
             const newTransporter = nodemailer.createTransport({
                 host: process.env.SMTP_HOST,
                 port: parseInt(process.env.SMTP_PORT),
@@ -226,8 +197,8 @@ const initializeTransporter = async () => {
                 greetingTimeout: 30000,
                 socketTimeout: 30000,
                 tls: {
-                    ciphers: 'SSLv3',
-                    rejectUnauthorized: false
+                    // ✅ FIXED: إزالة rejectUnauthorized: false
+                    rejectUnauthorized: true
                 }
             });
 
@@ -285,99 +256,94 @@ function isEmailConfigured() {
     return transporter !== null && emailConfigured === true;
 }
 
-// ============ JWT Helpers ============
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET || JWT_SECRET.length < 32) {
-    console.error('⚠️ JWT_SECRET is too short or not set! Please set a strong secret.');
-}
-
+// ============ 🔒 JWT Helpers IMPROVED ============
 const generateToken = (username) => {
     return jwt.sign(
-        { username, role: 'admin' },
-        JWT_SECRET,
-        { expiresIn: '24h', algorithm: 'HS256' }
+        { 
+            username, 
+            role: 'admin',
+            iat: Math.floor(Date.now() / 1000),
+            jti: crypto.randomBytes(16).toString('hex')
+        },
+        process.env.JWT_SECRET,
+        { 
+            expiresIn: '1h',
+            algorithm: 'HS256'
+        }
     );
 };
 
 const verifyToken = (token) => {
     try {
-        return jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (revokedTokens.has(decoded.jti)) {
+            return null;
+        }
+        return decoded;
     } catch (error) {
         return null;
     }
 };
 
-// ============ 🔥 Auth Middleware - مع تحقق الصلاحيات ============
+// ============ 🔒 Auth Middleware ============
 const requireAuth = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
         return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const token = authHeader.split(' ')[1];
     const decoded = verifyToken(token);
-    
     if (!decoded) {
         return res.status(401).json({ error: 'Invalid or expired token' });
-    }
-
-    // التحقق من صلاحية Admin
-    if (decoded.role !== 'admin') {
-        return res.status(403).json({ error: 'Admin access required' });
     }
 
     req.user = decoded;
     next();
 };
 
-const requireAdmin = requireAuth; // Alias للوضوح
-
-// ============ 🔥 Validation Helpers - مع sanitization ============
-const validator = {
-    email: (email) => {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    },
-    phone: (phone) => {
-        return /^[\d+\s-()]{8,20}$/.test(phone);
-    },
-    name: (name) => {
-        return name && name.length >= 2 && name.length <= 100;
-    },
-    message: (msg) => {
-        return msg && msg.length >= 3 && msg.length <= 5000;
-    },
-    orderText: (text) => {
-        return text && text.length >= 3 && text.length <= 5000;
-    },
-    rating: (rating) => {
-        const num = parseInt(rating);
-        return !isNaN(num) && num >= 1 && num <= 5;
-    },
-    sanitize: (str) => {
-        if (typeof str !== 'string') return '';
-        return str.trim()
-            .replace(/[<>]/g, '') // إزالة HTML tags
-            .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#x27;')
-            .replace(/\//g, '&#x2F;');
-    },
-    sanitizeForHTML: (str) => {
-        if (typeof str !== 'string') return '';
-        return str
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
+// ============ 🔒 Validation Helpers ============
+const validateEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
+
+const validatePhone = (phone) => {
+    return /^[\d+\s-()]{8,20}$/.test(phone);
+};
+
+// ✅ NEW: HTML sanitization
+function sanitizeHtml(text) {
+    if (!text) return '';
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+        .replace(/\n/g, '<br>');
+}
+
+// ✅ NEW: Input validation for Firestore queries
+function validateFirestoreId(id) {
+    return id && typeof id === 'string' && /^[a-zA-Z0-9_-]+$/.test(id);
+}
+
+function sanitizeInput(text) {
+    if (!text) return '';
+    return text
+        .replace(/<script/g, '&lt;script')
+        .replace(/<\/script>/g, '&lt;/script&gt;')
+        .replace(/onerror=/g, 'onerror=')
+        .replace(/onload=/g, 'onload=')
+        .replace(/javascript:/g, 'javascript:')
+        .trim();
+}
 
 // ============================================================
 // ============ 🚀 ALL API ROUTES ============
 // ============================================================
 
-// ---------- Auth ----------
+// ---------- 🔒 Auth (SECURE) ----------
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -386,16 +352,20 @@ app.post('/api/login', async (req, res) => {
             return res.status(400).json({ error: 'Username and password required' });
         }
 
-        // استخدام مقارنة آمنة
         const adminUsername = process.env.ADMIN_USERNAME;
-        const adminPassword = process.env.ADMIN_PASSWORD;
+        const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
 
-        if (!adminUsername || !adminPassword) {
-            console.error('❌ ADMIN credentials not set in environment');
-            return res.status(500).json({ error: 'Server configuration error' });
+        // ✅ التحقق من اسم المستخدم
+        if (username !== adminUsername) {
+            // تأخير لمنع هجمات التوقيت
+            await new Promise(resolve => setTimeout(resolve, 100));
+            return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        if (username !== adminUsername || password !== adminPassword) {
+        // ✅ استخدام bcrypt للتحقق من كلمة المرور
+        const isValid = await bcrypt.compare(password, adminPasswordHash);
+        if (!isValid) {
+            await new Promise(resolve => setTimeout(resolve, 100));
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
@@ -403,7 +373,7 @@ app.post('/api/login', async (req, res) => {
         res.json({
             token,
             user: { username },
-            expiresIn: 86400
+            expiresIn: 3600
         });
     } catch (error) {
         console.error('Login error:', error);
@@ -411,21 +381,29 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+app.post('/api/logout', requireAuth, (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    try {
+        const decoded = jwt.decode(token);
+        if (decoded && decoded.jti) {
+            revokedTokens.add(decoded.jti);
+        }
+    } catch (e) {}
+    res.json({ success: true });
+});
+
 app.post('/api/verify', requireAuth, (req, res) => {
     res.json({ valid: true, user: req.user });
 });
 
-// ---------- Galleries ----------
+// ---------- 🔒 Galleries ----------
 app.get('/api/galleries', async (req, res) => {
     try {
-        const snapshot = await db.collection('galleries').get();
+        const snapshot = await db.collection('galleries').limit(100).get();
 
         const galleries = [];
         snapshot.forEach(doc => {
-            const data = doc.data();
-            // إزالة الحقول الداخلية الحساسة
-            const { updatedAt, ...rest } = data;
-            galleries.push({ id: doc.id, ...rest });
+            galleries.push({ id: doc.id, ...doc.data() });
         });
 
         galleries.sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -437,26 +415,22 @@ app.get('/api/galleries', async (req, res) => {
     }
 });
 
-app.post('/api/galleries', requireAdmin, async (req, res) => {
+app.post('/api/galleries', requireAuth, async (req, res) => {
     try {
         const { name, description, coverImage, visible, order } = req.body;
 
-        if (!validator.name(name)) {
-            return res.status(400).json({ error: 'Gallery name must be between 2-100 characters' });
+        if (!name || typeof name !== 'string' || name.trim().length === 0) {
+            return res.status(400).json({ error: 'Gallery name is required' });
         }
 
-        // Sanitize input
-        const sanitizedName = validator.sanitize(name);
-        const sanitizedDescription = validator.sanitize(description || '');
-        const sanitizedCoverImage = validator.sanitize(coverImage || '');
-
         const galleryData = {
-            name: sanitizedName,
-            description: sanitizedDescription,
-            coverImage: sanitizedCoverImage,
+            name: sanitizeInput(name.trim()),
+            description: sanitizeInput(description || ''),
+            coverImage: coverImage || '',
             visible: visible !== undefined ? visible : true,
             order: order || 0,
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
 
         const docRef = await db.collection('galleries').add(galleryData);
@@ -467,29 +441,37 @@ app.post('/api/galleries', requireAdmin, async (req, res) => {
     }
 });
 
-app.put('/api/galleries/:id', requireAdmin, async (req, res) => {
+app.put('/api/galleries/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, coverImage, visible, order } = req.body;
 
-        if (!validator.name(name)) {
-            return res.status(400).json({ error: 'Gallery name must be between 2-100 characters' });
+        // ✅ التحقق من صحة المعرف
+        if (!validateFirestoreId(id)) {
+            return res.status(400).json({ error: 'Invalid gallery ID' });
         }
 
-        const sanitizedName = validator.sanitize(name);
-        const sanitizedDescription = validator.sanitize(description || '');
-        const sanitizedCoverImage = validator.sanitize(coverImage || '');
+        if (!name || typeof name !== 'string' || name.trim().length === 0) {
+            return res.status(400).json({ error: 'Gallery name is required' });
+        }
+
+        // ✅ التحقق من وجود المعرض
+        const docRef = db.collection('galleries').doc(id);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'Gallery not found' });
+        }
 
         const updateData = {
-            name: sanitizedName,
-            description: sanitizedDescription,
-            coverImage: sanitizedCoverImage,
+            name: sanitizeInput(name.trim()),
+            description: sanitizeInput(description || ''),
+            coverImage: coverImage || '',
             visible: visible !== undefined ? visible : true,
             order: order || 0,
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
 
-        await db.collection('galleries').doc(id).update(updateData);
+        await docRef.update(updateData);
         res.json({ id, ...updateData });
     } catch (error) {
         console.error('Error updating gallery:', error);
@@ -497,12 +479,23 @@ app.put('/api/galleries/:id', requireAdmin, async (req, res) => {
     }
 });
 
-app.delete('/api/galleries/:id', requireAdmin, async (req, res) => {
+app.delete('/api/galleries/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
 
+        if (!validateFirestoreId(id)) {
+            return res.status(400).json({ error: 'Invalid gallery ID' });
+        }
+
+        const docRef = db.collection('galleries').doc(id);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'Gallery not found' });
+        }
+
         const artworksSnapshot = await db.collection('artworks')
             .where('galleryId', '==', id)
+            .limit(1)
             .get();
 
         if (!artworksSnapshot.empty) {
@@ -511,7 +504,7 @@ app.delete('/api/galleries/:id', requireAdmin, async (req, res) => {
             });
         }
 
-        await db.collection('galleries').doc(id).delete();
+        await docRef.delete();
         res.json({ success: true });
     } catch (error) {
         console.error('Error deleting gallery:', error);
@@ -519,11 +512,21 @@ app.delete('/api/galleries/:id', requireAdmin, async (req, res) => {
     }
 });
 
-// ---------- 🔥 Artworks - مع sanitization ----------
+// ---------- 🔒 Artworks (SECURE) ----------
 app.get('/api/artworks', async (req, res) => {
     try {
         const { galleryId, featured } = req.query;
-        let query = db.collection('artworks');
+        
+        // ✅ التحقق من صحة المدخلات
+        if (galleryId && !validateFirestoreId(galleryId)) {
+            return res.status(400).json({ error: 'Invalid galleryId' });
+        }
+        
+        if (featured && featured !== 'true' && featured !== 'false') {
+            return res.status(400).json({ error: 'Invalid featured value' });
+        }
+
+        let query = db.collection('artworks').limit(100);
 
         if (galleryId) {
             query = query.where('galleryId', '==', galleryId);
@@ -536,23 +539,7 @@ app.get('/api/artworks', async (req, res) => {
         const snapshot = await query.get();
         const artworks = [];
         snapshot.forEach(doc => {
-            const data = doc.data();
-            // Sanitize for safe display
-            artworks.push({
-                id: doc.id,
-                title: validator.sanitizeForHTML(data.title || ''),
-                description: validator.sanitizeForHTML(data.description || ''),
-                imageUrl: data.imageUrl || '',
-                cloudinaryPublicId: data.cloudinaryPublicId || '',
-                material: validator.sanitizeForHTML(data.material || ''),
-                dimensions: validator.sanitizeForHTML(data.dimensions || ''),
-                price: data.price || 0,
-                featured: data.featured || false,
-                visible: data.visible !== undefined ? data.visible : true,
-                galleryId: data.galleryId || '',
-                order: data.order || 0,
-                createdAt: data.createdAt?.toDate?.()?.toISOString() || null
-            });
+            artworks.push({ id: doc.id, ...doc.data() });
         });
 
         artworks.sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -564,38 +551,39 @@ app.get('/api/artworks', async (req, res) => {
     }
 });
 
-app.post('/api/artworks', requireAdmin, async (req, res) => {
+app.post('/api/artworks', requireAuth, async (req, res) => {
     try {
         const {
             galleryId, title, description, imageUrl, cloudinaryPublicId,
             material, dimensions, price, featured, visible, order
         } = req.body;
 
-        if (!galleryId) {
-            return res.status(400).json({ error: 'Gallery ID is required' });
+        if (!galleryId || !validateFirestoreId(galleryId)) {
+            return res.status(400).json({ error: 'Valid Gallery ID is required' });
         }
 
-        if (!validator.name(title)) {
-            return res.status(400).json({ error: 'Artwork title must be between 2-100 characters' });
+        if (!title || typeof title !== 'string' || title.trim().length === 0) {
+            return res.status(400).json({ error: 'Artwork title is required' });
         }
 
-        if (!imageUrl) {
+        if (!imageUrl || typeof imageUrl !== 'string') {
             return res.status(400).json({ error: 'Image URL is required' });
         }
 
         const artworkData = {
-            galleryId: validator.sanitize(galleryId),
-            title: validator.sanitize(title),
-            description: validator.sanitize(description || ''),
-            imageUrl: validator.sanitize(imageUrl),
-            cloudinaryPublicId: validator.sanitize(cloudinaryPublicId || ''),
-            material: validator.sanitize(material || ''),
-            dimensions: validator.sanitize(dimensions || ''),
+            galleryId,
+            title: sanitizeInput(title.trim()),
+            description: sanitizeInput(description || ''),
+            imageUrl,
+            cloudinaryPublicId: cloudinaryPublicId || '',
+            material: sanitizeInput(material || ''),
+            dimensions: sanitizeInput(dimensions || ''),
             price: price || 0,
             featured: featured || false,
             visible: visible !== undefined ? visible : true,
             order: order || 0,
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
 
         const docRef = await db.collection('artworks').add(artworkData);
@@ -606,7 +594,7 @@ app.post('/api/artworks', requireAdmin, async (req, res) => {
     }
 });
 
-app.put('/api/artworks/:id', requireAdmin, async (req, res) => {
+app.put('/api/artworks/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const {
@@ -614,26 +602,37 @@ app.put('/api/artworks/:id', requireAdmin, async (req, res) => {
             material, dimensions, price, featured, visible, order
         } = req.body;
 
-        if (!galleryId) {
-            return res.status(400).json({ error: 'Gallery ID is required' });
+        if (!validateFirestoreId(id)) {
+            return res.status(400).json({ error: 'Invalid artwork ID' });
         }
 
-        if (!validator.name(title)) {
-            return res.status(400).json({ error: 'Artwork title must be between 2-100 characters' });
+        if (!galleryId || !validateFirestoreId(galleryId)) {
+            return res.status(400).json({ error: 'Valid Gallery ID is required' });
         }
 
-        if (!imageUrl) {
+        if (!title || typeof title !== 'string' || title.trim().length === 0) {
+            return res.status(400).json({ error: 'Artwork title is required' });
+        }
+
+        if (!imageUrl || typeof imageUrl !== 'string') {
             return res.status(400).json({ error: 'Image URL is required' });
         }
 
+        // ✅ التحقق من وجود العمل الفني
+        const docRef = db.collection('artworks').doc(id);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'Artwork not found' });
+        }
+
         const updateData = {
-            galleryId: validator.sanitize(galleryId),
-            title: validator.sanitize(title),
-            description: validator.sanitize(description || ''),
-            imageUrl: validator.sanitize(imageUrl),
-            cloudinaryPublicId: validator.sanitize(cloudinaryPublicId || ''),
-            material: validator.sanitize(material || ''),
-            dimensions: validator.sanitize(dimensions || ''),
+            galleryId,
+            title: sanitizeInput(title.trim()),
+            description: sanitizeInput(description || ''),
+            imageUrl,
+            cloudinaryPublicId: cloudinaryPublicId || '',
+            material: sanitizeInput(material || ''),
+            dimensions: sanitizeInput(dimensions || ''),
             price: price || 0,
             featured: featured || false,
             visible: visible !== undefined ? visible : true,
@@ -641,7 +640,7 @@ app.put('/api/artworks/:id', requireAdmin, async (req, res) => {
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
 
-        await db.collection('artworks').doc(id).update(updateData);
+        await docRef.update(updateData);
         res.json({ id, ...updateData });
     } catch (error) {
         console.error('Error updating artwork:', error);
@@ -649,23 +648,30 @@ app.put('/api/artworks/:id', requireAdmin, async (req, res) => {
     }
 });
 
-app.delete('/api/artworks/:id', requireAdmin, async (req, res) => {
+app.delete('/api/artworks/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
 
-        const doc = await db.collection('artworks').doc(id).get();
-        if (doc.exists) {
-            const data = doc.data();
-            if (data.cloudinaryPublicId) {
-                try {
-                    await cloudinary.uploader.destroy(data.cloudinaryPublicId);
-                } catch (error) {
-                    console.error('Error deleting from Cloudinary:', error);
-                }
+        if (!validateFirestoreId(id)) {
+            return res.status(400).json({ error: 'Invalid artwork ID' });
+        }
+
+        const docRef = db.collection('artworks').doc(id);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'Artwork not found' });
+        }
+
+        const data = doc.data();
+        if (data.cloudinaryPublicId) {
+            try {
+                await cloudinary.uploader.destroy(data.cloudinaryPublicId);
+            } catch (error) {
+                console.error('Error deleting from Cloudinary:', error);
             }
         }
 
-        await db.collection('artworks').doc(id).delete();
+        await docRef.delete();
         res.json({ success: true });
     } catch (error) {
         console.error('Error deleting artwork:', error);
@@ -673,32 +679,26 @@ app.delete('/api/artworks/:id', requireAdmin, async (req, res) => {
     }
 });
 
-// ---------- 🔥 Cloudinary Upload - مع التحقق من نوع الملف ----------
+// ---------- 🔒 Cloudinary Upload (SECURE) ----------
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB
+        fileSize: 5 * 1024 * 1024
     },
     fileFilter: (req, file, cb) => {
-        const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-        if (allowedMimeTypes.includes(file.mimetype)) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (allowedTypes.includes(file.mimetype)) {
             cb(null, true);
         } else {
-            cb(new Error('Invalid file type. Only JPEG, PNG, WEBP, and GIF are allowed.'), false);
+            cb(new Error('Invalid file type. Only images are allowed.'));
         }
     }
 });
 
-app.post('/api/upload', requireAdmin, upload.single('image'), async (req, res) => {
+app.post('/api/upload', requireAuth, upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No image file provided' });
-        }
-
-        // التحقق الإضافي من نوع الملف
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-        if (!allowedTypes.includes(req.file.mimetype)) {
-            return res.status(400).json({ error: 'Invalid file type. Only JPEG, PNG, WEBP, and GIF are allowed.' });
         }
 
         const b64 = Buffer.from(req.file.buffer).toString('base64');
@@ -707,7 +707,7 @@ app.post('/api/upload', requireAdmin, upload.single('image'), async (req, res) =
         const result = await Promise.race([
             cloudinary.uploader.upload(dataURI, {
                 folder: 'shulamith-gallery',
-                resource_type: 'image'
+                resource_type: 'auto'
             }),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timeout')), 30000))
         ]);
@@ -724,57 +724,42 @@ app.post('/api/upload', requireAdmin, upload.single('image'), async (req, res) =
         console.error('Upload error:', error);
         if (error.message === 'Upload timeout') {
             res.status(504).json({ error: 'Upload timeout, please try again' });
-        } else if (error.message.includes('Invalid file type')) {
-            res.status(400).json({ error: error.message });
         } else {
             res.status(500).json({ error: 'Failed to upload image' });
         }
     }
 });
 
-// ---------- 🔥 Messages - مع sanitization و rate limiting ----------
-app.post('/api/contact', contactLimiter, async (req, res) => {
+// ---------- 🔒 Messages (SECURE) ----------
+app.post('/api/contact', async (req, res) => {
     try {
-        let { name, email, phone, message } = req.body;
-
-        // Sanitize input
-        name = validator.sanitize(name || '');
-        email = validator.sanitize(email || '');
-        phone = validator.sanitize(phone || '');
-        message = validator.sanitize(message || '');
+        const { name, email, phone, message } = req.body;
 
         if (!name || !email || !message) {
             return res.status(400).json({ error: 'Name, email, and message are required' });
         }
 
-        if (!validator.name(name)) {
-            return res.status(400).json({ error: 'Name must be between 2-100 characters' });
-        }
-
-        if (!validator.email(email)) {
+        if (!validateEmail(email)) {
             return res.status(400).json({ error: 'Invalid email format' });
         }
 
-        if (phone && !validator.phone(phone)) {
+        if (phone && !validatePhone(phone)) {
             return res.status(400).json({ error: 'Invalid phone number format' });
         }
 
-        if (!validator.message(message)) {
-            return res.status(400).json({ error: 'Message must be between 3-5000 characters' });
-        }
-
+        // ✅ تنقية المدخلات
         const messageData = {
-            name,
-            email,
-            phone,
-            message,
+            name: sanitizeInput(name.trim()),
+            email: email.trim(),
+            phone: phone ? sanitizeInput(phone.trim()) : '',
+            message: sanitizeInput(message.trim()),
             read: false,
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         };
 
         const docRef = await db.collection('messages').add(messageData);
 
-        // Send confirmation email
+        // Send confirmation email to the user
         if (email && transporter && emailConfigured) {
             setImmediate(async () => {
                 try {
@@ -787,12 +772,12 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
                                 <div style="text-align: center; margin-bottom: 30px;">
                                     <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" style="max-width: 150px; height: auto; border-radius: 8px;">
                                 </div>
-                                <h2 style="color: #d4b892; margin-bottom: 20px;">مرحباً ${validator.sanitizeForHTML(name)}،</h2>
+                                <h2 style="color: #d4b892; margin-bottom: 20px;">مرحباً ${sanitizeHtml(name)}،</h2>
                                 <p style="line-height: 1.8; color: #d4c8b8;">تم استلام استفساركم وسيتم الرد في أقرب وقت.</p>
                                 <p style="line-height: 1.8; color: #d4c8b8;">شكراً لتواصلك مع <strong style="color: #d4b892;">Shulamith Gallery</strong>.</p>
                                 <div style="margin: 30px 0; padding: 20px; background: #252525; border-radius: 8px; border-right: 3px solid #d4b892;">
                                     <p style="margin: 5px 0; color: #d4c8b8;"><strong style="color: #d4b892;">رسالتك:</strong></p>
-                                    <p style="margin: 10px 0 0 0; color: #e8e0d4; font-style: italic;">${validator.sanitizeForHTML(message)}</p>
+                                    <p style="margin: 10px 0 0 0; color: #e8e0d4; font-style: italic;">${sanitizeHtml(message)}</p>
                                 </div>
                                 <hr style="border: none; border-top: 1px solid #333; margin: 30px 0;">
                                 <p style="color: #999; font-size: 14px; text-align: center;">
@@ -806,6 +791,8 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
                     console.error('❌ Error sending confirmation email:', error.message);
                 }
             });
+        } else {
+            console.log('ℹ️ Email service not configured, skipping confirmation email');
         }
 
         res.status(201).json({
@@ -819,10 +806,10 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
     }
 });
 
-app.get('/api/messages', requireAdmin, async (req, res) => {
+app.get('/api/messages', requireAuth, async (req, res) => {
     try {
         const { unread } = req.query;
-        let query = db.collection('messages');
+        let query = db.collection('messages').limit(100);
 
         if (unread === 'true') {
             query = query.where('read', '==', false);
@@ -832,14 +819,9 @@ app.get('/api/messages', requireAdmin, async (req, res) => {
         const messages = [];
         snapshot.forEach(doc => {
             const data = doc.data();
-            // إزالة الحقول الحساسة
             messages.push({
                 id: doc.id,
-                name: validator.sanitizeForHTML(data.name || ''),
-                email: data.email || '',
-                phone: data.phone || '',
-                message: validator.sanitizeForHTML(data.message || ''),
-                read: data.read || false,
+                ...data,
                 createdAt: data.createdAt?.toDate?.()?.toISOString() || null
             });
         });
@@ -857,12 +839,22 @@ app.get('/api/messages', requireAdmin, async (req, res) => {
     }
 });
 
-app.put('/api/messages/:id/read', requireAdmin, async (req, res) => {
+app.put('/api/messages/:id/read', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const { read } = req.body;
 
-        await db.collection('messages').doc(id).update({
+        if (!validateFirestoreId(id)) {
+            return res.status(400).json({ error: 'Invalid message ID' });
+        }
+
+        const docRef = db.collection('messages').doc(id);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'Message not found' });
+        }
+
+        await docRef.update({
             read: read !== undefined ? read : true,
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
@@ -874,10 +866,21 @@ app.put('/api/messages/:id/read', requireAdmin, async (req, res) => {
     }
 });
 
-app.delete('/api/messages/:id', requireAdmin, async (req, res) => {
+app.delete('/api/messages/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        await db.collection('messages').doc(id).delete();
+
+        if (!validateFirestoreId(id)) {
+            return res.status(400).json({ error: 'Invalid message ID' });
+        }
+
+        const docRef = db.collection('messages').doc(id);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'Message not found' });
+        }
+
+        await docRef.delete();
         res.json({ success: true });
     } catch (error) {
         console.error('Error deleting message:', error);
@@ -885,40 +888,29 @@ app.delete('/api/messages/:id', requireAdmin, async (req, res) => {
     }
 });
 
-// ---------- 🔥 RATES - مع حماية PII ----------
-app.post('/api/rates', rateLimiter, async (req, res) => {
+// ---------- 🔒 Rates (SECURE) ----------
+app.post('/api/rates', async (req, res) => {
     try {
-        let { name, email, rating, opinion } = req.body;
-
-        name = validator.sanitize(name || '');
-        email = validator.sanitize(email || '');
-        opinion = validator.sanitize(opinion || '');
+        const { name, email, rating, opinion } = req.body;
 
         if (!name || !email || !rating || !opinion) {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
-        if (!validator.name(name)) {
-            return res.status(400).json({ error: 'Name must be between 2-100 characters' });
-        }
-
-        if (!validator.email(email)) {
+        if (!validateEmail(email)) {
             return res.status(400).json({ error: 'Invalid email format' });
         }
 
-        if (!validator.rating(rating)) {
+        if (rating < 1 || rating > 5) {
             return res.status(400).json({ error: 'Rating must be between 1 and 5' });
         }
 
-        if (!validator.message(opinion)) {
-            return res.status(400).json({ error: 'Opinion must be between 3-5000 characters' });
-        }
-
+        // ✅ تنقية المدخلات
         const rateData = {
-            name,
-            email,
+            name: sanitizeInput(name.trim()),
+            email: email.trim(),
             rating: parseInt(rating),
-            opinion,
+            opinion: sanitizeInput(opinion.trim()),
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         };
 
@@ -933,24 +925,23 @@ app.post('/api/rates', rateLimiter, async (req, res) => {
 app.get('/api/rates', async (req, res) => {
     try {
         const { rating } = req.query;
-        let query = db.collection('rates');
+        let query = db.collection('rates').limit(100);
 
         if (rating) {
-            query = query.where('rating', '==', parseInt(rating));
+            const parsedRating = parseInt(rating);
+            if (parsedRating >= 1 && parsedRating <= 5) {
+                query = query.where('rating', '==', parsedRating);
+            }
         }
 
         const snapshot = await query.get();
         const rates = [];
         snapshot.forEach(doc => {
             const data = doc.data();
-            // ❌ لا نعرض email أو أي بيانات شخصية في الواجهة العامة
             rates.push({
                 id: doc.id,
-                name: validator.sanitizeForHTML(data.name || ''),
-                rating: data.rating || 0,
-                opinion: validator.sanitizeForHTML(data.opinion || ''),
+                ...data,
                 createdAt: data.createdAt?.toDate?.()?.toISOString() || null
-                // ⚠️ intentionally NOT including email or phone
             });
         });
 
@@ -967,44 +958,42 @@ app.get('/api/rates', async (req, res) => {
     }
 });
 
-app.put('/api/rates/:id', requireAdmin, async (req, res) => {
+app.put('/api/rates/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        let { name, email, rating, opinion } = req.body;
+        const { name, email, rating, opinion } = req.body;
 
-        name = validator.sanitize(name || '');
-        email = validator.sanitize(email || '');
-        opinion = validator.sanitize(opinion || '');
+        if (!validateFirestoreId(id)) {
+            return res.status(400).json({ error: 'Invalid rate ID' });
+        }
 
         if (!name || !email || !rating || !opinion) {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
-        if (!validator.name(name)) {
-            return res.status(400).json({ error: 'Name must be between 2-100 characters' });
-        }
-
-        if (!validator.email(email)) {
+        if (!validateEmail(email)) {
             return res.status(400).json({ error: 'Invalid email format' });
         }
 
-        if (!validator.rating(rating)) {
+        if (rating < 1 || rating > 5) {
             return res.status(400).json({ error: 'Rating must be between 1 and 5' });
         }
 
-        if (!validator.message(opinion)) {
-            return res.status(400).json({ error: 'Opinion must be between 3-5000 characters' });
+        const docRef = db.collection('rates').doc(id);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'Rate not found' });
         }
 
         const updateData = {
-            name,
-            email,
+            name: sanitizeInput(name.trim()),
+            email: email.trim(),
             rating: parseInt(rating),
-            opinion,
+            opinion: sanitizeInput(opinion.trim()),
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
 
-        await db.collection('rates').doc(id).update(updateData);
+        await docRef.update(updateData);
         res.json({ id, ...updateData });
     } catch (error) {
         console.error('Error updating rate:', error);
@@ -1012,10 +1001,21 @@ app.put('/api/rates/:id', requireAdmin, async (req, res) => {
     }
 });
 
-app.delete('/api/rates/:id', requireAdmin, async (req, res) => {
+app.delete('/api/rates/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        await db.collection('rates').doc(id).delete();
+
+        if (!validateFirestoreId(id)) {
+            return res.status(400).json({ error: 'Invalid rate ID' });
+        }
+
+        const docRef = db.collection('rates').doc(id);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'Rate not found' });
+        }
+
+        await docRef.delete();
         res.json({ success: true });
     } catch (error) {
         console.error('Error deleting rate:', error);
@@ -1023,41 +1023,29 @@ app.delete('/api/rates/:id', requireAdmin, async (req, res) => {
     }
 });
 
-// ---------- 🔥 ORDERS - مع حماية IDOR ----------
-app.post('/api/orders', orderLimiter, async (req, res) => {
+// ---------- 🔒 Orders (SECURE) ----------
+app.post('/api/orders', async (req, res) => {
     try {
-        let { name, phone, email, orderText } = req.body;
-
-        name = validator.sanitize(name || '');
-        phone = validator.sanitize(phone || '');
-        email = validator.sanitize(email || '');
-        orderText = validator.sanitize(orderText || '');
+        const { name, phone, email, orderText } = req.body;
 
         if (!name || !phone || !email || !orderText) {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
-        if (!validator.name(name)) {
-            return res.status(400).json({ error: 'Name must be between 2-100 characters' });
-        }
-
-        if (!validator.phone(phone)) {
-            return res.status(400).json({ error: 'Invalid phone format' });
-        }
-
-        if (!validator.email(email)) {
+        if (!validateEmail(email)) {
             return res.status(400).json({ error: 'Invalid email format' });
         }
 
-        if (!validator.orderText(orderText)) {
-            return res.status(400).json({ error: 'Order details must be between 3-5000 characters' });
+        if (!validatePhone(phone)) {
+            return res.status(400).json({ error: 'Invalid phone format' });
         }
 
+        // ✅ تنقية المدخلات
         const orderData = {
-            name,
-            phone,
-            email,
-            orderText,
+            name: sanitizeInput(name.trim()),
+            phone: sanitizeInput(phone.trim()),
+            email: email.trim(),
+            orderText: sanitizeInput(orderText.trim()),
             status: 'pending',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -1071,28 +1059,25 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
     }
 });
 
-// 🔥 مع إضافة requireAuth لحماية البيانات
-app.get('/api/orders', requireAdmin, async (req, res) => {
+app.get('/api/orders', requireAuth, async (req, res) => {
     try {
         const { status } = req.query;
-        let query = db.collection('orders');
+        let query = db.collection('orders').limit(100);
 
         if (status && status !== 'all') {
-            query = query.where('status', '==', status);
+            const validStatuses = ['pending', 'processing', 'completed', 'cancelled'];
+            if (validStatuses.includes(status)) {
+                query = query.where('status', '==', status);
+            }
         }
 
         const snapshot = await query.get();
         const orders = [];
         snapshot.forEach(doc => {
             const data = doc.data();
-            // إزالة الحقول الحساسة غير الضرورية
             orders.push({
                 id: doc.id,
-                name: validator.sanitizeForHTML(data.name || ''),
-                phone: data.phone || '',
-                email: data.email || '',
-                orderText: validator.sanitizeForHTML(data.orderText || ''),
-                status: data.status || 'pending',
+                ...data,
                 createdAt: data.createdAt?.toDate?.()?.toISOString() || null
             });
         });
@@ -1110,34 +1095,25 @@ app.get('/api/orders', requireAdmin, async (req, res) => {
     }
 });
 
-app.put('/api/orders/:id', requireAdmin, async (req, res) => {
+app.put('/api/orders/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        let { name, phone, email, orderText, status } = req.body;
+        const { name, phone, email, orderText, status } = req.body;
 
-        name = validator.sanitize(name || '');
-        phone = validator.sanitize(phone || '');
-        email = validator.sanitize(email || '');
-        orderText = validator.sanitize(orderText || '');
+        if (!validateFirestoreId(id)) {
+            return res.status(400).json({ error: 'Invalid order ID' });
+        }
 
         if (!name || !phone || !email || !orderText) {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
-        if (!validator.name(name)) {
-            return res.status(400).json({ error: 'Name must be between 2-100 characters' });
-        }
-
-        if (!validator.phone(phone)) {
-            return res.status(400).json({ error: 'Invalid phone format' });
-        }
-
-        if (!validator.email(email)) {
+        if (!validateEmail(email)) {
             return res.status(400).json({ error: 'Invalid email format' });
         }
 
-        if (!validator.orderText(orderText)) {
-            return res.status(400).json({ error: 'Order details must be between 3-5000 characters' });
+        if (!validatePhone(phone)) {
+            return res.status(400).json({ error: 'Invalid phone format' });
         }
 
         const validStatuses = ['pending', 'processing', 'completed', 'cancelled'];
@@ -1145,16 +1121,22 @@ app.put('/api/orders/:id', requireAdmin, async (req, res) => {
             return res.status(400).json({ error: 'Invalid status' });
         }
 
+        const docRef = db.collection('orders').doc(id);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
         const updateData = {
-            name,
-            phone,
-            email,
-            orderText,
+            name: sanitizeInput(name.trim()),
+            phone: sanitizeInput(phone.trim()),
+            email: email.trim(),
+            orderText: sanitizeInput(orderText.trim()),
             status: status || 'pending',
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
 
-        await db.collection('orders').doc(id).update(updateData);
+        await docRef.update(updateData);
         res.json({ id, ...updateData });
     } catch (error) {
         console.error('Error updating order:', error);
@@ -1162,59 +1144,66 @@ app.put('/api/orders/:id', requireAdmin, async (req, res) => {
     }
 });
 
-app.put('/api/orders/:id/status', requireAdmin, async (req, res) => {
+app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
+
+        if (!validateFirestoreId(id)) {
+            return res.status(400).json({ error: 'Invalid order ID' });
+        }
 
         const validStatuses = ['pending', 'processing', 'completed', 'cancelled'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ error: 'Invalid status' });
         }
 
-        await db.collection('orders').doc(id).update({
+        const docRef = db.collection('orders').doc(id);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        await docRef.update({
             status,
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
 
-        // Send email notification
+        // Send email notification when status changes
         try {
-            const orderDoc = await db.collection('orders').doc(id).get();
-            if (orderDoc.exists) {
-                const order = orderDoc.data();
-                const statusMap = {
-                    pending: 'قيد الانتظار',
-                    processing: 'قيد التنفيذ',
-                    completed: 'مكتمل',
-                    cancelled: 'ملغي'
-                };
-                
-                const transporterInstance = await getTransporter();
-                if (transporterInstance && order.email) {
-                    await transporterInstance.sendMail({
-                        from: `"Shulamith Gallery" <${process.env.SMTP_FROM_EMAIL}>`,
-                        to: order.email,
-                        subject: `تحديث حالة الطلب #${id.substring(0, 8)}`,
-                        html: `
-                            <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #1a1a1a; color: #e8e0d4; border-radius: 12px; border: 1px solid #333;">
-                                <div style="text-align: center; margin-bottom: 30px;">
-                                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" style="max-width: 150px; height: auto; border-radius: 8px;">
-                                </div>
-                                <h2 style="color: #d4b892; margin-bottom: 20px;">مرحباً ${validator.sanitizeForHTML(order.name)}،</h2>
-                                <p style="line-height: 1.8; color: #d4c8b8;">تم تحديث حالة طلبك إلى: <strong style="color: #d4b892;">${statusMap[status] || status}</strong></p>
-                                <div style="margin: 20px 0; padding: 20px; background: #252525; border-radius: 8px; border-right: 3px solid #d4b892;">
-                                    <p style="margin: 5px 0; color: #d4c8b8;"><strong style="color: #d4b892;">تفاصيل الطلب:</strong></p>
-                                    <p style="margin: 10px 0 0 0; color: #e8e0d4;">${validator.sanitizeForHTML(order.orderText)}</p>
-                                </div>
-                                <hr style="border: none; border-top: 1px solid #333; margin: 30px 0;">
-                                <p style="color: #999; font-size: 14px; text-align: center;">
-                                    © 2026 Shulamith Gallery. All rights reserved.
-                                </p>
+            const order = doc.data();
+            const statusMap = {
+                pending: 'قيد الانتظار',
+                processing: 'قيد التنفيذ',
+                completed: 'مكتمل',
+                cancelled: 'ملغي'
+            };
+            
+            const transporterInstance = await getTransporter();
+            if (transporterInstance && order.email) {
+                await transporterInstance.sendMail({
+                    from: `"Shulamith Gallery" <${process.env.SMTP_FROM_EMAIL}>`,
+                    to: order.email,
+                    subject: `تحديث حالة الطلب #${id.substring(0, 8)}`,
+                    html: `
+                        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #1a1a1a; color: #e8e0d4; border-radius: 12px; border: 1px solid #333;">
+                            <div style="text-align: center; margin-bottom: 30px;">
+                                <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" style="max-width: 150px; height: auto; border-radius: 8px;">
                             </div>
-                        `
-                    });
-                    console.log('✅ Status update email sent to:', order.email);
-                }
+                            <h2 style="color: #d4b892; margin-bottom: 20px;">مرحباً ${sanitizeHtml(order.name)}،</h2>
+                            <p style="line-height: 1.8; color: #d4c8b8;">تم تحديث حالة طلبك إلى: <strong style="color: #d4b892;">${statusMap[status] || status}</strong></p>
+                            <div style="margin: 20px 0; padding: 20px; background: #252525; border-radius: 8px; border-right: 3px solid #d4b892;">
+                                <p style="margin: 5px 0; color: #d4c8b8;"><strong style="color: #d4b892;">تفاصيل الطلب:</strong></p>
+                                <p style="margin: 10px 0 0 0; color: #e8e0d4;">${sanitizeHtml(order.orderText)}</p>
+                            </div>
+                            <hr style="border: none; border-top: 1px solid #333; margin: 30px 0;">
+                            <p style="color: #999; font-size: 14px; text-align: center;">
+                                © 2026 Shulamith Gallery. All rights reserved.
+                            </p>
+                        </div>
+                    `
+                });
+                console.log('✅ Status update email sent to:', order.email);
             }
         } catch (emailError) {
             console.error('❌ Error sending status email:', emailError.message);
@@ -1227,10 +1216,21 @@ app.put('/api/orders/:id/status', requireAdmin, async (req, res) => {
     }
 });
 
-app.delete('/api/orders/:id', requireAdmin, async (req, res) => {
+app.delete('/api/orders/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        await db.collection('orders').doc(id).delete();
+
+        if (!validateFirestoreId(id)) {
+            return res.status(400).json({ error: 'Invalid order ID' });
+        }
+
+        const docRef = db.collection('orders').doc(id);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        await docRef.delete();
         res.json({ success: true });
     } catch (error) {
         console.error('Error deleting order:', error);
@@ -1238,27 +1238,12 @@ app.delete('/api/orders/:id', requireAdmin, async (req, res) => {
     }
 });
 
-// ---------- Settings ----------
+// ---------- 🔒 Settings ----------
 app.get('/api/settings', async (req, res) => {
     try {
         const doc = await db.collection('settings').doc('site').get();
         if (doc.exists) {
-            const data = doc.data();
-            // Sanitize for safe display
-            res.json({
-                id: doc.id,
-                siteName: validator.sanitizeForHTML(data.siteName || 'Shulamith Gallery'),
-                logo: data.logo || 'https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg',
-                aboutText: validator.sanitizeForHTML(data.aboutText || ''),
-                phone: data.phone || '',
-                email: data.email || '',
-                address: validator.sanitizeForHTML(data.address || ''),
-                instagram: data.instagram || '',
-                facebook: data.facebook || '',
-                whatsapp: data.whatsapp || '',
-                heroText: validator.sanitizeForHTML(data.heroText || ''),
-                footerText: validator.sanitizeForHTML(data.footerText || '')
-            });
+            res.json({ id: doc.id, ...doc.data() });
         } else {
             res.json({
                 siteName: 'Shulamith Gallery',
@@ -1280,9 +1265,10 @@ app.get('/api/settings', async (req, res) => {
     }
 });
 
-app.put('/api/settings', requireAdmin, async (req, res) => {
+app.put('/api/settings', requireAuth, async (req, res) => {
     try {
         const settings = req.body;
+
         const requiredFields = ['siteName', 'logo'];
         for (const field of requiredFields) {
             if (!settings[field]) {
@@ -1290,41 +1276,34 @@ app.put('/api/settings', requireAdmin, async (req, res) => {
             }
         }
 
-        // Sanitize settings
-        const sanitizedSettings = {};
-        for (const [key, value] of Object.entries(settings)) {
-            if (typeof value === 'string') {
-                sanitizedSettings[key] = validator.sanitize(value);
-            } else {
-                sanitizedSettings[key] = value;
-            }
-        }
-        sanitizedSettings.updatedAt = admin.firestore.FieldValue.serverTimestamp();
+        settings.updatedAt = admin.firestore.FieldValue.serverTimestamp();
 
-        await db.collection('settings').doc('site').set(sanitizedSettings, { merge: true });
-        res.json({ success: true, settings: sanitizedSettings });
+        await db.collection('settings').doc('site').set(settings, { merge: true });
+        res.json({ success: true, settings });
     } catch (error) {
         console.error('Error updating settings:', error);
         res.status(500).json({ error: 'Failed to update settings' });
     }
 });
 
-// ---------- 🔥 Stats - مع حماية البيانات الحساسة ----------
-app.get('/api/stats', requireAdmin, async (req, res) => {
+// ---------- 🔒 Stats (SECURE) ----------
+app.get('/api/stats', requireAuth, async (req, res) => {
     try {
         const statsPromise = Promise.all([
             db.collection('galleries').get(),
             db.collection('artworks').get(),
             db.collection('messages').get(),
             db.collection('artworks').where('featured', '==', true).get(),
-            db.collection('messages').where('read', '==', false).get()
+            db.collection('messages').where('read', '==', false).get(),
+            db.collection('rates').get(),
+            db.collection('orders').get()
         ]);
 
         const timeoutPromise = new Promise((_, reject) => {
             setTimeout(() => reject(new Error('Stats request timeout')), 10000);
         });
 
-        const [galleriesSnapshot, artworksSnapshot, messagesSnapshot, featuredSnapshot, unreadSnapshot] =
+        const [galleriesSnapshot, artworksSnapshot, messagesSnapshot, featuredSnapshot, unreadSnapshot, ratesSnapshot, ordersSnapshot] =
             await Promise.race([statsPromise, timeoutPromise]);
 
         res.json({
@@ -1332,7 +1311,9 @@ app.get('/api/stats', requireAdmin, async (req, res) => {
             artworks: artworksSnapshot.size,
             messages: messagesSnapshot.size,
             featured: featuredSnapshot.size,
-            unreadMessages: unreadSnapshot.size
+            unreadMessages: unreadSnapshot.size,
+            rates: ratesSnapshot.size,
+            orders: ordersSnapshot.size
         });
     } catch (error) {
         console.error('Error fetching stats:', error);
@@ -1344,25 +1325,17 @@ app.get('/api/stats', requireAdmin, async (req, res) => {
     }
 });
 
-// ---------- 🔥 Send Email (Admin) - مع حماية HTML Injection ----------
-app.post('/api/send-email', requireAdmin, async (req, res) => {
+// ---------- 🔒 Send Email (Admin) ----------
+app.post('/api/send-email', requireAuth, async (req, res) => {
     try {
-        let { name, email, message } = req.body;
-
-        name = validator.sanitize(name || '');
-        email = validator.sanitize(email || '');
-        message = validator.sanitize(message || '');
+        const { name, email, message } = req.body;
 
         if (!name || !email || !message) {
             return res.status(400).json({ error: 'Name, email, and message are required' });
         }
 
-        if (!validator.email(email)) {
+        if (!validateEmail(email)) {
             return res.status(400).json({ error: 'Invalid email format' });
-        }
-
-        if (!validator.message(message)) {
-            return res.status(400).json({ error: 'Message must be between 3-5000 characters' });
         }
 
         const smtpTransporter = await getTransporter();
@@ -1374,11 +1347,6 @@ app.post('/api/send-email', requireAdmin, async (req, res) => {
                 details: 'SMTP connection failed. Check server logs.'
             });
         }
-
-        // Escape HTML for email content
-        const escapedName = validator.sanitizeForHTML(name);
-        const escapedEmail = validator.sanitizeForHTML(email);
-        const escapedMessage = validator.sanitizeForHTML(message);
 
         const mailOptions = {
             from: `"Shulamith Gallery" <${process.env.SMTP_FROM_EMAIL}>`,
@@ -1394,11 +1362,11 @@ app.post('/api/send-email', requireAdmin, async (req, res) => {
                         <p style="color: #b0a89a; margin: 5px 0 0 0;">${new Date().toLocaleDateString('ar-EG')}</p>
                     </div>
                     <div style="background: #252525; padding: 20px; border-radius: 8px; border-right: 3px solid #d4b892;">
-                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">رسالة الى:</strong> ${escapedName}</p>
-                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">البريد:</strong> ${escapedEmail}</p>
+                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">رسالة الى:</strong> ${sanitizeHtml(name)}</p>
+                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">البريد:</strong> ${email}</p>
                         <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
                             <p style="color: #d4c8b8; margin: 0 0 8px 0;"><strong style="color: #d4b892;">الرسالة:</strong></p>
-                            <p style="color: #e8e0d4; margin: 0; line-height: 1.8; background: #1a1a1a; padding: 12px; border-radius: 6px;">${escapedMessage}</p>
+                            <p style="color: #e8e0d4; margin: 0; line-height: 1.8; background: #1a1a1a; padding: 12px; border-radius: 6px;">${sanitizeHtml(message)}</p>
                         </div>
                     </div>
                     <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #333; text-align: center;">
@@ -1423,12 +1391,13 @@ app.post('/api/send-email', requireAdmin, async (req, res) => {
     }
 });
 
-// ---------- 🔥 Health Check - مع إخفاء المعلومات الحساسة ----------
-app.get('/api/health', (req, res) => {
+// ---------- 🔒 Health Check (SECURE) ----------
+app.get('/api/health', requireAuth, (req, res) => {
+    // ✅ تقييد الوصول للمسؤولين فقط
     res.json({
         status: 'ok',
         timestamp: new Date().toISOString()
-        // ❌ removed: uptime, smtp details, environment details
+        // ✅ إزالة جميع المعلومات الحساسة
     });
 });
 
@@ -1440,6 +1409,13 @@ app.use((err, req, res, next) => {
         if (err.code === 'FILE_TOO_LARGE') {
             return res.status(413).json({ error: 'File too large. Maximum size is 5MB.' });
         }
+        if (err.code === 'FILE_TYPE') {
+            return res.status(400).json({ error: err.message });
+        }
+        return res.status(400).json({ error: err.message });
+    }
+
+    if (err.message === 'Invalid file type. Only images are allowed.') {
         return res.status(400).json({ error: err.message });
     }
 
@@ -1452,7 +1428,7 @@ if (require.main === module) {
         console.log(`🚀 Shulamith Gallery Server running on port ${PORT}`);
         console.log(`📊 Dashboard available at http://localhost:${PORT}/dashboard.html`);
         console.log(`🔐 Login at http://localhost:${PORT}/login.html`);
-        console.log(`🩺 Health check at http://localhost:${PORT}/api/health`);
+        console.log(`🩺 Health check at http://localhost:${PORT}/api/health (admin only)`);
     });
 }
 

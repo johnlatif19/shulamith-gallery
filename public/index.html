@@ -1047,6 +1047,7 @@
             transition: var(--transition);
             font-family: inherit;
             -webkit-appearance: none;
+            appearance: none;
             box-sizing: border-box;
         }
 
@@ -1659,81 +1660,29 @@
                 </div>
                 
                 <div class="contact-form-wrapper reveal-right">
-                    <form id="contactForm" class="contact-form" autocomplete="off" novalidate>
-                        <input type="hidden" id="csrfToken" value="">
-                        
+                    <form id="contactForm" class="contact-form">
                         <div class="form-group">
-                            <label for="contactName" data-i18n="contact.form.name">
-                                الاسم
-                                <span class="required-star" aria-hidden="true">*</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                id="contactName" 
-                                name="name" 
-                                required 
-                                placeholder="أدخل اسمك" 
-                                autocomplete="name"
-                                maxlength="100"
-                                minlength="2"
-                                aria-describedby="nameError"
-                            >
-                            <span class="form-error" id="nameError" role="alert"></span>
+                            <label for="contactName" data-i18n="contact.form.name">الاسم</label>
+                            <input type="text" id="contactName" name="name" required placeholder="أدخل اسمك" autocomplete="name" data-i18n="contact.form.namePlaceholder">
+                            <span class="form-error" id="nameError"></span>
                         </div>
                         
                         <div class="form-group">
-                            <label for="contactEmail" data-i18n="contact.form.email">
-                                البريد الإلكتروني
-                                <span class="required-star" aria-hidden="true">*</span>
-                            </label>
-                            <input 
-                                type="email" 
-                                id="contactEmail" 
-                                name="email" 
-                                required 
-                                placeholder="ادخل البريد الالكتروني" 
-                                autocomplete="email"
-                                maxlength="100"
-                                aria-describedby="emailError"
-                            >
-                            <span class="form-error" id="emailError" role="alert"></span>
+                            <label for="contactEmail" data-i18n="contact.form.email">البريد الإلكتروني</label>
+                            <input type="email" id="contactEmail" name="email" required placeholder="ادخل البريد الالكتروني" autocomplete="email" data-i18n="contact.form.emailPlaceholder">
+                            <span class="form-error" id="emailError"></span>
                         </div>
                         
                         <div class="form-group">
-                            <label for="contactPhone" data-i18n="contact.form.phone">
-                                الهاتف
-                                <span class="required-star" aria-hidden="true">*</span>
-                            </label>
-                            <input 
-                                type="tel" 
-                                id="contactPhone" 
-                                name="phone" 
-                                required 
-                                placeholder="ادخل رقم الهاتف" 
-                                autocomplete="tel"
-                                maxlength="20"
-                                minlength="8"
-                                aria-describedby="phoneError"
-                            >
-                            <span class="form-error" id="phoneError" role="alert"></span>
+                            <label for="contactPhone" data-i18n="contact.form.phone">الهاتف</label>
+                            <input type="tel" id="contactPhone" name="phone" required placeholder="ادخل رقم الهاتف" autocomplete="tel" data-i18n="contact.form.phonePlaceholder">
+                            <span class="form-error" id="phoneError"></span>
                         </div>
                         
                         <div class="form-group">
-                            <label for="contactMessage" data-i18n="contact.form.message">
-                                الرسالة
-                                <span class="required-star" aria-hidden="true">*</span>
-                            </label>
-                            <textarea 
-                                id="contactMessage" 
-                                name="message" 
-                                required 
-                                placeholder="اكتب رسالتك هنا..." 
-                                rows="5"
-                                maxlength="2000"
-                                minlength="10"
-                                aria-describedby="messageError"
-                            ></textarea>
-                            <span class="form-error" id="messageError" role="alert"></span>
+                            <label for="contactMessage" data-i18n="contact.form.message">الرسالة</label>
+                            <textarea id="contactMessage" name="message" required placeholder="اكتب رسالتك هنا..." rows="5" data-i18n="contact.form.messagePlaceholder"></textarea>
+                            <span class="form-error" id="messageError"></span>
                         </div>
                         
                         <button type="submit" class="submit-btn" id="contactSubmit">
@@ -1741,7 +1690,7 @@
                             <span class="btn-loading">جاري الإرسال...</span>
                         </button>
                         
-                        <div class="form-status" id="formStatus" role="alert"></div>
+                        <div class="form-status" id="formStatus"></div>
                     </form>
                 </div>
             </div>
@@ -1839,6 +1788,7 @@
                 'nav.custom': 'طلبات خاصة',
                 'nav.rate': 'تقييم',
                 'nav.contact': 'تواصل',
+                
                 'hero.title': 'Shulamith Gallery',
                 'hero.subtitle': 'شولميث جاليري — حيث يلتقي الفن بالجمال',
                 'hero.text1': 'أنا مريم (شولميث) خريجة فنون جميلة.',
@@ -1846,12 +1796,14 @@
                 'hero.text3': 'في الصفحة متاح تنفيذ أي تابلوه بأي خامة تناسب وبأي حجم، وممكن أساعدك في اختيار التابلوه اللي هيناسب مكانك سواء كان بيتك أو مكان شغلك.',
                 'hero.text4': 'استنوني هبهركم بمقترحاتي.',
                 'hero.cta': 'استكشف الأعمال',
+                
                 'gallery.title': 'المعرض الفني',
                 'gallery.subtitle': 'استمتع بمجموعة من الأعمال الفنية المميزة',
                 'gallery.all': 'الكل',
                 'gallery.loading': 'جاري تحميل الأعمال...',
                 'gallery.empty': 'لا توجد أعمال فنية حالياً',
                 'gallery.view': 'عرض التفاصيل',
+                
                 'about.title': 'عن الفنانة',
                 'about.text1': 'مريم (شولميث) — فنانة تشكيلية مصرية، خريجة كلية فنون جميلة.',
                 'about.text2': 'تقدم أعمالاً فنية ولوحات وديكور، مع إمكانية تنفيذ أي تابلوه بخامة وحجم مناسبين للعميل.',
@@ -1862,6 +1814,7 @@
                 'about.services.3': 'ديكور منزلي فني',
                 'about.services.4': 'أعمال فنية حسب الطلب',
                 'about.services.5': 'هدايا إبداعية',
+                
                 'custom.title': 'اطلب تصميمك الخاص',
                 'custom.subtitle': 'نفذ أي تابلوه بخامة وحجم يناسب مكانك',
                 'custom.feature1.title': 'خامات متنوعة',
@@ -1871,6 +1824,7 @@
                 'custom.feature3.title': 'استشارة مجانية',
                 'custom.feature3.desc': 'ساعدك في اختيار العمل المناسب لمكانك',
                 'custom.cta': 'اطلب تصميمك الآن',
+                
                 'contact.title': 'تواصل معنا',
                 'contact.subtitle': 'نحن هنا لمساعدتك، تواصل معنا لأي استفسار',
                 'contact.address.title': 'العنوان',
@@ -1879,9 +1833,13 @@
                 'contact.email.title': 'البريد الإلكتروني',
                 'contact.social.title': 'تابعنا',
                 'contact.form.name': 'الاسم',
+                'contact.form.namePlaceholder': 'أدخل اسمك',
                 'contact.form.email': 'البريد الإلكتروني',
+                'contact.form.emailPlaceholder': 'ادخل البريد الالكتروني',
                 'contact.form.phone': 'الهاتف',
+                'contact.form.phonePlaceholder': 'ادخل رقم الهاتف',
                 'contact.form.message': 'الرسالة',
+                'contact.form.messagePlaceholder': 'اكتب رسالتك هنا...',
                 'contact.form.submit': 'إرسال',
                 'contact.form.sending': 'جاري الإرسال...',
                 'contact.form.success': 'تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.',
@@ -1891,6 +1849,7 @@
                 'contact.form.emailInvalid': 'بريد إلكتروني غير صالح',
                 'contact.form.phoneRequired': 'رقم الهاتف مطلوب',
                 'contact.form.messageRequired': 'الرسالة مطلوبة',
+                
                 'footer.brand': 'شولميث جاليري — حيث يلتقي الفن بالجمال',
                 'footer.quick': 'روابط سريعة',
                 'footer.contact': 'تواصل',
@@ -1899,11 +1858,12 @@
             },
             en: {
                 'nav.home': 'Home',
-                'nav.gallery': 'Galleries',
+                'nav.gallery': 'Gallerys',
                 'nav.about': 'About',
                 'nav.custom': 'Custom Art',
                 'nav.rate': 'Rate',
                 'nav.contact': 'Contact',
+                
                 'hero.title': 'Shulamith Gallery',
                 'hero.subtitle': 'Shulamith Gallery — Where Art Meets Beauty',
                 'hero.text1': 'I am Maryam (Shulamith), a graduate of the Faculty of Fine Arts.',
@@ -1911,12 +1871,14 @@
                 'hero.text3': 'Here you can order any artwork with any material and size that suits you, and I can help you choose the perfect piece for your home or workspace.',
                 'hero.text4': 'Wait for my amazing suggestions!',
                 'hero.cta': 'Explore Artworks',
+                
                 'gallery.title': 'Art Gallery',
                 'gallery.subtitle': 'Explore a collection of unique artworks',
                 'gallery.all': 'All',
                 'gallery.loading': 'Loading artworks...',
                 'gallery.empty': 'No artworks available',
                 'gallery.view': 'View Details',
+                
                 'about.title': 'About the Artist',
                 'about.text1': 'Maryam (Shulamith) — Egyptian visual artist, graduate of the Faculty of Fine Arts.',
                 'about.text2': 'She creates paintings, artworks, and decor pieces, with the ability to execute any artwork with suitable materials and sizes for the client.',
@@ -1927,6 +1889,7 @@
                 'about.services.3': 'Artistic Home Decor',
                 'about.services.4': 'Commissioned Artworks',
                 'about.services.5': 'Creative Gifts',
+                
                 'custom.title': 'Order Your Custom Design',
                 'custom.subtitle': 'Create any artwork with the material and size that fits your space',
                 'custom.feature1.title': 'Various Materials',
@@ -1936,6 +1899,7 @@
                 'custom.feature3.title': 'Free Consultation',
                 'custom.feature3.desc': 'I\'ll help you choose the perfect piece for your space',
                 'custom.cta': 'Order Now',
+                
                 'contact.title': 'Contact Us',
                 'contact.subtitle': 'We\'re here to help, reach out for any inquiries',
                 'contact.address.title': 'Address',
@@ -1944,9 +1908,13 @@
                 'contact.email.title': 'Email',
                 'contact.social.title': 'Follow Us',
                 'contact.form.name': 'Name',
+                'contact.form.namePlaceholder': 'Enter your name',
                 'contact.form.email': 'Email',
+                'contact.form.emailPlaceholder': 'Enter your email address',
                 'contact.form.phone': 'Phone',
+                'contact.form.phonePlaceholder': 'Enter phone number',
                 'contact.form.message': 'Message',
+                'contact.form.messagePlaceholder': 'Write your message here...',
                 'contact.form.submit': 'Send',
                 'contact.form.sending': 'Sending...',
                 'contact.form.success': 'Your message has been sent successfully! We\'ll get back to you soon.',
@@ -1956,6 +1924,7 @@
                 'contact.form.emailInvalid': 'Invalid email address',
                 'contact.form.phoneRequired': 'Phone number is required',
                 'contact.form.messageRequired': 'Message is required',
+                
                 'footer.brand': 'Shulamith Gallery — Where Art Meets Beauty',
                 'footer.quick': 'Quick Links',
                 'footer.contact': 'Contact',

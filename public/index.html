@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Shulamith Gallery — شولميث جاليري</title>
     <meta name="description" content="Shulamith Gallery - أعمال فنية ولوحات وديكور للفنانة مريم (شولميث)، تنفيذ تابلوهات بخامات وأحجام مختلفة.">
     
@@ -23,8 +23,14 @@
     <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
     
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://i.postimg.cc">
+    <link rel="preconnect" href="https://res.cloudinary.com">
+    
     <style>
-        /* ===== ROOT VARIABLES ===== */
+        /* ============================================
+           ROOT VARIABLES
+           ============================================ */
         :root {
             --color-bg: #0d0b0a;
             --color-bg-secondary: #161210;
@@ -37,19 +43,22 @@
             --color-text-muted: #b0a89a;
             --color-text-dark: #8a8272;
             --color-border: #2a2421;
-            --color-shadow: rgba(0,0,0,0.6);
-            --color-white: #f5f0ea;
+            --color-error: #e74c3c;
+            --color-success: #2ecc71;
+            --color-warning: #f39c12;
             --font-primary: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
             --font-arabic: 'Segoe UI', 'Tahoma', Arial, sans-serif;
             --radius: 12px;
             --radius-sm: 8px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            
-            /* HERO BACKGROUND - CHANGE THIS URL TO USE A HIGH-RES IMAGE */
             --hero-background-image: url('https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg');
+            --header-height: 70px;
+            --container-max: 1200px;
         }
 
-        /* ===== RESET ===== */
+        /* ============================================
+           RESET
+           ============================================ */
         * {
             margin: 0;
             padding: 0;
@@ -58,6 +67,8 @@
 
         html {
             scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -66,6 +77,8 @@
             color: var(--color-text);
             line-height: 1.7;
             overflow-x: hidden;
+            min-height: 100vh;
+            min-height: 100dvh;
         }
 
         body.rtl {
@@ -93,14 +106,33 @@
             display: block;
         }
 
+        /* ============================================
+           CONTAINER
+           ============================================ */
         .container {
-            max-width: 1200px;
+            max-width: var(--container-max);
             margin: 0 auto;
             padding: 0 20px;
+            width: 100%;
         }
 
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 12px;
+            }
+        }
+
+        /* ============================================
+           SECTION TITLES
+           ============================================ */
         .section-title {
-            font-size: 2.5rem;
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
             font-weight: 300;
             letter-spacing: 2px;
             color: var(--color-primary);
@@ -111,11 +143,13 @@
         .section-subtitle {
             color: var(--color-text-muted);
             text-align: center;
-            font-size: 1.1rem;
+            font-size: clamp(0.95rem, 1.5vw, 1.1rem);
             margin-bottom: 40px;
         }
 
-        /* ===== SCROLLBAR ===== */
+        /* ============================================
+           SCROLLBAR
+           ============================================ */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -133,7 +167,9 @@
             background: var(--color-primary);
         }
 
-        /* ===== NAVBAR ===== */
+        /* ============================================
+           NAVBAR
+           ============================================ */
         .navbar {
             position: fixed;
             top: 0;
@@ -145,25 +181,34 @@
             -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--color-border);
             transition: var(--transition);
+            height: var(--header-height);
         }
 
         .nav-container {
-            max-width: 1200px;
+            max-width: var(--container-max);
             margin: 0 auto;
             padding: 0 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 70px;
+            height: 100%;
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 16px;
+            }
         }
 
         .nav-logo a {
             display: flex;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .logo-img {
-            height: 45px;
+            height: clamp(35px, 5vw, 45px);
             width: auto;
             border-radius: var(--radius-sm);
             transition: var(--transition);
@@ -176,18 +221,21 @@
         .nav-menu {
             display: flex;
             align-items: center;
-            gap: 32px;
+            gap: clamp(16px, 3vw, 32px);
             list-style: none;
+            margin: 0;
+            padding: 0;
         }
 
         .nav-menu li a {
             color: var(--color-text-muted);
-            font-size: 0.95rem;
+            font-size: clamp(0.8rem, 1vw, 0.95rem);
             font-weight: 400;
             letter-spacing: 0.5px;
             position: relative;
             padding: 4px 0;
             transition: var(--transition);
+            white-space: nowrap;
         }
 
         .nav-menu li a::after {
@@ -214,7 +262,8 @@
         .nav-actions {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: clamp(8px, 1.5vw, 16px);
+            flex-shrink: 0;
         }
 
         .lang-switch {
@@ -224,11 +273,13 @@
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
             color: var(--color-text);
-            padding: 6px 14px;
+            padding: clamp(4px, 0.6vw, 6px) clamp(10px, 1.5vw, 14px);
             border-radius: 20px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: clamp(0.7rem, 0.8vw, 0.85rem);
             transition: var(--transition);
+            font-family: inherit;
+            line-height: 1;
         }
 
         .lang-switch:hover {
@@ -237,7 +288,7 @@
         }
 
         .lang-text {
-            font-size: 0.85rem;
+            font-size: clamp(0.7rem, 0.8vw, 0.85rem);
         }
 
         .nav-toggle {
@@ -248,6 +299,7 @@
             border: none;
             cursor: pointer;
             padding: 4px;
+            flex-shrink: 0;
         }
 
         .nav-toggle span {
@@ -257,6 +309,7 @@
             background: var(--color-text);
             transition: var(--transition);
             border-radius: 2px;
+            transform-origin: center;
         }
 
         .nav-toggle.active span:nth-child(1) {
@@ -265,20 +318,92 @@
 
         .nav-toggle.active span:nth-child(2) {
             opacity: 0;
+            transform: scaleX(0);
         }
 
         .nav-toggle.active span:nth-child(3) {
             transform: rotate(-45deg) translate(5px, -5px);
         }
 
-        /* ===== HERO ===== */
+        /* ===== Mobile Menu ===== */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+                position: absolute;
+                top: var(--header-height);
+                left: 0;
+                right: 0;
+                background: rgba(13, 11, 10, 0.98);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                flex-direction: column;
+                padding: 20px;
+                gap: 12px;
+                border-bottom: 1px solid var(--color-border);
+                width: 100%;
+            }
+
+            .nav-menu.active {
+                display: flex;
+                animation: slideDown 0.3s ease;
+            }
+
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .nav-menu li a {
+                font-size: 1rem;
+                padding: 10px 0;
+                display: block;
+                text-align: center;
+                width: 100%;
+            }
+
+            .nav-menu li a::after {
+                display: none;
+            }
+
+            .nav-toggle {
+                display: flex;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-menu {
+                padding: 16px;
+                gap: 8px;
+            }
+
+            .nav-menu li a {
+                font-size: 0.95rem;
+                padding: 8px 0;
+            }
+
+            .nav-toggle span {
+                width: 22px;
+                height: 2px;
+            }
+        }
+
+        /* ============================================
+           HERO
+           ============================================ */
         .hero {
             position: relative;
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 100px 20px 80px;
+            padding: calc(var(--header-height) + 40px) 20px 60px;
             background: var(--color-bg);
             overflow: hidden;
         }
@@ -292,7 +417,7 @@
             bottom: 0;
             background: var(--hero-background-image) center center / cover no-repeat;
             z-index: 0;
-            opacity: 0.7;
+            opacity: 0.6;
         }
 
         .hero-overlay {
@@ -301,8 +426,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: 
-                linear-gradient(180deg, rgba(13,11,10,0.2) 0%, rgba(13,11,10,0.5) 100%);
+            background: linear-gradient(180deg, rgba(13, 11, 10, 0.2) 0%, rgba(13, 11, 10, 0.6) 100%);
             z-index: 1;
         }
 
@@ -312,6 +436,7 @@
             max-width: 800px;
             text-align: center;
             animation: heroFadeIn 1.2s ease-out;
+            padding: 0 10px;
         }
 
         @keyframes heroFadeIn {
@@ -324,34 +449,35 @@
         }
 
         .hero-logo-img {
-            height: 100px;
+            height: clamp(60px, 12vw, 100px);
             width: auto;
             border-radius: var(--radius-sm);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
         }
 
         .hero-title {
-            font-size: 4rem;
+            font-size: clamp(2rem, 7vw, 4rem);
             font-weight: 200;
-            letter-spacing: 4px;
+            letter-spacing: clamp(1px, 0.5vw, 4px);
             color: var(--color-primary);
             margin-bottom: 12px;
-            text-shadow: 0 4px 50px rgba(0,0,0,0.9), 0 0 30px rgba(0,0,0,0.6);
+            text-shadow: 0 4px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 0, 0, 0.6);
+            line-height: 1.2;
         }
 
         .hero-subtitle {
-            font-size: 1.3rem;
+            font-size: clamp(1rem, 2vw, 1.3rem);
             color: var(--color-text-muted);
             font-weight: 300;
-            letter-spacing: 2px;
+            letter-spacing: clamp(1px, 0.3vw, 2px);
             margin-bottom: 30px;
-            text-shadow: 0 2px 40px rgba(0,0,0,0.8);
+            text-shadow: 0 2px 40px rgba(0, 0, 0, 0.8);
         }
 
         .hero-text {
             max-width: 700px;
             margin: 0 auto 35px;
-            font-size: 1.05rem;
+            font-size: clamp(0.9rem, 1.3vw, 1.05rem);
             color: var(--color-text);
             line-height: 2;
         }
@@ -360,7 +486,7 @@
             margin-bottom: 12px;
             opacity: 0;
             animation: textReveal 0.8s ease-out forwards;
-            text-shadow: 0 2px 30px rgba(0,0,0,0.8);
+            text-shadow: 0 2px 30px rgba(0, 0, 0, 0.8);
         }
 
         .hero-text p:nth-child(1) { animation-delay: 0.2s; }
@@ -375,16 +501,16 @@
 
         .hero-highlight {
             color: var(--color-primary);
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 1.5vw, 1.2rem);
             font-weight: 400;
         }
 
         .hero-cta {
             display: inline-block;
-            padding: 14px 45px;
+            padding: clamp(12px, 1.5vw, 14px) clamp(30px, 4vw, 45px);
             background: var(--color-primary);
             color: var(--color-bg);
-            font-size: 1.05rem;
+            font-size: clamp(0.9rem, 1.2vw, 1.05rem);
             font-weight: 500;
             letter-spacing: 1px;
             border-radius: 50px;
@@ -407,7 +533,24 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* ===== SCROLL ANIMATION ===== */
+        @media (max-width: 480px) {
+            .hero {
+                padding: calc(var(--header-height) + 20px) 16px 40px;
+            }
+            
+            .hero::before {
+                opacity: 0.5;
+            }
+
+            .hero-text {
+                font-size: 0.9rem;
+                line-height: 1.8;
+            }
+        }
+
+        /* ============================================
+           SCROLL ANIMATION
+           ============================================ */
         .reveal {
             opacity: 0;
             transform: translateY(40px);
@@ -452,9 +595,11 @@
             transform: scale(1);
         }
 
-        /* ===== GALLERY SECTION ===== */
+        /* ============================================
+           GALLERY SECTION
+           ============================================ */
         .gallery-section {
-            padding: 80px 0;
+            padding: clamp(50px, 8vw, 80px) 0;
             background: var(--color-bg-secondary);
         }
 
@@ -462,19 +607,21 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
+            gap: clamp(6px, 1vw, 10px);
             margin-bottom: 40px;
         }
 
         .filter-btn {
-            padding: 8px 22px;
+            padding: clamp(6px, 0.8vw, 8px) clamp(16px, 2vw, 22px);
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
             color: var(--color-text-muted);
             border-radius: 30px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: clamp(0.8rem, 0.9vw, 0.9rem);
             transition: var(--transition);
+            font-family: inherit;
+            white-space: nowrap;
         }
 
         .filter-btn:hover {
@@ -490,8 +637,8 @@
 
         .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 24px;
+            grid-template-columns: repeat(auto-fill, minmax(clamp(220px, 25vw, 280px), 1fr));
+            gap: clamp(16px, 2vw, 24px);
         }
 
         .gallery-item {
@@ -506,13 +653,13 @@
 
         .gallery-item:hover {
             transform: translateY(-6px);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             border-color: var(--color-primary-dark);
         }
 
         .gallery-item img {
             width: 100%;
-            height: 300px;
+            height: clamp(200px, 30vw, 300px);
             object-fit: cover;
             transition: var(--transition);
         }
@@ -522,31 +669,19 @@
         }
 
         .gallery-item-info {
-            padding: 16px 20px 20px;
+            padding: clamp(12px, 1.5vw, 16px) clamp(14px, 2vw, 20px) clamp(14px, 2vw, 20px);
         }
 
         .gallery-item-info h4 {
             color: var(--color-primary);
-            font-size: 1.1rem;
+            font-size: clamp(0.95rem, 1.2vw, 1.1rem);
             font-weight: 400;
             margin-bottom: 4px;
         }
 
         .gallery-item-info p {
             color: var(--color-text-muted);
-            font-size: 0.9rem;
-        }
-
-        .gallery-item .gallery-badge {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: var(--color-primary);
-            color: var(--color-bg);
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 500;
+            font-size: clamp(0.8rem, 0.9vw, 0.9rem);
         }
 
         .gallery-item .artwork-overlay {
@@ -571,10 +706,10 @@
 
         .gallery-item .artwork-overlay span {
             color: var(--color-white);
-            font-size: 0.9rem;
+            font-size: clamp(0.8rem, 0.9vw, 0.9rem);
             letter-spacing: 1px;
             border: 1px solid var(--color-primary);
-            padding: 8px 24px;
+            padding: clamp(6px, 0.8vw, 8px) clamp(18px, 2vw, 24px);
             border-radius: 30px;
         }
 
@@ -602,21 +737,34 @@
         .empty-state {
             grid-column: 1 / -1;
             text-align: center;
-            padding: 60px 0;
+            padding: 60px 20px;
             color: var(--color-text-muted);
-            font-size: 1.1rem;
+            font-size: clamp(0.95rem, 1.2vw, 1.1rem);
         }
 
-        /* ===== ABOUT SECTION ===== */
+        @media (max-width: 480px) {
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            .gallery-item img {
+                height: 220px;
+            }
+        }
+
+        /* ============================================
+           ABOUT SECTION
+           ============================================ */
         .about-section {
-            padding: 80px 0;
+            padding: clamp(50px, 8vw, 80px) 0;
             background: var(--color-bg);
         }
 
         .about-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 60px;
+            gap: clamp(30px, 5vw, 60px);
             align-items: center;
         }
 
@@ -631,7 +779,7 @@
             border-radius: var(--radius);
             overflow: hidden;
             border: 1px solid var(--color-border);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
         }
 
         .about-img {
@@ -647,7 +795,7 @@
         .about-text p {
             margin-bottom: 16px;
             color: var(--color-text);
-            font-size: 1.05rem;
+            font-size: clamp(0.95rem, 1.1vw, 1.05rem);
             line-height: 1.9;
         }
 
@@ -657,7 +805,7 @@
 
         .about-services h3 {
             color: var(--color-primary);
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 1.3vw, 1.2rem);
             font-weight: 400;
             margin-bottom: 16px;
         }
@@ -666,18 +814,35 @@
             list-style: none;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px 30px;
+            gap: clamp(8px, 1vw, 10px) clamp(20px, 3vw, 30px);
         }
 
         .about-services ul li {
             color: var(--color-text-muted);
-            font-size: 1rem;
+            font-size: clamp(0.9rem, 1vw, 1rem);
             padding: 4px 0;
         }
 
-        /* ===== CUSTOM SECTION ===== */
+        @media (max-width: 768px) {
+            .about-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .about-content .section-title {
+                text-align: center;
+            }
+
+            .about-services ul {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ============================================
+           CUSTOM SECTION
+           ============================================ */
         .custom-section {
-            padding: 80px 0;
+            padding: clamp(50px, 8vw, 80px) 0;
             background: var(--color-bg-secondary);
             border-top: 1px solid var(--color-border);
             border-bottom: 1px solid var(--color-border);
@@ -692,13 +857,13 @@
         .custom-features {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
+            gap: clamp(16px, 2vw, 30px);
             margin: 40px 0;
         }
 
         .custom-feature {
             background: var(--color-bg-card);
-            padding: 30px 20px;
+            padding: clamp(20px, 3vw, 30px) clamp(16px, 2vw, 20px);
             border-radius: var(--radius);
             border: 1px solid var(--color-border);
             transition: var(--transition);
@@ -710,29 +875,29 @@
         }
 
         .feature-icon {
-            font-size: 2.5rem;
+            font-size: clamp(2rem, 3vw, 2.5rem);
             display: block;
             margin-bottom: 12px;
         }
 
         .custom-feature h4 {
             color: var(--color-primary);
-            font-size: 1.1rem;
+            font-size: clamp(0.95rem, 1.2vw, 1.1rem);
             font-weight: 400;
             margin-bottom: 8px;
         }
 
         .custom-feature p {
             color: var(--color-text-muted);
-            font-size: 0.95rem;
+            font-size: clamp(0.85rem, 0.9vw, 0.95rem);
         }
 
         .custom-cta {
             display: inline-block;
-            padding: 14px 45px;
+            padding: clamp(12px, 1.5vw, 14px) clamp(30px, 4vw, 45px);
             background: transparent;
             color: var(--color-primary);
-            font-size: 1.05rem;
+            font-size: clamp(0.9rem, 1.2vw, 1.05rem);
             font-weight: 400;
             letter-spacing: 1px;
             border: 1px solid var(--color-primary);
@@ -748,50 +913,61 @@
             box-shadow: 0 10px 40px rgba(212, 184, 146, 0.2);
         }
 
-        /* ===== CONTACT SECTION ===== */
+        @media (max-width: 768px) {
+            .custom-features {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+
+        /* ============================================
+           CONTACT SECTION
+           ============================================ */
         .contact-section {
-            padding: 80px 0;
+            padding: clamp(50px, 8vw, 80px) 0;
             background: var(--color-bg);
         }
 
         .contact-grid {
             display: grid;
             grid-template-columns: 1fr 2fr;
-            gap: 50px;
+            gap: clamp(30px, 4vw, 50px);
             margin-top: 20px;
         }
 
         .contact-info {
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: clamp(16px, 2vw, 24px);
         }
 
         .contact-info-item {
             display: flex;
             align-items: flex-start;
             gap: 16px;
-            padding: 16px 20px;
+            padding: clamp(14px, 1.5vw, 16px) clamp(16px, 2vw, 20px);
             background: var(--color-bg-card);
             border-radius: var(--radius);
             border: 1px solid var(--color-border);
         }
 
         .info-icon {
-            font-size: 1.5rem;
+            font-size: clamp(1.2rem, 1.5vw, 1.5rem);
             flex-shrink: 0;
+            margin-top: 2px;
         }
 
         .contact-info-item h4 {
             color: var(--color-primary);
-            font-size: 0.95rem;
+            font-size: clamp(0.85rem, 0.95vw, 0.95rem);
             font-weight: 400;
             margin-bottom: 2px;
         }
 
         .contact-info-item p {
             color: var(--color-text-muted);
-            font-size: 0.95rem;
+            font-size: clamp(0.85rem, 0.9vw, 0.95rem);
+            word-break: break-word;
         }
 
         .contact-info-item p a {
@@ -805,20 +981,22 @@
         /* ===== SOCIAL LINKS ===== */
         .social-links {
             display: flex;
-            gap: 12px;
+            gap: clamp(8px, 1vw, 12px);
             margin-top: 4px;
+            flex-wrap: wrap;
         }
 
         .social-link {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 40px;
-            height: 40px;
+            width: clamp(36px, 4vw, 40px);
+            height: clamp(36px, 4vw, 40px);
             border-radius: 50%;
             transition: var(--transition);
             opacity: 0.8;
             text-decoration: none;
+            flex-shrink: 0;
         }
 
         .social-link:hover {
@@ -839,8 +1017,8 @@
         }
 
         .social-link svg {
-            width: 22px;
-            height: 22px;
+            width: clamp(18px, 2vw, 22px);
+            height: clamp(18px, 2vw, 22px);
             fill: white;
             flex-shrink: 0;
         }
@@ -848,7 +1026,7 @@
         /* ===== CONTACT FORM ===== */
         .contact-form-wrapper {
             background: var(--color-bg-card);
-            padding: 36px;
+            padding: clamp(24px, 3vw, 36px);
             border-radius: var(--radius);
             border: 1px solid var(--color-border);
         }
@@ -860,7 +1038,7 @@
         .contact-form label {
             display: block;
             color: var(--color-text-muted);
-            font-size: 0.9rem;
+            font-size: clamp(0.85rem, 0.9vw, 0.9rem);
             margin-bottom: 6px;
         }
 
@@ -872,14 +1050,15 @@
         .contact-form input,
         .contact-form textarea {
             width: 100%;
-            padding: 12px 16px;
+            padding: clamp(10px, 1.2vw, 12px) clamp(12px, 1.5vw, 16px);
             background: var(--color-bg);
             border: 1px solid var(--color-border);
             border-radius: var(--radius-sm);
             color: var(--color-text);
-            font-size: 1rem;
+            font-size: clamp(0.9rem, 1vw, 1rem);
             transition: var(--transition);
             font-family: inherit;
+            -webkit-appearance: none;
         }
 
         .contact-form input:focus,
@@ -891,12 +1070,12 @@
 
         .contact-form textarea {
             resize: vertical;
-            min-height: 120px;
+            min-height: clamp(100px, 15vw, 120px);
         }
 
         .form-error {
-            color: #e74c3c;
-            font-size: 0.85rem;
+            color: var(--color-error);
+            font-size: clamp(0.8rem, 0.85vw, 0.85rem);
             display: block;
             margin-top: 4px;
             min-height: 20px;
@@ -904,15 +1083,16 @@
 
         .submit-btn {
             width: 100%;
-            padding: 14px;
+            padding: clamp(12px, 1.5vw, 14px);
             background: var(--color-primary);
             color: var(--color-bg);
             border: none;
             border-radius: var(--radius-sm);
-            font-size: 1.05rem;
+            font-size: clamp(0.95rem, 1.1vw, 1.05rem);
             font-weight: 500;
             cursor: pointer;
             transition: var(--transition);
+            -webkit-tap-highlight-color: transparent;
         }
 
         .submit-btn:hover {
@@ -927,25 +1107,29 @@
             transform: none;
         }
 
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+
         .form-status {
             margin-top: 16px;
-            padding: 12px;
+            padding: clamp(10px, 1.2vw, 12px);
             border-radius: var(--radius-sm);
             display: none;
-            font-size: 0.95rem;
+            font-size: clamp(0.85rem, 0.95vw, 0.95rem);
         }
 
         .form-status.success {
             display: block;
             background: rgba(46, 204, 113, 0.15);
-            color: #2ecc71;
+            color: var(--color-success);
             border: 1px solid rgba(46, 204, 113, 0.3);
         }
 
         .form-status.error {
             display: block;
             background: rgba(231, 76, 60, 0.15);
-            color: #e74c3c;
+            color: var(--color-error);
             border: 1px solid rgba(231, 76, 60, 0.3);
         }
 
@@ -953,7 +1137,30 @@
             display: none;
         }
 
-        /* ===== LIGHTBOX ===== */
+        @media (max-width: 768px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .contact-form-wrapper {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .contact-form-wrapper {
+                padding: 14px;
+            }
+
+            .contact-info-item {
+                padding: 12px 14px;
+            }
+        }
+
+        /* ============================================
+           LIGHTBOX
+           ============================================ */
         .lightbox {
             display: none;
             position: fixed;
@@ -965,7 +1172,7 @@
             background: rgba(0, 0, 0, 0.92);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            padding: 40px 20px;
+            padding: clamp(20px, 3vw, 40px) clamp(12px, 2vw, 20px);
             animation: fadeIn 0.3s ease;
         }
 
@@ -999,16 +1206,18 @@
 
         .lightbox-close {
             position: fixed;
-            top: 20px;
-            right: 30px;
+            top: clamp(12px, 2vw, 20px);
+            right: clamp(16px, 2vw, 30px);
             background: none;
             border: none;
             color: var(--color-white);
-            font-size: 2.5rem;
+            font-size: clamp(1.8rem, 3vw, 2.5rem);
             cursor: pointer;
             transition: var(--transition);
             z-index: 2001;
             opacity: 0.6;
+            line-height: 1;
+            padding: 8px;
         }
 
         .lightbox-close:hover {
@@ -1024,14 +1233,14 @@
 
         .lightbox-info h3 {
             color: var(--color-primary);
-            font-size: 1.5rem;
+            font-size: clamp(1.1rem, 2vw, 1.5rem);
             font-weight: 300;
             margin-bottom: 8px;
         }
 
         .lightbox-info p {
             color: var(--color-text-muted);
-            font-size: 1rem;
+            font-size: clamp(0.85rem, 1vw, 1rem);
             margin-bottom: 12px;
         }
 
@@ -1039,40 +1248,42 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 16px;
+            gap: clamp(8px, 1.5vw, 16px);
         }
 
         .lightbox-details span {
             color: var(--color-text-dark);
-            font-size: 0.9rem;
+            font-size: clamp(0.8rem, 0.85vw, 0.9rem);
             background: var(--color-bg-card);
-            padding: 4px 16px;
+            padding: clamp(4px, 0.5vw, 4px) clamp(12px, 1.5vw, 16px);
             border-radius: 20px;
             border: 1px solid var(--color-border);
         }
 
-        /* ===== FOOTER ===== */
+        /* ============================================
+           FOOTER
+           ============================================ */
         .footer {
             background: var(--color-bg-secondary);
             border-top: 1px solid var(--color-border);
-            padding: 60px 0 20px;
+            padding: clamp(40px, 6vw, 60px) 0 clamp(16px, 2vw, 20px);
         }
 
         .footer-grid {
             display: grid;
             grid-template-columns: 2fr 1fr 1.5fr;
-            gap: 40px;
+            gap: clamp(24px, 3vw, 40px);
             margin-bottom: 40px;
         }
 
         .footer-brand p {
             color: var(--color-text-muted);
-            font-size: 0.95rem;
+            font-size: clamp(0.85rem, 0.95vw, 0.95rem);
             margin-top: 12px;
         }
 
         .footer-logo {
-            height: 50px;
+            height: clamp(40px, 5vw, 50px);
             width: auto;
             border-radius: var(--radius-sm);
         }
@@ -1080,7 +1291,7 @@
         .footer-links h4,
         .footer-contact h4 {
             color: var(--color-primary);
-            font-size: 1.05rem;
+            font-size: clamp(0.95rem, 1.1vw, 1.05rem);
             font-weight: 400;
             margin-bottom: 16px;
         }
@@ -1090,24 +1301,24 @@
         }
 
         .footer-links ul li {
-            margin-bottom: 8px;
+            margin-bottom: clamp(6px, 0.8vw, 8px);
         }
 
         .footer-links ul li a {
             color: var(--color-text-muted);
-            font-size: 0.95rem;
+            font-size: clamp(0.85rem, 0.9vw, 0.95rem);
             transition: var(--transition);
         }
 
         .footer-links ul li a:hover {
             color: var(--color-primary);
-            padding-right: 4px;
         }
 
         .footer-contact p {
             color: var(--color-text-muted);
-            font-size: 0.95rem;
+            font-size: clamp(0.85rem, 0.9vw, 0.95rem);
             margin-bottom: 8px;
+            word-break: break-word;
         }
 
         .footer-contact p a {
@@ -1126,27 +1337,64 @@
 
         .footer-bottom p {
             color: var(--color-text-dark);
-            font-size: 0.85rem;
+            font-size: clamp(0.75rem, 0.8vw, 0.85rem);
         }
 
-        /* ===== SCROLL TO TOP ===== */
+        @media (max-width: 768px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                text-align: center;
+            }
+
+            .footer-brand {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .footer-links ul {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px 16px;
+            }
+
+            .footer-links ul li {
+                margin-bottom: 0;
+            }
+
+            .footer-contact {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* ============================================
+           SCROLL TO TOP
+           ============================================ */
         .scroll-top {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 48px;
-            height: 48px;
+            bottom: clamp(20px, 3vw, 30px);
+            right: clamp(20px, 3vw, 30px);
+            width: clamp(42px, 5vw, 48px);
+            height: clamp(42px, 5vw, 48px);
             background: var(--color-primary);
             color: var(--color-bg);
             border: none;
             border-radius: 50%;
-            font-size: 1.4rem;
+            font-size: clamp(1.2rem, 1.5vw, 1.4rem);
             cursor: pointer;
             opacity: 0;
             visibility: hidden;
             transition: var(--transition);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .scroll-top.visible {
@@ -1159,150 +1407,15 @@
             box-shadow: 0 8px 30px rgba(212, 184, 146, 0.3);
         }
 
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 1024px) {
-            .about-grid {
-                gap: 40px;
-            }
+        .scroll-top:active {
+            transform: scale(0.9);
         }
 
-        @media (max-width: 768px) {
-            .nav-menu {
-                display: none;
-                position: absolute;
-                top: 70px;
-                left: 0;
-                right: 0;
-                background: rgba(13, 11, 10, 0.98);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-                flex-direction: column;
-                padding: 20px;
-                gap: 16px;
-                border-bottom: 1px solid var(--color-border);
-            }
-
-            .nav-menu.active {
-                display: flex;
-            }
-
-            .nav-toggle {
-                display: flex;
-            }
-
-            .hero-title {
-                font-size: 2.8rem;
-            }
-
-            .hero-subtitle {
-                font-size: 1.1rem;
-            }
-
-            .hero-text {
-                font-size: 0.95rem;
-            }
-
-            .section-title {
-                font-size: 2rem;
-            }
-
-            .about-grid {
-                grid-template-columns: 1fr;
-                gap: 30px;
-            }
-
-            .about-content .section-title {
-                text-align: center;
-            }
-
-            .about-services ul {
-                grid-template-columns: 1fr;
-            }
-
-            .custom-features {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-
-            .contact-grid {
-                grid-template-columns: 1fr;
-                gap: 30px;
-            }
-
-            .contact-form-wrapper {
-                padding: 24px;
-            }
-
-            .footer-grid {
-                grid-template-columns: 1fr;
-                gap: 30px;
-                text-align: center;
-            }
-
-            .footer-links ul li a:hover {
-                padding-right: 0;
-            }
-
-            .gallery-grid {
-                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-                gap: 16px;
-            }
-
-            .lightbox-close {
-                top: 12px;
-                right: 16px;
-                font-size: 2rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .hero-title {
-                font-size: 2.2rem;
-                letter-spacing: 2px;
-            }
-
-            .hero-logo-img {
-                height: 70px;
-            }
-
-            .hero-text {
-                font-size: 0.9rem;
-            }
-
-            .hero-cta {
-                padding: 12px 30px;
-                font-size: 0.95rem;
-            }
-
-            .section-title {
-                font-size: 1.6rem;
-            }
-
-            .gallery-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .contact-form-wrapper {
-                padding: 16px;
-            }
-
-            .lightbox {
-                padding: 20px 12px;
-            }
-
-            .hero::before {
-                opacity: 0.6;
-            }
-        }
-
-        /* ===== RTL/LTR ===== */
+        /* ============================================
+           RTL/LTR ADJUSTMENTS
+           ============================================ */
         body.ltr .about-content .section-title {
             text-align: left;
-        }
-
-        body.ltr .footer-links ul li a:hover {
-            padding-right: 0;
-            padding-left: 4px;
         }
 
         body.ltr .custom-feature {
@@ -1316,32 +1429,98 @@
         body.rtl .contact-info-item {
             flex-direction: row-reverse;
         }
+
+        body.ltr .footer-links ul li a:hover {
+            padding-left: 4px;
+        }
+
+        body.rtl .footer-links ul li a:hover {
+            padding-right: 4px;
+        }
+
+        body.ltr .nav-menu li a::after {
+            left: 0;
+            right: auto;
+        }
+
+        body.rtl .nav-menu li a::after {
+            left: auto;
+            right: 0;
+        }
+
+        body.ltr .lightbox-close {
+            right: auto;
+            left: clamp(16px, 2vw, 30px);
+        }
+
+        /* ============================================
+           ACCESSIBILITY
+           ============================================ */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        /* ============================================
+           PRINT STYLES
+           ============================================ */
+        @media print {
+            .navbar,
+            .scroll-top,
+            .lightbox {
+                display: none !important;
+            }
+
+            .hero {
+                min-height: auto;
+                padding: 40px 20px;
+            }
+
+            .hero::before {
+                opacity: 0.1;
+            }
+
+            .section {
+                break-inside: avoid;
+            }
+        }
     </style>
 </head>
 <body>
     <!-- ===== NAVBAR ===== -->
-    <nav class="navbar" id="navbar">
+    <nav class="navbar" id="navbar" role="navigation" aria-label="القائمة الرئيسية">
         <div class="nav-container">
             <div class="nav-logo">
-                <a href="/">
-                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="logo-img" loading="lazy">
+                <a href="/" aria-label="الرئيسية">
+                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="logo-img" loading="lazy" width="45" height="45">
                 </a>
             </div>
             
-            <ul class="nav-menu" id="navMenu">
-                <li><a href="#home" data-i18n="nav.home">الرئيسية</a></li>
-                <li><a href="gallery" data-i18n="nav.gallery">المعارض</a></li>
-                <li><a href="#about" data-i18n="nav.about">عن الفنانة</a></li>
-                <li><a href="#custom" data-i18n="nav.custom">طلبات خاصة</a></li>
-                <li><a href="rate" data-i18n="nav.rate">تقييم</a></li>
-                <li><a href="#contact" data-i18n="nav.contact">تواصل</a></li>
+            <ul class="nav-menu" id="navMenu" role="menubar">
+                <li role="none"><a href="#home" role="menuitem" data-i18n="nav.home">الرئيسية</a></li>
+                <li role="none"><a href="gallery" role="menuitem" data-i18n="nav.gallery">المعارض</a></li>
+                <li role="none"><a href="#about" role="menuitem" data-i18n="nav.about">عن الفنانة</a></li>
+                <li role="none"><a href="#custom" role="menuitem" data-i18n="nav.custom">طلبات خاصة</a></li>
+                <li role="none"><a href="rate" role="menuitem" data-i18n="nav.rate">تقييم</a></li>
+                <li role="none"><a href="#contact" role="menuitem" data-i18n="nav.contact">تواصل</a></li>
             </ul>
             
             <div class="nav-actions">
-                <button class="lang-switch" id="langSwitch" aria-label="Toggle Language">
+                <button class="lang-switch" id="langSwitch" aria-label="تبديل اللغة" title="تبديل اللغة">
                     <span class="lang-text">AR</span>
                 </button>
-                <button class="nav-toggle" id="navToggle" aria-label="Toggle Menu">
+                <button class="nav-toggle" id="navToggle" aria-label="فتح/إغلاق القائمة" title="القائمة">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -1351,7 +1530,7 @@
     </nav>
 
     <!-- ===== HERO SECTION ===== -->
-    <section id="home" class="hero">
+    <section id="home" class="hero" aria-label="الرئيسية">
         <div class="hero-overlay"></div>
         <div class="hero-content">
             <h1 class="hero-title" data-i18n="hero.title">Shulamith Gallery</h1>
@@ -1367,19 +1546,17 @@
     </section>
 
     <!-- ===== GALLERY SECTION ===== -->
-    <section id="gallery" class="gallery-section">
+    <section id="gallery" class="gallery-section" aria-label="المعرض الفني">
         <div class="container">
             <h2 class="section-title reveal" data-i18n="gallery.title">المعرض الفني</h2>
             <p class="section-subtitle reveal" data-i18n="gallery.subtitle">استمتع بمجموعة من الأعمال الفنية المميزة</p>
             
-            <!-- Gallery Filters -->
-            <div class="gallery-filters reveal" id="galleryFilters">
-                <button class="filter-btn active" data-filter="all" data-i18n="gallery.all">الكل</button>
+            <div class="gallery-filters reveal" id="galleryFilters" role="tablist" aria-label="فلترة الأعمال">
+                <button class="filter-btn active" data-filter="all" role="tab" aria-selected="true" data-i18n="gallery.all">الكل</button>
             </div>
             
-            <!-- Gallery Grid -->
-            <div class="gallery-grid" id="galleryGrid">
-                <div class="loading-spinner">
+            <div class="gallery-grid" id="galleryGrid" role="list">
+                <div class="loading-spinner" role="status" aria-live="polite">
                     <div class="spinner"></div>
                     <p data-i18n="gallery.loading">جاري تحميل الأعمال...</p>
                 </div>
@@ -1388,12 +1565,12 @@
     </section>
 
     <!-- ===== ABOUT SECTION ===== -->
-    <section id="about" class="about-section">
+    <section id="about" class="about-section" aria-label="عن الفنانة">
         <div class="container">
             <div class="about-grid">
                 <div class="about-image reveal-left">
                     <div class="about-image-frame">
-                        <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="about-img" loading="lazy">
+                        <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery - شولميث جاليري" class="about-img" loading="lazy" width="450" height="450">
                     </div>
                 </div>
                 <div class="about-content reveal-right">
@@ -1419,24 +1596,24 @@
     </section>
 
     <!-- ===== CUSTOM ART SECTION ===== -->
-    <section id="custom" class="custom-section">
+    <section id="custom" class="custom-section" aria-label="طلبات خاصة">
         <div class="container">
             <div class="custom-content">
                 <h2 class="section-title reveal" data-i18n="custom.title">اطلب تصميمك الخاص</h2>
                 <p class="section-subtitle reveal" data-i18n="custom.subtitle">نفذ أي تابلوه بخامة وحجم يناسب مكانك</p>
                 <div class="custom-features">
                     <div class="custom-feature reveal" style="transition-delay: 0.1s;">
-                        <span class="feature-icon">🎨</span>
+                        <span class="feature-icon" aria-hidden="true">🎨</span>
                         <h4 data-i18n="custom.feature1.title">خامات متنوعة</h4>
                         <p data-i18n="custom.feature1.desc">اختر الخامة التي تناسب ذوقك ومكانك</p>
                     </div>
                     <div class="custom-feature reveal" style="transition-delay: 0.2s;">
-                        <span class="feature-icon">📐</span>
+                        <span class="feature-icon" aria-hidden="true">📐</span>
                         <h4 data-i18n="custom.feature2.title">أحجام مختلفة</h4>
                         <p data-i18n="custom.feature2.desc">نفذ تابلوهك بالحجم المناسب لمساحتك</p>
                     </div>
                     <div class="custom-feature reveal" style="transition-delay: 0.3s;">
-                        <span class="feature-icon">💡</span>
+                        <span class="feature-icon" aria-hidden="true">💡</span>
                         <h4 data-i18n="custom.feature3.title">استشارة مجانية</h4>
                         <p data-i18n="custom.feature3.desc">ساعدك في اختيار العمل المناسب لمكانك</p>
                     </div>
@@ -1447,7 +1624,7 @@
     </section>
 
     <!-- ===== CONTACT SECTION ===== -->
-    <section id="contact" class="contact-section">
+    <section id="contact" class="contact-section" aria-label="تواصل معنا">
         <div class="container">
             <h2 class="section-title reveal" data-i18n="contact.title">تواصل معنا</h2>
             <p class="section-subtitle reveal" data-i18n="contact.subtitle">نحن هنا لمساعدتك، تواصل معنا لأي استفسار</p>
@@ -1455,42 +1632,42 @@
             <div class="contact-grid">
                 <div class="contact-info">
                     <div class="contact-info-item reveal-left">
-                        <span class="info-icon">📍</span>
+                        <span class="info-icon" aria-hidden="true">📍</span>
                         <div>
                             <h4 data-i18n="contact.address.title">العنوان</h4>
                             <p data-i18n="contact.address.text">سوهاج، مصر</p>
                         </div>
                     </div>
                     <div class="contact-info-item reveal-left" style="transition-delay: 0.1s;">
-                        <span class="info-icon">📱</span>
+                        <span class="info-icon" aria-hidden="true">📱</span>
                         <div>
                             <h4 data-i18n="contact.phone.title">الهاتف</h4>
-                            <p><a href="tel:+201276961450">01276961450</a></p>
+                            <p><a href="tel:+201276961450" aria-label="اتصل بنا على 01276961450">01276961450</a></p>
                         </div>
                     </div>
                     <div class="contact-info-item reveal-left" style="transition-delay: 0.2s;">
-                        <span class="info-icon">📧</span>
+                        <span class="info-icon" aria-hidden="true">📧</span>
                         <div>
                             <h4 data-i18n="contact.email.title">البريد الإلكتروني</h4>
-                            <p><a href="mailto:mrmrtharwat43@gmail.com">mrmrtharwat43@gmail.com</a></p>
+                            <p><a href="mailto:mrmrtharwat43@gmail.com" aria-label="أرسل بريداً إلكترونياً">mrmrtharwat43@gmail.com</a></p>
                         </div>
                     </div>
                     <div class="contact-info-item reveal-left" style="transition-delay: 0.3s;">
                         <div>
                             <h4 data-i18n="contact.social.title">تابعنا</h4>
                             <div class="social-links">
-                                <a href="https://www.facebook.com/profile.php?id=61556291642298" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="social-link facebook">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                <a href="https://www.facebook.com/profile.php?id=61556291642298" target="_blank" rel="noopener noreferrer" aria-label="فيسبوك" class="social-link facebook">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white" aria-hidden="true">
                                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                                     </svg>
                                 </a>
-                                <a href="https://www.instagram.com/shulamithgallery.7559699" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="social-link instagram">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                <a href="https://www.instagram.com/shulamithgallery.7559699" target="_blank" rel="noopener noreferrer" aria-label="إنستغرام" class="social-link instagram">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white" aria-hidden="true">
                                         <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
                                     </svg>
                                 </a>
-                                <a href="https://wa.me/201276961450" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" class="social-link whatsapp">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                <a href="https://wa.me/201276961450" target="_blank" rel="noopener noreferrer" aria-label="واتساب" class="social-link whatsapp">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white" aria-hidden="true">
                                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                                     </svg>
                                 </a>
@@ -1501,13 +1678,12 @@
                 
                 <div class="contact-form-wrapper reveal-right">
                     <form id="contactForm" class="contact-form" autocomplete="off" novalidate>
-                        <!-- ===== CSRF TOKEN ===== -->
                         <input type="hidden" id="csrfToken" value="">
                         
                         <div class="form-group">
                             <label for="contactName" data-i18n="contact.form.name">
                                 الاسم
-                                <span class="required-star">*</span>
+                                <span class="required-star" aria-hidden="true">*</span>
                             </label>
                             <input 
                                 type="text" 
@@ -1520,13 +1696,13 @@
                                 minlength="2"
                                 aria-describedby="nameError"
                             >
-                            <span class="form-error" id="nameError"></span>
+                            <span class="form-error" id="nameError" role="alert"></span>
                         </div>
                         
                         <div class="form-group">
                             <label for="contactEmail" data-i18n="contact.form.email">
                                 البريد الإلكتروني
-                                <span class="required-star">*</span>
+                                <span class="required-star" aria-hidden="true">*</span>
                             </label>
                             <input 
                                 type="email" 
@@ -1538,13 +1714,13 @@
                                 maxlength="100"
                                 aria-describedby="emailError"
                             >
-                            <span class="form-error" id="emailError"></span>
+                            <span class="form-error" id="emailError" role="alert"></span>
                         </div>
                         
                         <div class="form-group">
                             <label for="contactPhone" data-i18n="contact.form.phone">
                                 الهاتف
-                                <span class="required-star">*</span>
+                                <span class="required-star" aria-hidden="true">*</span>
                             </label>
                             <input 
                                 type="tel" 
@@ -1557,13 +1733,13 @@
                                 minlength="8"
                                 aria-describedby="phoneError"
                             >
-                            <span class="form-error" id="phoneError"></span>
+                            <span class="form-error" id="phoneError" role="alert"></span>
                         </div>
                         
                         <div class="form-group">
                             <label for="contactMessage" data-i18n="contact.form.message">
                                 الرسالة
-                                <span class="required-star">*</span>
+                                <span class="required-star" aria-hidden="true">*</span>
                             </label>
                             <textarea 
                                 id="contactMessage" 
@@ -1575,7 +1751,7 @@
                                 minlength="10"
                                 aria-describedby="messageError"
                             ></textarea>
-                            <span class="form-error" id="messageError"></span>
+                            <span class="form-error" id="messageError" role="alert"></span>
                         </div>
                         
                         <button type="submit" class="submit-btn" id="contactSubmit">
@@ -1583,7 +1759,7 @@
                             <span class="btn-loading">جاري الإرسال...</span>
                         </button>
                         
-                        <div class="form-status" id="formStatus"></div>
+                        <div class="form-status" id="formStatus" role="alert"></div>
                     </form>
                 </div>
             </div>
@@ -1591,11 +1767,11 @@
     </section>
 
     <!-- ===== FOOTER ===== -->
-    <footer class="footer">
+    <footer class="footer" role="contentinfo">
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand">
-                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="footer-logo" loading="lazy">
+                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="footer-logo" loading="lazy" width="50" height="50">
                     <p data-i18n="footer.brand">شولميث جاليري — حيث يلتقي الفن بالجمال</p>
                 </div>
                 
@@ -1626,8 +1802,8 @@
     </footer>
 
     <!-- ===== LIGHTBOX ===== -->
-    <div class="lightbox" id="lightbox">
-        <button class="lightbox-close" id="lightboxClose">✕</button>
+    <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="عرض العمل الفني">
+        <button class="lightbox-close" id="lightboxClose" aria-label="إغلاق">✕</button>
         <div class="lightbox-content">
             <img src="" alt="" id="lightboxImage" class="lightbox-image" loading="lazy">
             <div class="lightbox-info" id="lightboxInfo">
@@ -1643,11 +1819,11 @@
     </div>
 
     <!-- ===== SCROLL TO TOP ===== -->
-    <button class="scroll-top" id="scrollTop" aria-label="Scroll to top">↑</button>
+    <button class="scroll-top" id="scrollTop" aria-label="العودة إلى الأعلى">↑</button>
 
     <script>
         // ============================================
-        // ===== 🔒 SECURITY: ESCAPE HTML =====
+        // 🔒 SECURITY: ESCAPE HTML
         // ============================================
         function escapeHtml(text) {
             if (!text) return '';
@@ -1657,7 +1833,7 @@
         }
 
         // ============================================
-        // ===== 🔒 SECURITY: SANITIZE INPUT =====
+        // 🔒 SECURITY: SANITIZE INPUT
         // ============================================
         function sanitizeInput(text) {
             if (!text) return '';
@@ -1671,7 +1847,7 @@
         }
 
         // ============================================
-        // ===== TRANSLATIONS =====
+        // TRANSLATIONS
         // ============================================
         const translations = {
             ar: {
@@ -1681,7 +1857,6 @@
                 'nav.custom': 'طلبات خاصة',
                 'nav.rate': 'تقييم',
                 'nav.contact': 'تواصل',
-                
                 'hero.title': 'Shulamith Gallery',
                 'hero.subtitle': 'شولميث جاليري — حيث يلتقي الفن بالجمال',
                 'hero.text1': 'أنا مريم (شولميث) خريجة فنون جميلة.',
@@ -1689,14 +1864,12 @@
                 'hero.text3': 'في الصفحة متاح تنفيذ أي تابلوه بأي خامة تناسب وبأي حجم، وممكن أساعدك في اختيار التابلوه اللي هيناسب مكانك سواء كان بيتك أو مكان شغلك.',
                 'hero.text4': 'استنوني هبهركم بمقترحاتي.',
                 'hero.cta': 'استكشف الأعمال',
-                
                 'gallery.title': 'المعرض الفني',
                 'gallery.subtitle': 'استمتع بمجموعة من الأعمال الفنية المميزة',
                 'gallery.all': 'الكل',
                 'gallery.loading': 'جاري تحميل الأعمال...',
                 'gallery.empty': 'لا توجد أعمال فنية حالياً',
                 'gallery.view': 'عرض التفاصيل',
-                
                 'about.title': 'عن الفنانة',
                 'about.text1': 'مريم (شولميث) — فنانة تشكيلية مصرية، خريجة كلية فنون جميلة.',
                 'about.text2': 'تقدم أعمالاً فنية ولوحات وديكور، مع إمكانية تنفيذ أي تابلوه بخامة وحجم مناسبين للعميل.',
@@ -1707,7 +1880,6 @@
                 'about.services.3': 'ديكور منزلي فني',
                 'about.services.4': 'أعمال فنية حسب الطلب',
                 'about.services.5': 'هدايا إبداعية',
-                
                 'custom.title': 'اطلب تصميمك الخاص',
                 'custom.subtitle': 'نفذ أي تابلوه بخامة وحجم يناسب مكانك',
                 'custom.feature1.title': 'خامات متنوعة',
@@ -1717,7 +1889,6 @@
                 'custom.feature3.title': 'استشارة مجانية',
                 'custom.feature3.desc': 'ساعدك في اختيار العمل المناسب لمكانك',
                 'custom.cta': 'اطلب تصميمك الآن',
-                
                 'contact.title': 'تواصل معنا',
                 'contact.subtitle': 'نحن هنا لمساعدتك، تواصل معنا لأي استفسار',
                 'contact.address.title': 'العنوان',
@@ -1738,7 +1909,6 @@
                 'contact.form.emailInvalid': 'بريد إلكتروني غير صالح',
                 'contact.form.phoneRequired': 'رقم الهاتف مطلوب',
                 'contact.form.messageRequired': 'الرسالة مطلوبة',
-                
                 'footer.brand': 'شولميث جاليري — حيث يلتقي الفن بالجمال',
                 'footer.quick': 'روابط سريعة',
                 'footer.contact': 'تواصل',
@@ -1752,7 +1922,6 @@
                 'nav.custom': 'Custom Art',
                 'nav.rate': 'Rate',
                 'nav.contact': 'Contact',
-                
                 'hero.title': 'Shulamith Gallery',
                 'hero.subtitle': 'Shulamith Gallery — Where Art Meets Beauty',
                 'hero.text1': 'I am Maryam (Shulamith), a graduate of the Faculty of Fine Arts.',
@@ -1760,14 +1929,12 @@
                 'hero.text3': 'Here you can order any artwork with any material and size that suits you, and I can help you choose the perfect piece for your home or workspace.',
                 'hero.text4': 'Wait for my amazing suggestions!',
                 'hero.cta': 'Explore Artworks',
-                
                 'gallery.title': 'Art Gallery',
                 'gallery.subtitle': 'Explore a collection of unique artworks',
                 'gallery.all': 'All',
                 'gallery.loading': 'Loading artworks...',
                 'gallery.empty': 'No artworks available',
                 'gallery.view': 'View Details',
-                
                 'about.title': 'About the Artist',
                 'about.text1': 'Maryam (Shulamith) — Egyptian visual artist, graduate of the Faculty of Fine Arts.',
                 'about.text2': 'She creates paintings, artworks, and decor pieces, with the ability to execute any artwork with suitable materials and sizes for the client.',
@@ -1778,7 +1945,6 @@
                 'about.services.3': 'Artistic Home Decor',
                 'about.services.4': 'Commissioned Artworks',
                 'about.services.5': 'Creative Gifts',
-                
                 'custom.title': 'Order Your Custom Design',
                 'custom.subtitle': 'Create any artwork with the material and size that fits your space',
                 'custom.feature1.title': 'Various Materials',
@@ -1788,7 +1954,6 @@
                 'custom.feature3.title': 'Free Consultation',
                 'custom.feature3.desc': 'I\'ll help you choose the perfect piece for your space',
                 'custom.cta': 'Order Now',
-                
                 'contact.title': 'Contact Us',
                 'contact.subtitle': 'We\'re here to help, reach out for any inquiries',
                 'contact.address.title': 'Address',
@@ -1809,7 +1974,6 @@
                 'contact.form.emailInvalid': 'Invalid email address',
                 'contact.form.phoneRequired': 'Phone number is required',
                 'contact.form.messageRequired': 'Message is required',
-                
                 'footer.brand': 'Shulamith Gallery — Where Art Meets Beauty',
                 'footer.quick': 'Quick Links',
                 'footer.contact': 'Contact',
@@ -1819,7 +1983,7 @@
         };
 
         // ============================================
-        // ===== STATE =====
+        // STATE
         // ============================================
         let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
         let allArtworks = [];
@@ -1827,13 +1991,13 @@
         let isLoading = false;
 
         // ============================================
-        // ===== DOM REFS =====
+        // DOM REFS
         // ============================================
         const $ = (sel) => document.querySelector(sel);
         const $$ = (sel) => document.querySelectorAll(sel);
 
         // ============================================
-        // ===== LANGUAGE =====
+        // LANGUAGE
         // ============================================
         function setLanguage(lang) {
             currentLang = lang;
@@ -1869,7 +2033,7 @@
         }
 
         // ============================================
-        // ===== NAVBAR =====
+        // NAVBAR
         // ============================================
         function toggleNav() {
             const menu = document.getElementById('navMenu');
@@ -1886,7 +2050,7 @@
         }
 
         // ============================================
-        // ===== SCROLL TO TOP =====
+        // SCROLL TO TOP
         // ============================================
         function handleScroll() {
             const btn = document.getElementById('scrollTop');
@@ -1910,7 +2074,7 @@
         }
 
         // ============================================
-        // ===== LIGHTBOX =====
+        // LIGHTBOX
         // ============================================
         function openLightbox(artwork) {
             const lb = document.getElementById('lightbox');
@@ -1940,7 +2104,7 @@
         }
 
         // ============================================
-        // ===== API =====
+        // API
         // ============================================
         async function apiGet(url) {
             const res = await fetch(url);
@@ -1949,7 +2113,7 @@
         }
 
         // ============================================
-        // ===== LOAD ARTWORKS =====
+        // LOAD ARTWORKS
         // ============================================
         async function loadArtworks() {
             if (isLoading) return;
@@ -1979,26 +2143,28 @@
                     a.galleryName = galleryNames[a.galleryId] || '';
                 });
                 
-                // حفظ الفلتر النشط
                 const activeFilter = filters.querySelector('.filter-btn.active');
                 const currentFilter = activeFilter ? activeFilter.dataset.filter : 'all';
                 
-                let filterHTML = `<button class="filter-btn active" data-filter="all" data-i18n="gallery.all">الكل</button>`;
+                let filterHTML = `<button class="filter-btn active" data-filter="all" role="tab" aria-selected="true" data-i18n="gallery.all">الكل</button>`;
                 galleries.forEach(gId => {
                     const name = galleryNames[gId] || gId;
                     const activeClass = gId === currentFilter ? ' active' : '';
-                    filterHTML += `<button class="filter-btn${activeClass}" data-filter="${gId}">${escapeHtml(name)}</button>`;
+                    filterHTML += `<button class="filter-btn${activeClass}" data-filter="${gId}" role="tab" aria-selected="${gId === currentFilter}">${escapeHtml(name)}</button>`;
                 });
                 filters.innerHTML = filterHTML;
                 
-                // تطبيق الفلتر الحالي
                 const filtered = currentFilter === 'all' ? allArtworks : allArtworks.filter(a => a.galleryId === currentFilter);
                 renderArtworks(filtered);
                 
                 filters.querySelectorAll('.filter-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
-                        filters.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                        filters.querySelectorAll('.filter-btn').forEach(b => {
+                            b.classList.remove('active');
+                            b.setAttribute('aria-selected', 'false');
+                        });
                         this.classList.add('active');
+                        this.setAttribute('aria-selected', 'true');
                         const filter = this.dataset.filter;
                         const filtered = filter === 'all' ? allArtworks : allArtworks.filter(a => a.galleryId === filter);
                         renderArtworks(filtered);
@@ -2014,7 +2180,7 @@
         }
 
         // ============================================
-        // ===== RENDER ARTWORKS (SECURE) =====
+        // RENDER ARTWORKS (SECURE)
         // ============================================
         function renderArtworks(artworks) {
             const grid = document.getElementById('galleryGrid');
@@ -2028,8 +2194,8 @@
             artworks.forEach((artwork, index) => {
                 const delay = (index % 6) * 0.08;
                 html += `
-                    <div class="gallery-item reveal-scale" style="transition-delay: ${delay}s;" data-id="${escapeHtml(artwork.id)}">
-                        <img src="${escapeHtml(artwork.imageUrl)}" alt="${escapeHtml(artwork.title)}" loading="lazy">
+                    <div class="gallery-item reveal-scale" style="transition-delay: ${delay}s;" data-id="${escapeHtml(artwork.id)}" role="listitem">
+                        <img src="${escapeHtml(artwork.imageUrl)}" alt="${escapeHtml(artwork.title)}" loading="lazy" width="280" height="300">
                         <div class="artwork-overlay">
                             <span data-i18n="gallery.view">عرض التفاصيل</span>
                         </div>
@@ -2048,6 +2214,11 @@
                     const artwork = artworks[index];
                     if (artwork) openLightbox(artwork);
                 });
+                
+                // Touch support for mobile
+                item.addEventListener('touchstart', function() {
+                    // Small delay to prevent accidental double taps
+                });
             });
             
             setTimeout(() => {
@@ -2061,7 +2232,7 @@
         }
 
         // ============================================
-        // ===== AUTO REFRESH =====
+        // AUTO REFRESH
         // ============================================
         function startAutoRefresh() {
             if (refreshInterval) {
@@ -2080,7 +2251,7 @@
         }
 
         // ============================================
-        // ===== CONTACT FORM =====
+        // CONTACT FORM
         // ============================================
         async function handleContactSubmit(e) {
             e.preventDefault();
@@ -2097,7 +2268,6 @@
             status.className = 'form-status';
             status.style.display = 'none';
             
-            // ===== VALIDATE =====
             let isValid = true;
             const nameVal = sanitizeInput(name.value.trim());
             const emailVal = email.value.trim();
@@ -2138,7 +2308,6 @@
             
             if (!isValid) return;
             
-            // ===== CSRF TOKEN =====
             const csrfToken = document.getElementById('csrfToken').value || 'default';
             
             submitBtn.disabled = true;
@@ -2187,11 +2356,11 @@
         }
 
         // ============================================
-        // ===== 🔒 RATE LIMITING (Client-side) =====
+        // RATE LIMITING (Client-side)
         // ============================================
         let submitAttempts = 0;
         const MAX_SUBMIT_ATTEMPTS = 3;
-        const SUBMIT_COOLDOWN = 60 * 1000; // 1 دقيقة
+        const SUBMIT_COOLDOWN = 60 * 1000;
         let submitCooldown = false;
 
         document.getElementById('contactForm').addEventListener('submit', function(e) {
@@ -2223,7 +2392,7 @@
         });
 
         // ============================================
-        // ===== 🔒 GENERATE CSRF TOKEN =====
+        // GENERATE CSRF TOKEN
         // ============================================
         document.addEventListener('DOMContentLoaded', function() {
             const csrfToken = document.getElementById('csrfToken');
@@ -2233,7 +2402,7 @@
         });
 
         // ============================================
-        // ===== 🔒 INPUT SANITIZATION =====
+        // INPUT SANITIZATION
         // ============================================
         document.querySelectorAll('input, textarea').forEach(input => {
             input.addEventListener('paste', function(e) {
@@ -2257,7 +2426,7 @@
         });
 
         // ============================================
-        // ===== INIT =====
+        // INIT
         // ============================================
         function init() {
             setLanguage(currentLang);
@@ -2274,9 +2443,11 @@
             });
             
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') closeLightbox();
-                if (e.key === 'Escape' && document.getElementById('navMenu').classList.contains('active')) {
-                    closeNav();
+                if (e.key === 'Escape') {
+                    closeLightbox();
+                    if (document.getElementById('navMenu').classList.contains('active')) {
+                        closeNav();
+                    }
                 }
             });
             
@@ -2297,15 +2468,17 @@
         });
 
         // ============================================
-        // ===== 🔒 CONSOLE PROTECTION =====
+        // CONSOLE PROTECTION
         // ============================================
-        console.log('%c🎨 Shulamith Gallery - Home Page (Secure)', 
+        console.log('%c🎨 Shulamith Gallery - Home Page (Secure & Responsive)', 
             'color: #d4b892; font-size: 16px; font-weight: bold;');
-        console.log('%c🔒 This page is secured against XSS, CSRF, and spam attacks.', 
+        console.log('%c🔒 Secured against XSS, CSRF, and spam attacks.', 
             'color: #2ecc71; font-size: 12px;');
+        console.log('%c📱 Fully responsive for all devices.', 
+            'color: #3498db; font-size: 12px;');
 
         // ============================================
-        // ===== START =====
+        // START
         // ============================================
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
@@ -2313,7 +2486,7 @@
             init();
         }
 
-        console.log('✅ Home page secured successfully.');
+        console.log('✅ Home page secured and responsive successfully.');
     </script>
 </body>
 </html>

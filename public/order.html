@@ -21,6 +21,7 @@
             --color-border: #2a2421;
             --color-success: #2ecc71;
             --color-error: #e74c3c;
+            --color-warning: #f39c12;
             --radius: 12px;
             --radius-sm: 8px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -182,7 +183,7 @@
         }
 
         .page-header h1 {
-            font-size: 2.8rem;
+            font-size: clamp(1.6rem, 4vw, 2.8rem);
             font-weight: 300;
             color: var(--color-primary);
             letter-spacing: 2px;
@@ -190,7 +191,7 @@
 
         .page-header p {
             color: var(--color-text-muted);
-            font-size: 1.1rem;
+            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
             margin-top: 8px;
         }
 
@@ -199,7 +200,7 @@
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
             border-radius: var(--radius);
-            padding: 40px;
+            padding: clamp(16px, 4vw, 40px);
             margin-bottom: 40px;
         }
 
@@ -220,7 +221,8 @@
         }
 
         .order-form input,
-        .order-form textarea {
+        .order-form textarea,
+        .order-form select {
             width: 100%;
             padding: 12px 16px;
             background: var(--color-bg);
@@ -230,18 +232,16 @@
             font-size: 1rem;
             transition: var(--transition);
             font-family: inherit;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .order-form input:focus,
-        .order-form textarea:focus {
+        .order-form textarea:focus,
+        .order-form select:focus {
             outline: none;
             border-color: var(--color-primary-dark);
             box-shadow: 0 0 0 3px rgba(212, 184, 146, 0.08);
-        }
-
-        .order-form input:invalid,
-        .order-form textarea:invalid {
-            border-color: var(--color-error);
         }
 
         .order-form textarea {
@@ -274,6 +274,94 @@
 
         body.rtl .order-form .char-counter {
             text-align: right;
+        }
+
+        /* ===== FILE UPLOAD ===== */
+        .file-upload-wrapper {
+            position: relative;
+        }
+
+        .file-upload-area {
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-sm);
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--color-bg);
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--color-primary-dark);
+            background: var(--color-bg-hover);
+        }
+
+        .file-upload-area.dragover {
+            border-color: var(--color-primary);
+            background: var(--color-bg-hover);
+        }
+
+        .file-upload-area .upload-icon {
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .file-upload-area p {
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+        }
+
+        .file-upload-area .file-name {
+            color: var(--color-primary);
+            font-size: 0.85rem;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .file-upload-area .file-name.visible {
+            display: block;
+        }
+
+        .file-upload-area .file-size {
+            color: var(--color-text-dark);
+            font-size: 0.75rem;
+        }
+
+        .file-upload-area input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-area .remove-file {
+            background: none;
+            border: none;
+            color: var(--color-error);
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .file-upload-area .remove-file.visible {
+            display: inline-block;
+        }
+
+        .file-preview {
+            margin-top: 12px;
+            display: none;
+            justify-content: center;
+        }
+
+        .file-preview.visible {
+            display: flex;
+        }
+
+        .file-preview img {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--color-border);
+            object-fit: cover;
         }
 
         .submit-btn {
@@ -387,6 +475,7 @@
             .page-header { padding: 100px 0 20px; }
             .page-header h1 { font-size: 1.6rem; }
             .order-form-wrapper { padding: 16px; }
+            .file-upload-area { padding: 20px 16px; }
         }
     </style>
 </head>
@@ -400,15 +489,15 @@
                 </a>
             </div>
             <ul class="nav-menu" id="navMenu">
-                <li><a href="/">الرئيسية</a></li>
-                <li><a href="/gallery">المعارض</a></li>
-                <li><a href="https://shulamith-gallery.vercel.app/#about">عن الفنانة</a></li>
-                <li><a href="/order" class="active">طلبات خاصة</a></li>
-                <li><a href="/rate">تقييم</a></li>
-                <li><a href="/#contact">تواصل</a></li>
+                <li><a href="/" data-i18n="nav.home">الرئيسية</a></li>
+                <li><a href="/gallery" data-i18n="nav.gallery">المعارض</a></li>
+                <li><a href="https://shulamith-gallery.vercel.app/#about" data-i18n="nav.about">عن الفنانة</a></li>
+                <li><a href="/order" class="active" data-i18n="nav.custom">طلبات خاصة</a></li>
+                <li><a href="/rate" data-i18n="nav.rate">تقييم</a></li>
+                <li><a href="/#contact" data-i18n="nav.contact">تواصل</a></li>
             </ul>
             <div class="nav-actions">
-                <button class="lang-switch" id="langSwitch"><span class="lang-text">AR</span></button>
+                <button class="lang-switch" id="langSwitch"><span class="lang-text" id="langText">EN</span></button>
                 <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
             </div>
         </div>
@@ -417,8 +506,8 @@
     <!-- ===== PAGE HEADER ===== -->
     <section class="page-header">
         <div class="container">
-            <h1>🎨 اطلب عمل فني</h1>
-            <p>احصل على عمل فني مخصص حسب طلبك</p>
+            <h1 data-i18n="page.title">اطلب عمل فني</h1>
+            <p data-i18n="page.subtitle">احصل على عمل فني مخصص حسب طلبك</p>
         </div>
     </section>
 
@@ -427,12 +516,12 @@
         <div class="container">
             <div class="order-form-wrapper">
                 <form id="orderForm" class="order-form" autocomplete="off" novalidate>
-                    <!-- ===== CSRF TOKEN ===== -->
                     <input type="hidden" id="csrfToken" value="">
 
+                    <!-- ===== NAME ===== -->
                     <div class="form-group">
                         <label for="orderName">
-                            👤 الاسم
+                            <span data-i18n="form.name">الاسم</span>
                             <span class="required-star">*</span>
                         </label>
                         <input 
@@ -445,13 +534,15 @@
                             maxlength="100"
                             minlength="2"
                             aria-describedby="nameError"
+                            data-i18n-placeholder="form.namePlaceholder"
                         >
                         <span class="form-error" id="nameError"></span>
                     </div>
 
+                    <!-- ===== PHONE ===== -->
                     <div class="form-group">
                         <label for="orderPhone">
-                            📱 رقم الهاتف
+                            <span data-i18n="form.phone">رقم الهاتف</span>
                             <span class="required-star">*</span>
                         </label>
                         <input 
@@ -459,19 +550,21 @@
                             id="orderPhone" 
                             name="phone" 
                             required 
-                            placeholder="مثال: 01234567890"
+                            placeholder="ادخل رقم هاتفك"
                             autocomplete="tel"
                             maxlength="20"
                             minlength="8"
                             aria-describedby="phoneError"
+                            data-i18n-placeholder="form.phonePlaceholder"
                         >
                         <span class="form-error" id="phoneError"></span>
-                        <span class="form-hint">📌 أدخل رقم الهاتف مع مفتاح الدولة (مثال: 201234567890)</span>
+                        <span class="form-hint" data-i18n="form.phoneHint">أدخل رقم الهاتف مع مفتاح الدولة (مثال: 201234567890)</span>
                     </div>
 
+                    <!-- ===== EMAIL ===== -->
                     <div class="form-group">
                         <label for="orderEmail">
-                            📧 البريد الإلكتروني
+                            <span data-i18n="form.email">البريد الإلكتروني</span>
                             <span class="required-star">*</span>
                         </label>
                         <input 
@@ -483,13 +576,15 @@
                             autocomplete="email"
                             maxlength="100"
                             aria-describedby="emailError"
+                            data-i18n-placeholder="form.emailPlaceholder"
                         >
                         <span class="form-error" id="emailError"></span>
                     </div>
 
+                    <!-- ===== ORDER DETAILS ===== -->
                     <div class="form-group">
                         <label for="orderText">
-                            📝 تفاصيل الطلب
+                            <span data-i18n="form.details">تفاصيل الطلب</span>
                             <span class="required-star">*</span>
                         </label>
                         <textarea 
@@ -501,23 +596,43 @@
                             maxlength="2000"
                             minlength="10"
                             aria-describedby="orderTextError"
+                            data-i18n-placeholder="form.detailsPlaceholder"
                         ></textarea>
                         <span class="form-error" id="orderTextError"></span>
-                        <span class="char-counter" id="charCounter">0 / 2000 حرف</span>
-                        <span class="form-hint">💡 كلما كانت التفاصيل أوضح، كان التنفيذ أفضل</span>
+                        <span class="char-counter" id="charCounter">0 / 2000</span>
+                        <span class="form-hint" data-i18n="form.detailsHint">كلما كانت التفاصيل أوضح، كان التنفيذ أفضل</span>
                     </div>
 
+                    <!-- ===== IMAGE UPLOAD ===== -->
+                    <div class="form-group">
+                        <label data-i18n="form.image">صورة مرجعية (اختياري)</label>
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <span class="upload-icon">🖼️</span>
+                            <p data-i18n="form.imageUpload">اسحب الصورة هنا أو اضغط للاختيار</p>
+                            <p style="font-size: 0.8rem; color: var(--color-text-dark);" data-i18n="form.imageFormats">الامتدادات المدعومة: JPG, PNG, WEBP (حجم أقصى 5MB)</p>
+                            <span class="file-name" id="fileName"></span>
+                            <span class="file-size" id="fileSize"></span>
+                            <button type="button" class="remove-file" id="removeFile" data-i18n="form.imageRemove">إزالة</button>
+                            <input type="file" id="orderImage" accept="image/*" data-max-size="5242880">
+                        </div>
+                        <div class="file-preview" id="filePreview">
+                            <img src="" alt="Preview" id="previewImage">
+                        </div>
+                        <span class="form-error" id="imageError"></span>
+                    </div>
+
+                    <!-- ===== SUBMIT ===== -->
                     <button type="submit" class="submit-btn" id="orderSubmit">
-                        <span>🚀 إرسال الطلب</span>
-                        <span class="btn-loading">⏳ جاري الإرسال...</span>
+                        <span data-i18n="form.submit">إرسال الطلب</span>
+                        <span class="btn-loading" data-i18n="form.sending">جاري الإرسال...</span>
                     </button>
 
                     <div class="form-status" id="formStatus"></div>
                     
                     <div class="success-checkmark" id="successCheckmark">
                         <span class="check-icon">✅</span>
-                        <p style="color: var(--color-success); font-size: 1.1rem;">تم إرسال طلبك بنجاح!</p>
-                        <p style="color: var(--color-text-muted); font-size: 0.9rem;">سنتواصل معك قريباً</p>
+                        <p style="color: var(--color-success); font-size: 1.1rem;" data-i18n="form.success">تم إرسال طلبك بنجاح!</p>
+                        <p style="color: var(--color-text-muted); font-size: 0.9rem;" data-i18n="form.successSub">سنتواصل معك قريباً</p>
                     </div>
                 </form>
             </div>
@@ -527,13 +642,97 @@
     <!-- ===== FOOTER ===== -->
     <footer class="footer">
         <div class="container">
-            <p>© 2026 Shulamith Gallery. جميع الحقوق محفوظة</p>
+            <p data-i18n="footer.copyright">© 2026 Shulamith Gallery. جميع الحقوق محفوظة</p>
         </div>
     </footer>
 
     <script>
         // ============================================
-        // ===== 🔒 SECURITY: ESCAPE HTML =====
+        // ===== TRANSLATIONS =====
+        // ============================================
+        const translations = {
+            ar: {
+                'nav.home': 'الرئيسية',
+                'nav.gallery': 'المعارض',
+                'nav.about': 'عن الفنانة',
+                'nav.custom': 'طلبات خاصة',
+                'nav.rate': 'تقييم',
+                'nav.contact': 'تواصل',
+                'page.title': 'اطلب عمل فني',
+                'page.subtitle': 'احصل على عمل فني مخصص حسب طلبك',
+                'form.name': 'الاسم',
+                'form.namePlaceholder': 'أدخل اسمك الكامل',
+                'form.phone': 'رقم الهاتف',
+                'form.phonePlaceholder': 'ادخل رقم هاتفك',
+                'form.phoneHint': 'أدخل رقم الهاتف مع مفتاح الدولة (مثال: 201234567890)',
+                'form.email': 'البريد الإلكتروني',
+                'form.emailPlaceholder': 'أدخل بريدك الإلكتروني',
+                'form.details': 'تفاصيل الطلب',
+                'form.detailsPlaceholder': 'اكتب تفاصيل العمل الفني الذي ترغب به (الخامة، الحجم، الألوان، الموضوع، أي تفاصيل أخرى)...',
+                'form.detailsHint': 'كلما كانت التفاصيل أوضح، كان التنفيذ أفضل',
+                'form.image': 'صورة مرجعية (اختياري)',
+                'form.imageUpload': 'اسحب الصورة هنا أو اضغط للاختيار',
+                'form.imageFormats': 'الامتدادات المدعومة: JPG, PNG, WEBP (حجم أقصى 5MB)',
+                'form.imageRemove': 'إزالة',
+                'form.submit': 'إرسال الطلب',
+                'form.sending': 'جاري الإرسال...',
+                'form.success': 'تم إرسال طلبك بنجاح!',
+                'form.successSub': 'سنتواصل معك قريباً',
+                'form.error': 'حدث خطأ، حاول مرة أخرى',
+                'form.connectionError': 'حدث خطأ في الاتصال، حاول مرة أخرى',
+                'form.nameRequired': 'الاسم مطلوب (2-100 حرف)',
+                'form.phoneInvalid': 'رقم هاتف غير صالح (8-20 رقم)',
+                'form.emailInvalid': 'بريد إلكتروني غير صالح',
+                'form.detailsRequired': 'تفاصيل الطلب مطلوبة (10-2000 حرف)',
+                'form.imageTooLarge': 'حجم الصورة يتجاوز 5MB',
+                'form.imageInvalid': 'نوع الملف غير مدعوم (JPG, PNG, WEBP فقط)',
+                'form.rateLimit': 'الرجاء الانتظار قبل إرسال طلب آخر',
+                'form.rateLimitInfo': 'تم إرسال عدة طلبات. الرجاء الانتظار دقيقة واحدة قبل المحاولة مرة أخرى.',
+                'footer.copyright': '© 2026 Shulamith Gallery. جميع الحقوق محفوظة'
+            },
+            en: {
+                'nav.home': 'Home',
+                'nav.gallery': 'Gallery',
+                'nav.about': 'About',
+                'nav.custom': 'Custom Orders',
+                'nav.rate': 'Rate',
+                'nav.contact': 'Contact',
+                'page.title': 'Order Artwork',
+                'page.subtitle': 'Get a custom artwork tailored to your request',
+                'form.name': 'Full Name',
+                'form.namePlaceholder': 'Enter your full name',
+                'form.phone': 'Phone Number',
+                'form.phonePlaceholder': 'Enter your phone number',
+                'form.phoneHint': 'Enter phone number with country code (e.g., 201234567890)',
+                'form.email': 'Email Address',
+                'form.emailPlaceholder': 'Enter your email address',
+                'form.details': 'Order Details',
+                'form.detailsPlaceholder': 'Describe the artwork you want (material, size, colors, subject, any other details)...',
+                'form.detailsHint': 'The clearer the details, the better the execution',
+                'form.image': 'Reference Image (Optional)',
+                'form.imageUpload': 'Drag image here or click to select',
+                'form.imageFormats': 'Supported formats: JPG, PNG, WEBP (max 5MB)',
+                'form.imageRemove': 'Remove',
+                'form.submit': 'Submit Order',
+                'form.sending': 'Sending...',
+                'form.success': 'Your order has been sent successfully!',
+                'form.successSub': 'We will contact you soon',
+                'form.error': 'An error occurred, please try again',
+                'form.connectionError': 'Connection error, please try again',
+                'form.nameRequired': 'Name is required (2-100 characters)',
+                'form.phoneInvalid': 'Invalid phone number (8-20 digits)',
+                'form.emailInvalid': 'Invalid email address',
+                'form.detailsRequired': 'Order details are required (10-2000 characters)',
+                'form.imageTooLarge': 'Image size exceeds 5MB',
+                'form.imageInvalid': 'File type not supported (JPG, PNG, WEBP only)',
+                'form.rateLimit': 'Please wait before submitting another request',
+                'form.rateLimitInfo': 'Multiple requests sent. Please wait 1 minute before trying again.',
+                'footer.copyright': '© 2026 Shulamith Gallery. All rights reserved'
+            }
+        };
+
+        // ============================================
+        // ===== SECURITY =====
         // ============================================
         function escapeHtml(text) {
             if (!text) return '';
@@ -542,9 +741,6 @@
             return div.innerHTML;
         }
 
-        // ============================================
-        // ===== 🔒 SANITIZE INPUT =====
-        // ============================================
         function sanitizeInput(text) {
             if (!text) return '';
             return text
@@ -556,15 +752,11 @@
                 .trim();
         }
 
-        // ============================================
-        // ===== 🔒 VALIDATION FUNCTIONS =====
-        // ============================================
         function validateEmail(email) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         }
 
         function validatePhone(phone) {
-            // قبول أرقام مع + ومسافات وشرطات
             return /^[\d+\s-()]{8,20}$/.test(phone);
         }
 
@@ -584,13 +776,49 @@
         function setLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('shulamith-lang', lang);
+            
             document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            document.documentElement.lang = lang;
             document.body.className = lang === 'ar' ? 'rtl' : 'ltr';
-            document.querySelector('.lang-text').textContent = lang.toUpperCase();
+            
+            const langText = document.getElementById('langText');
+            if (langText) {
+                langText.textContent = lang === 'ar' ? 'EN' : 'AR';
+            }
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+            
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (translations[lang] && translations[lang][key]) {
+                    el.placeholder = translations[lang][key];
+                }
+            });
         }
 
-        document.getElementById('langSwitch').addEventListener('click', () => {
-            setLanguage(currentLang === 'ar' ? 'en' : 'ar');
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLang = localStorage.getItem('shulamith-lang') || 'ar';
+            setLanguage(savedLang);
+            
+            const csrfToken = document.getElementById('csrfToken');
+            if (csrfToken) {
+                csrfToken.value = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
+            }
+            
+            setTimeout(() => {
+                document.getElementById('orderName').focus();
+            }, 300);
+        });
+
+        document.getElementById('langSwitch').addEventListener('click', function(e) {
+            e.preventDefault();
+            const newLang = currentLang === 'ar' ? 'en' : 'ar';
+            setLanguage(newLang);
         });
 
         // ============================================
@@ -602,14 +830,15 @@
         });
 
         // ============================================
-        // ===== 🔒 CHAR COUNTER =====
+        // ===== CHAR COUNTER =====
         // ============================================
         const orderText = document.getElementById('orderText');
         const charCounter = document.getElementById('charCounter');
 
         orderText.addEventListener('input', function() {
             const length = this.value.length;
-            charCounter.textContent = `${length} / 2000 حرف`;
+            const max = 2000;
+            charCounter.textContent = `${length} / ${max}`;
             
             if (length > 1800) {
                 charCounter.style.color = 'var(--color-warning)';
@@ -617,15 +846,106 @@
                 charCounter.style.color = 'var(--color-text-dark)';
             }
             
-            if (length > 2000) {
-                this.value = this.value.substring(0, 2000);
-                charCounter.textContent = '2000 / 2000 حرف (الحد الأقصى)';
+            if (length > max) {
+                this.value = this.value.substring(0, max);
+                charCounter.textContent = `${max} / ${max}`;
                 charCounter.style.color = 'var(--color-error)';
             }
         });
 
         // ============================================
-        // ===== 🔒 INPUT SANITIZATION =====
+        // ===== FILE UPLOAD =====
+        // ============================================
+        const fileInput = document.getElementById('orderImage');
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const filePreview = document.getElementById('filePreview');
+        const previewImage = document.getElementById('previewImage');
+        const removeFile = document.getElementById('removeFile');
+        const imageError = document.getElementById('imageError');
+        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+        const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+        let selectedFile = null;
+
+        fileUploadArea.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        fileUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        fileUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        fileUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', function() {
+            if (this.files.length) {
+                handleFile(this.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            imageError.textContent = '';
+            
+            // Check type
+            if (!ALLOWED_TYPES.includes(file.type)) {
+                imageError.textContent = translations[currentLang]['form.imageInvalid'] || 'نوع الملف غير مدعوم';
+                fileInput.value = '';
+                return;
+            }
+            
+            // Check size
+            if (file.size > MAX_FILE_SIZE) {
+                imageError.textContent = translations[currentLang]['form.imageTooLarge'] || 'حجم الصورة يتجاوز 5MB';
+                fileInput.value = '';
+                return;
+            }
+            
+            selectedFile = file;
+            
+            // Show file name and size
+            fileName.textContent = file.name;
+            fileName.classList.add('visible');
+            fileSize.textContent = `(${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            removeFile.classList.add('visible');
+            
+            // Preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                filePreview.classList.add('visible');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        removeFile.addEventListener('click', function(e) {
+            e.stopPropagation();
+            selectedFile = null;
+            fileInput.value = '';
+            fileName.textContent = '';
+            fileName.classList.remove('visible');
+            fileSize.textContent = '';
+            removeFile.classList.remove('visible');
+            filePreview.classList.remove('visible');
+            previewImage.src = '';
+            imageError.textContent = '';
+        });
+
+        // ============================================
+        // ===== INPUT SANITIZATION =====
         // ============================================
         document.querySelectorAll('input, textarea').forEach(input => {
             input.addEventListener('paste', function(e) {
@@ -649,12 +969,11 @@
         });
 
         // ============================================
-        // ===== 🔒 SUBMIT ORDER =====
+        // ===== SUBMIT ORDER =====
         // ============================================
         document.getElementById('orderForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            // ===== RESET ERRORS =====
             document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
             const status = document.getElementById('formStatus');
             status.className = 'form-status';
@@ -663,50 +982,45 @@
             const successCheck = document.getElementById('successCheckmark');
             successCheck.classList.remove('visible');
 
-            // ===== GET VALUES =====
             const name = document.getElementById('orderName');
             const phone = document.getElementById('orderPhone');
             const email = document.getElementById('orderEmail');
             const orderText = document.getElementById('orderText');
+            const imageError = document.getElementById('imageError');
 
             const nameVal = sanitizeInput(name.value.trim());
             const phoneVal = sanitizeInput(phone.value.trim());
             const emailVal = email.value.trim();
             const orderTextVal = sanitizeInput(orderText.value.trim());
 
-            // ===== VALIDATE =====
             let isValid = true;
 
-            // Validate Name
             if (!validateName(nameVal)) {
-                document.getElementById('nameError').textContent = 'الاسم مطلوب (2-100 حرف)';
+                document.getElementById('nameError').textContent = translations[currentLang]['form.nameRequired'];
                 isValid = false;
                 name.style.borderColor = 'var(--color-error)';
             } else {
                 name.style.borderColor = '';
             }
 
-            // Validate Phone
             if (!validatePhone(phoneVal)) {
-                document.getElementById('phoneError').textContent = 'رقم هاتف غير صالح (8-20 رقم)';
+                document.getElementById('phoneError').textContent = translations[currentLang]['form.phoneInvalid'];
                 isValid = false;
                 phone.style.borderColor = 'var(--color-error)';
             } else {
                 phone.style.borderColor = '';
             }
 
-            // Validate Email
             if (!validateEmail(emailVal)) {
-                document.getElementById('emailError').textContent = 'بريد إلكتروني غير صالح';
+                document.getElementById('emailError').textContent = translations[currentLang]['form.emailInvalid'];
                 isValid = false;
                 email.style.borderColor = 'var(--color-error)';
             } else {
                 email.style.borderColor = '';
             }
 
-            // Validate Order Text
             if (!validateOrderText(orderTextVal)) {
-                document.getElementById('orderTextError').textContent = 'تفاصيل الطلب مطلوبة (10-2000 حرف)';
+                document.getElementById('orderTextError').textContent = translations[currentLang]['form.detailsRequired'];
                 isValid = false;
                 orderText.style.borderColor = 'var(--color-error)';
             } else {
@@ -716,62 +1030,65 @@
             if (!isValid) {
                 status.className = 'form-status error';
                 status.style.display = 'block';
-                status.textContent = '❌ الرجاء تصحيح الأخطاء في النموذج';
+                status.textContent = '❌ ' + (translations[currentLang]['form.error'] || 'الرجاء تصحيح الأخطاء');
                 return;
             }
 
-            // ===== SUBMIT =====
             const submitBtn = document.getElementById('orderSubmit');
             submitBtn.disabled = true;
             submitBtn.querySelector('span:first-child').style.display = 'none';
             submitBtn.querySelector('.btn-loading').style.display = 'inline';
 
-            // ===== CSRF TOKEN =====
             const csrfToken = document.getElementById('csrfToken').value || 'default';
+
+            const formData = new FormData();
+            formData.append('name', nameVal);
+            formData.append('phone', phoneVal);
+            formData.append('email', emailVal);
+            formData.append('orderText', orderTextVal);
+            if (selectedFile) {
+                formData.append('image', selectedFile);
+            }
 
             try {
                 const res = await fetch('/api/orders', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
+                    headers: {
                         'X-CSRF-Token': csrfToken
                     },
-                    body: JSON.stringify({
-                        name: nameVal,
-                        phone: phoneVal,
-                        email: emailVal,
-                        orderText: orderTextVal
-                    })
+                    body: formData
                 });
 
                 const data = await res.json();
 
                 if (res.ok) {
-                    // ===== SUCCESS =====
                     status.className = 'form-status success';
                     status.style.display = 'block';
-                    status.textContent = '✅ تم إرسال طلبك بنجاح! سنتواصل معك قريباً.';
+                    status.textContent = '✅ ' + (translations[currentLang]['form.success'] || 'تم الإرسال بنجاح');
                     
                     successCheck.classList.add('visible');
                     
-                    // ===== RESET FORM =====
                     this.reset();
-                    charCounter.textContent = '0 / 2000 حرف';
+                    charCounter.textContent = '0 / 2000';
+                    selectedFile = null;
+                    fileName.classList.remove('visible');
+                    fileSize.textContent = '';
+                    removeFile.classList.remove('visible');
+                    filePreview.classList.remove('visible');
+                    previewImage.src = '';
                     
-                    // ===== SCROLL TO STATUS =====
                     status.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     
                 } else {
-                    // ===== ERROR =====
                     status.className = 'form-status error';
                     status.style.display = 'block';
-                    status.textContent = data.error || '❌ حدث خطأ، حاول مرة أخرى';
+                    status.textContent = '❌ ' + (data.error || translations[currentLang]['form.error']);
                 }
             } catch (error) {
                 console.error('Order submission error:', error);
                 status.className = 'form-status error';
                 status.style.display = 'block';
-                status.textContent = '❌ حدث خطأ في الاتصال، حاول مرة أخرى';
+                status.textContent = '❌ ' + (translations[currentLang]['form.connectionError']);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.querySelector('span:first-child').style.display = 'inline';
@@ -780,11 +1097,11 @@
         });
 
         // ============================================
-        // ===== 🔒 RATE LIMITING (Client-side) =====
+        // ===== RATE LIMITING =====
         // ============================================
         let submitAttempts = 0;
         const MAX_SUBMIT_ATTEMPTS = 3;
-        const SUBMIT_COOLDOWN = 60 * 1000; // 1 دقيقة
+        const SUBMIT_COOLDOWN = 60 * 1000;
         let submitCooldown = false;
 
         document.getElementById('orderForm').addEventListener('submit', function(e) {
@@ -793,7 +1110,7 @@
                 const status = document.getElementById('formStatus');
                 status.className = 'form-status error';
                 status.style.display = 'block';
-                status.textContent = '⏳ الرجاء الانتظار قبل إرسال طلب آخر';
+                status.textContent = '⏳ ' + (translations[currentLang]['form.rateLimit'] || 'الرجاء الانتظار');
                 return;
             }
 
@@ -804,7 +1121,7 @@
                 const status = document.getElementById('formStatus');
                 status.className = 'form-status info';
                 status.style.display = 'block';
-                status.textContent = '⏳ تم إرسال عدة طلبات. الرجاء الانتظار دقيقة واحدة قبل المحاولة مرة أخرى.';
+                status.textContent = '⏳ ' + (translations[currentLang]['form.rateLimitInfo'] || 'تم إرسال عدة طلبات. الرجاء الانتظار دقيقة واحدة.');
                 
                 setTimeout(() => {
                     submitAttempts = 0;
@@ -816,32 +1133,12 @@
         });
 
         // ============================================
-        // ===== 🔒 GENERATE CSRF TOKEN =====
+        // ===== CONSOLE PROTECTION =====
         // ============================================
-        document.addEventListener('DOMContentLoaded', function() {
-            const csrfToken = document.getElementById('csrfToken');
-            if (csrfToken) {
-                csrfToken.value = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
-            }
+        console.log('🎨 Shulamith Gallery - Order Page (Secure)');
+        console.log('🔒 Secured against XSS, CSRF, and spam attacks.');
+        console.log('📱 Fully responsive for all devices.');
 
-            // ===== SET LANGUAGE =====
-            setLanguage(currentLang);
-
-            // ===== FOCUS FIRST INPUT =====
-            setTimeout(() => {
-                document.getElementById('orderName').focus();
-            }, 300);
-        });
-
-        // ============================================
-        // ===== 🔒 CONSOLE PROTECTION =====
-        // ============================================
-        console.log('%c🎨 Shulamith Gallery - Order Page (Secure)', 
-            'color: #d4b892; font-size: 16px; font-weight: bold;');
-        console.log('%c🔒 This page is secured against XSS, CSRF, and spam attacks.', 
-            'color: #2ecc71; font-size: 12px;');
-
-        // منع محاولات التلاعب
         Object.defineProperty(window, 'orderForm', {
             get: function() {
                 console.warn('🔒 Direct access to form is restricted.');

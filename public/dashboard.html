@@ -420,13 +420,26 @@
             height: 50px;
             object-fit: cover;
             border-radius: var(--radius-sm);
+        }
+
+        .order-image-thumb {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
             cursor: pointer;
+            border: 1px solid var(--color-border);
             transition: var(--transition);
         }
 
-        td .image-thumb:hover {
-            transform: scale(1.05);
+        .order-image-thumb:hover {
             border-color: var(--color-primary);
+            transform: scale(1.05);
+        }
+
+        .no-image-text {
+            color: var(--color-text-dark);
+            font-size: 0.75rem;
         }
 
         .table-actions {
@@ -1069,57 +1082,6 @@
             resize: vertical;
         }
 
-        .settings-form .submit-btn {
-            width: 100%;
-            padding: 12px;
-            background: var(--color-primary);
-            color: var(--color-bg);
-            border: none;
-            border-radius: var(--radius-sm);
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .settings-form .submit-btn:hover {
-            background: var(--color-primary-light);
-        }
-
-        /* ===== STAR RATING ===== */
-        .star-rating {
-            display: flex;
-            flex-direction: row-reverse;
-            gap: 8px;
-            justify-content: flex-end;
-        }
-
-        body.ltr .star-rating {
-            flex-direction: row;
-        }
-
-        .star-rating input {
-            display: none;
-        }
-
-        .star-rating label {
-            font-size: 2.2rem;
-            color: var(--color-border);
-            cursor: pointer;
-            transition: var(--transition);
-            margin: 0;
-        }
-
-        .star-rating label:hover,
-        .star-rating label:hover ~ label,
-        .star-rating input:checked ~ label {
-            color: #f1c40f;
-        }
-
-        body.ltr .star-rating label:hover ~ label {
-            color: #f1c40f;
-        }
-
         /* ===== RESPONSIVE ===== */
         @media (max-width: 992px) {
             .sidebar {
@@ -1208,6 +1170,11 @@
                 height: 36px;
             }
 
+            .order-image-thumb {
+                width: 36px;
+                height: 36px;
+            }
+
             .table-actions {
                 flex-direction: column;
                 gap: 4px;
@@ -1282,25 +1249,38 @@
             }
         }
 
-        /* ===== IMAGE PREVIEW IN ORDERS ===== */
-        .order-image-thumb {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: var(--radius-sm);
+        /* ===== STAR RATING ===== */
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        body.ltr .star-rating {
+            flex-direction: row;
+        }
+
+        .star-rating input {
+            display: none;
+        }
+
+        .star-rating label {
+            font-size: 2.2rem;
+            color: var(--color-border);
             cursor: pointer;
-            border: 1px solid var(--color-border);
             transition: var(--transition);
+            margin: 0;
         }
 
-        .order-image-thumb:hover {
-            border-color: var(--color-primary);
-            transform: scale(1.05);
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+            color: #f1c40f;
         }
 
-        .no-image {
-            color: var(--color-text-dark);
-            font-size: 0.75rem;
+        body.ltr .star-rating label:hover ~ label {
+            color: #f1c40f;
         }
     </style>
 </head>
@@ -1586,7 +1566,7 @@
                                 <input type="text" id="footerText" name="footerText">
                             </div>
                         </div>
-                        <button type="submit" class="submit-btn" id="settingsSubmit" style="margin-top:16px;">
+                        <button type="submit" class="add-btn" id="settingsSubmit" style="margin-top:16px; width:100%; padding:12px;">
                             <span>حفظ الإعدادات</span>
                             <span class="btn-loading" style="display:none;">جاري الحفظ...</span>
                         </button>
@@ -1752,7 +1732,7 @@
                     <textarea id="editOrderText" rows="4" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="editOrderImage">صورة مرفقة</label>
+                    <label for="editOrderImage">رابط الصورة المرفقة</label>
                     <div id="editOrderImagePreview" style="margin-bottom:8px;"></div>
                     <input type="url" id="editOrderImage" placeholder="https://example.com/image.jpg">
                     <span class="form-hint">رابط الصورة المرفقة (اختياري)</span>
@@ -1774,7 +1754,7 @@
         </div>
     </div>
 
-    <!-- Image Preview Modal for Orders -->
+    <!-- Image Preview Modal للعرض بالحجم الكامل -->
     <div class="modal" id="imagePreviewModal">
         <div class="modal-content modal-small">
             <div class="modal-header">
@@ -2569,7 +2549,7 @@
                     html += `
                         <tr>
                             <td>
-                                ${hasImage ? `<img src="${escapeHtml(order.imageUrl)}" alt="صورة الطلب" class="order-image-thumb" onclick="window.previewOrderImage('${escapeHtml(order.imageUrl)}', '${escapeHtml(order.name)}')">` : '<span class="no-image">لا توجد</span>'}
+                                ${hasImage ? `<img src="${escapeHtml(order.imageUrl)}" alt="صورة الطلب" class="order-image-thumb" onclick="window.previewOrderImage('${escapeHtml(order.imageUrl)}', '${escapeHtml(order.name)}')">` : '<span class="no-image-text">لا توجد</span>'}
                             </td>
                             <td>${escapeHtml(order.name)}</td>
                             <td>${escapeHtml(order.phone)}</td>
@@ -2841,6 +2821,22 @@
         });
 
         // ============================================
+        // ===== CONFIRM DELETE =====
+        // ============================================
+        window.confirmDelete = function(type, id) {
+            deleteTarget = { type, id };
+            const messages = {
+                gallery: 'هل أنت متأكد من حذف هذا المعرض؟',
+                artwork: 'هل أنت متأكد من حذف هذا العمل الفني؟',
+                message: 'هل أنت متأكد من حذف هذه الرسالة؟',
+                rate: 'هل أنت متأكد من حذف هذا التقييم؟',
+                order: 'هل أنت متأكد من حذف هذا الطلب؟'
+            };
+            document.getElementById('confirmMessage').textContent = messages[type] || 'هل أنت متأكد من حذف هذا العنصر؟';
+            document.getElementById('confirmModal').classList.add('active');
+        };
+
+        // ============================================
         // ===== GALLERY IMAGE UPLOAD =====
         // ============================================
         document.getElementById('galleryImageFile').addEventListener('change', function(e) {
@@ -2873,141 +2869,6 @@
                         const data = JSON.parse(xhr.response);
                         document.getElementById('galleryCover').value = data.url;
                         document.getElementById('galleryUploadPreview').innerHTML = `<img src="${escapeHtml(data.url)}" alt="Uploaded">`;
-                        showToast('تم رفع الصورة بنجاح');
-                    } else if (xhr.status === 401) {
-                        localStorage.removeItem('shulamith-token');
-                        window.location.href = '/login';
-                    } else {
-                        showToast('فشل رفع الصورة', 'error');
-                    }
-                    progress.style.display = 'none';
-                };
-                
-                xhr.onerror = function() {
-                    showToast('حدث خطأ في الرفع', 'error');
-                    progress.style.display = 'none';
-                };
-                
-                xhr.send(formData);
-            } catch (error) {
-                showToast('حدث خطأ', 'error');
-                progress.style.display = 'none';
-            }
-        });
-
-        // ============================================
-        // ===== CONFIRM DELETE =====
-        // ============================================
-        window.confirmDelete = function(type, id) {
-            deleteTarget = { type, id };
-            const messages = {
-                gallery: 'هل أنت متأكد من حذف هذا المعرض؟',
-                artwork: 'هل أنت متأكد من حذف هذا العمل الفني؟',
-                message: 'هل أنت متأكد من حذف هذه الرسالة؟',
-                rate: 'هل أنت متأكد من حذف هذا التقييم؟',
-                order: 'هل أنت متأكد من حذف هذا الطلب؟'
-            };
-            document.getElementById('confirmMessage').textContent = messages[type] || 'هل أنت متأكد من حذف هذا العنصر؟';
-            document.getElementById('confirmModal').classList.add('active');
-        };
-
-        // ============================================
-        // ===== SETTINGS SUBMIT =====
-        // ============================================
-        document.getElementById('settingsForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const data = {
-                siteName: document.getElementById('siteName').value.trim(),
-                logo: document.getElementById('siteLogo').value.trim(),
-                aboutText: document.getElementById('aboutText').value.trim(),
-                phone: document.getElementById('sitePhone').value.trim(),
-                email: document.getElementById('siteEmail').value.trim(),
-                address: document.getElementById('siteAddress').value.trim(),
-                instagram: document.getElementById('instagramUrl').value.trim(),
-                facebook: document.getElementById('facebookUrl').value.trim(),
-                whatsapp: document.getElementById('whatsappNumber').value.trim(),
-                heroText: document.getElementById('heroText').value.trim(),
-                footerText: document.getElementById('footerText').value.trim()
-            };
-            
-            const submitBtn = document.getElementById('settingsSubmit');
-            const status = document.getElementById('settingsStatus');
-            submitBtn.disabled = true;
-            submitBtn.querySelector('span:first-child').style.display = 'none';
-            submitBtn.querySelector('.btn-loading').style.display = 'inline';
-            status.style.display = 'none';
-            
-            try {
-                const res = await fetch('/api/settings', {
-                    method: 'PUT',
-                    headers: getHeaders(),
-                    body: JSON.stringify(data)
-                });
-                const result = await res.json();
-                if (res.ok) {
-                    status.className = 'form-status';
-                    status.style.display = 'block';
-                    status.style.background = 'rgba(46,204,113,0.15)';
-                    status.style.color = '#2ecc71';
-                    status.style.border = '1px solid rgba(46,204,113,0.3)';
-                    status.textContent = 'تم حفظ الإعدادات بنجاح';
-                    showToast('تم حفظ الإعدادات بنجاح');
-                } else {
-                    status.className = 'form-status';
-                    status.style.display = 'block';
-                    status.style.background = 'rgba(231,76,60,0.15)';
-                    status.style.color = '#e74c3c';
-                    status.style.border = '1px solid rgba(231,76,60,0.3)';
-                    status.textContent = result.error || 'حدث خطأ';
-                }
-            } catch (error) {
-                status.className = 'form-status';
-                status.style.display = 'block';
-                status.style.background = 'rgba(231,76,60,0.15)';
-                status.style.color = '#e74c3c';
-                status.style.border = '1px solid rgba(231,76,60,0.3)';
-                status.textContent = 'حدث خطأ في الاتصال';
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.querySelector('span:first-child').style.display = 'inline';
-                submitBtn.querySelector('.btn-loading').style.display = 'none';
-            }
-        });
-
-        // ============================================
-        // ===== ARTWORK IMAGE UPLOAD =====
-        // ============================================
-        document.getElementById('artworkImageFile').addEventListener('change', function(e) {
-            const file = this.files[0];
-            if (!file) return;
-            
-            const progress = document.getElementById('uploadProgress');
-            const fill = document.getElementById('progressFill');
-            const text = document.getElementById('progressText');
-            progress.style.display = 'block';
-            
-            const formData = new FormData();
-            formData.append('image', file);
-            
-            try {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', '/api/upload');
-                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-                
-                xhr.upload.onprogress = function(e) {
-                    if (e.lengthComputable) {
-                        const pct = Math.round((e.loaded / e.total) * 100);
-                        fill.style.width = pct + '%';
-                        text.textContent = pct + '%';
-                    }
-                };
-                
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        const data = JSON.parse(xhr.response);
-                        document.getElementById('artworkImageUrl').value = data.url;
-                        document.getElementById('uploadPreview').innerHTML = `<img src="${escapeHtml(data.url)}" alt="Uploaded">`;
                         showToast('تم رفع الصورة بنجاح');
                     } else if (xhr.status === 401) {
                         localStorage.removeItem('shulamith-token');
@@ -3174,6 +3035,59 @@
                 openArtworkModal();
             });
             
+            // Image upload for artwork
+            document.getElementById('artworkImageFile').addEventListener('change', function(e) {
+                const file = this.files[0];
+                if (!file) return;
+                
+                const progress = document.getElementById('uploadProgress');
+                const fill = document.getElementById('progressFill');
+                const text = document.getElementById('progressText');
+                progress.style.display = 'block';
+                
+                const formData = new FormData();
+                formData.append('image', file);
+                
+                try {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/api/upload');
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                    
+                    xhr.upload.onprogress = function(e) {
+                        if (e.lengthComputable) {
+                            const pct = Math.round((e.loaded / e.total) * 100);
+                            fill.style.width = pct + '%';
+                            text.textContent = pct + '%';
+                        }
+                    };
+                    
+                    xhr.onload = function() {
+                        if (xhr.status === 200) {
+                            const data = JSON.parse(xhr.response);
+                            document.getElementById('artworkImageUrl').value = data.url;
+                            document.getElementById('uploadPreview').innerHTML = `<img src="${escapeHtml(data.url)}" alt="Uploaded">`;
+                            showToast('تم رفع الصورة بنجاح');
+                        } else if (xhr.status === 401) {
+                            localStorage.removeItem('shulamith-token');
+                            window.location.href = '/login.html';
+                        } else {
+                            showToast('فشل رفع الصورة', 'error');
+                        }
+                        progress.style.display = 'none';
+                    };
+                    
+                    xhr.onerror = function() {
+                        showToast('حدث خطأ في الرفع', 'error');
+                        progress.style.display = 'none';
+                    };
+                    
+                    xhr.send(formData);
+                } catch (error) {
+                    showToast('حدث خطأ', 'error');
+                    progress.style.display = 'none';
+                }
+            });
+            
             // Message filter
             document.getElementById('messageFilter').addEventListener('change', function() {
                 loadMessages(this.value);
@@ -3187,6 +3101,67 @@
             // Orders filter
             document.getElementById('ordersFilter').addEventListener('change', function() {
                 loadOrders(this.value);
+            });
+            
+            // Settings form
+            document.getElementById('settingsForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const data = {
+                    siteName: document.getElementById('siteName').value.trim(),
+                    logo: document.getElementById('siteLogo').value.trim(),
+                    aboutText: document.getElementById('aboutText').value.trim(),
+                    phone: document.getElementById('sitePhone').value.trim(),
+                    email: document.getElementById('siteEmail').value.trim(),
+                    address: document.getElementById('siteAddress').value.trim(),
+                    instagram: document.getElementById('instagramUrl').value.trim(),
+                    facebook: document.getElementById('facebookUrl').value.trim(),
+                    whatsapp: document.getElementById('whatsappNumber').value.trim(),
+                    heroText: document.getElementById('heroText').value.trim(),
+                    footerText: document.getElementById('footerText').value.trim()
+                };
+                
+                const submitBtn = document.getElementById('settingsSubmit');
+                const status = document.getElementById('settingsStatus');
+                submitBtn.disabled = true;
+                submitBtn.querySelector('span:first-child').style.display = 'none';
+                submitBtn.querySelector('.btn-loading').style.display = 'inline';
+                status.style.display = 'none';
+                
+                try {
+                    const res = await fetch('/api/settings', {
+                        method: 'PUT',
+                        headers: getHeaders(),
+                        body: JSON.stringify(data)
+                    });
+                    const result = await res.json();
+                    if (res.ok) {
+                        status.className = 'form-status';
+                        status.style.display = 'block';
+                        status.style.background = 'rgba(46,204,113,0.15)';
+                        status.style.color = '#2ecc71';
+                        status.style.border = '1px solid rgba(46,204,113,0.3)';
+                        status.textContent = 'تم حفظ الإعدادات بنجاح';
+                        showToast('تم حفظ الإعدادات بنجاح');
+                    } else {
+                        status.className = 'form-status';
+                        status.style.display = 'block';
+                        status.style.background = 'rgba(231,76,60,0.15)';
+                        status.style.color = '#e74c3c';
+                        status.style.border = '1px solid rgba(231,76,60,0.3)';
+                        status.textContent = result.error || 'حدث خطأ';
+                    }
+                } catch (error) {
+                    status.className = 'form-status';
+                    status.style.display = 'block';
+                    status.style.background = 'rgba(231,76,60,0.15)';
+                    status.style.color = '#e74c3c';
+                    status.style.border = '1px solid rgba(231,76,60,0.3)';
+                    status.textContent = 'حدث خطأ في الاتصال';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.querySelector('span:first-child').style.display = 'inline';
+                    submitBtn.querySelector('.btn-loading').style.display = 'none';
+                }
             });
             
             // Confirm delete

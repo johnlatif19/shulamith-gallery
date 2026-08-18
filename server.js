@@ -663,7 +663,8 @@ const upload = multer({
     }
 });
 
-app.post('/api/upload', requireAuth, upload.single('image'), async (req, res) => {
+// رفع الصور - بدون توثيق للسماح للعملاء برفع الصور
+app.post('/api/upload', upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No image file provided' });
@@ -674,7 +675,7 @@ app.post('/api/upload', requireAuth, upload.single('image'), async (req, res) =>
 
         const result = await Promise.race([
             cloudinary.uploader.upload(dataURI, {
-                folder: 'shulamith-gallery',
+                folder: 'shulamith-gallery/orders',
                 resource_type: 'auto'
             }),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timeout')), 30000))
@@ -703,15 +704,15 @@ app.post('/api/contact', async (req, res) => {
         const { name, email, phone, message } = req.body;
 
         if (!name || !email || !message) {
-            return res.status(400).json({ error: 'Name, email, and message are required' });
+            return res.status(400).json({ error: 'الاسم والبريد الإلكتروني والرسالة مطلوبة' });
         }
 
         if (!validateEmail(email)) {
-            return res.status(400).json({ error: 'Invalid email format' });
+            return res.status(400).json({ error: 'بريد إلكتروني غير صالح' });
         }
 
         if (phone && !validatePhone(phone)) {
-            return res.status(400).json({ error: 'Invalid phone number format' });
+            return res.status(400).json({ error: 'رقم هاتف غير صالح' });
         }
 
         const messageData = {
@@ -731,22 +732,22 @@ app.post('/api/contact', async (req, res) => {
                     await transporter.sendMail({
                         from: '"' + (process.env.SMTP_FROM_NAME || 'Shulamith Gallery') + '" <' + process.env.SMTP_FROM_EMAIL + '>',
                         to: email,
-                        subject: 'Thank you for contacting Shulamith Gallery',
+                        subject: 'شكراً لتواصلك مع Shulamith Gallery',
                         html: `
                             <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #1a1a1a; color: #e8e0d4; border-radius: 12px;">
                                 <div style="text-align: center; margin-bottom: 30px;">
                                     <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" style="max-width: 150px; height: auto; border-radius: 8px;">
                                 </div>
-                                <h2 style="color: #d4b892; margin-bottom: 20px;">Hello ${sanitizeHtml(name)},</h2>
-                                <p style="line-height: 1.8; color: #d4c8b8;">Your message has been received and we will respond as soon as possible.</p>
-                                <p style="line-height: 1.8; color: #d4c8b8;">Thank you for contacting <strong style="color: #d4b892;">Shulamith Gallery</strong>.</p>
+                                <h2 style="color: #d4b892; margin-bottom: 20px;">مرحباً ${sanitizeHtml(name)}،</h2>
+                                <p style="line-height: 1.8; color: #d4c8b8;">تم استلام رسالتك وسيتم الرد في أقرب وقت.</p>
+                                <p style="line-height: 1.8; color: #d4c8b8;">شكراً لتواصلك مع <strong style="color: #d4b892;">Shulamith Gallery</strong>.</p>
                                 <div style="margin: 30px 0; padding: 20px; background: #252525; border-radius: 8px; border-right: 3px solid #d4b892;">
-                                    <p style="margin: 5px 0; color: #d4c8b8;"><strong style="color: #d4b892;">Your message:</strong></p>
+                                    <p style="margin: 5px 0; color: #d4c8b8;"><strong style="color: #d4b892;">رسالتك:</strong></p>
                                     <p style="margin: 10px 0 0 0; color: #e8e0d4; font-style: italic;">${sanitizeHtml(message)}</p>
                                 </div>
                                 <hr style="border: none; border-top: 1px solid #333; margin: 30px 0;">
                                 <p style="color: #999; font-size: 14px; text-align: center;">
-                                    (c) 2026 Shulamith Gallery. All rights reserved.
+                                    © 2026 Shulamith Gallery. جميع الحقوق محفوظة
                                 </p>
                             </div>
                         `
@@ -858,15 +859,15 @@ app.post('/api/rates', async (req, res) => {
         const { name, email, rating, opinion } = req.body;
 
         if (!name || !email || !rating || !opinion) {
-            return res.status(400).json({ error: 'All fields are required' });
+            return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         }
 
         if (!validateEmail(email)) {
-            return res.status(400).json({ error: 'Invalid email format' });
+            return res.status(400).json({ error: 'بريد إلكتروني غير صالح' });
         }
 
         if (rating < 1 || rating > 5) {
-            return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+            return res.status(400).json({ error: 'التقييم يجب أن يكون بين 1 و 5' });
         }
 
         const rateData = {
@@ -931,15 +932,15 @@ app.put('/api/rates/:id', requireAuth, async (req, res) => {
         }
 
         if (!name || !email || !rating || !opinion) {
-            return res.status(400).json({ error: 'All fields are required' });
+            return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         }
 
         if (!validateEmail(email)) {
-            return res.status(400).json({ error: 'Invalid email format' });
+            return res.status(400).json({ error: 'بريد إلكتروني غير صالح' });
         }
 
         if (rating < 1 || rating > 5) {
-            return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+            return res.status(400).json({ error: 'التقييم يجب أن يكون بين 1 و 5' });
         }
 
         const docRef = db.collection('rates').doc(id);
@@ -991,15 +992,15 @@ app.post('/api/orders', async (req, res) => {
         const { name, phone, email, orderText, imageUrl } = req.body;
 
         if (!name || !phone || !email || !orderText) {
-            return res.status(400).json({ error: 'All fields are required' });
+            return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         }
 
         if (!validateEmail(email)) {
-            return res.status(400).json({ error: 'Invalid email format' });
+            return res.status(400).json({ error: 'بريد إلكتروني غير صالح' });
         }
 
         if (!validatePhone(phone)) {
-            return res.status(400).json({ error: 'Invalid phone format' });
+            return res.status(400).json({ error: 'رقم هاتف غير صالح' });
         }
 
         const orderData = {
@@ -1067,20 +1068,20 @@ app.put('/api/orders/:id', requireAuth, async (req, res) => {
         }
 
         if (!name || !phone || !email || !orderText) {
-            return res.status(400).json({ error: 'All fields are required' });
+            return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         }
 
         if (!validateEmail(email)) {
-            return res.status(400).json({ error: 'Invalid email format' });
+            return res.status(400).json({ error: 'بريد إلكتروني غير صالح' });
         }
 
         if (!validatePhone(phone)) {
-            return res.status(400).json({ error: 'Invalid phone format' });
+            return res.status(400).json({ error: 'رقم هاتف غير صالح' });
         }
 
         const validStatuses = ['pending', 'processing', 'completed', 'cancelled'];
         if (status && !validStatuses.includes(status)) {
-            return res.status(400).json({ error: 'Invalid status' });
+            return res.status(400).json({ error: 'حالة غير صالحة' });
         }
 
         const docRef = db.collection('orders').doc(id);
@@ -1118,7 +1119,7 @@ app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
 
         const validStatuses = ['pending', 'processing', 'completed', 'cancelled'];
         if (!validStatuses.includes(status)) {
-            return res.status(400).json({ error: 'Invalid status' });
+            return res.status(400).json({ error: 'حالة غير صالحة' });
         }
 
         const docRef = db.collection('orders').doc(id);
@@ -1135,10 +1136,10 @@ app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
         try {
             const order = doc.data();
             const statusMap = {
-                pending: 'pending',
-                processing: 'processing',
-                completed: 'completed',
-                cancelled: 'cancelled'
+                pending: 'قيد الانتظار',
+                processing: 'قيد التنفيذ',
+                completed: 'مكتمل',
+                cancelled: 'ملغي'
             };
             
             const transporterInstance = await getTransporter();
@@ -1146,21 +1147,21 @@ app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
                 await transporterInstance.sendMail({
                     from: '"Shulamith Gallery" <' + process.env.SMTP_FROM_EMAIL + '>',
                     to: order.email,
-                    subject: 'Order Update #' + id.substring(0, 8),
+                    subject: 'تحديث حالة الطلب #' + id.substring(0, 8),
                     html: `
                         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #1a1a1a; color: #e8e0d4; border-radius: 12px; border: 1px solid #333;">
                             <div style="text-align: center; margin-bottom: 30px;">
                                 <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" style="max-width: 150px; height: auto; border-radius: 8px;">
                             </div>
-                            <h2 style="color: #d4b892; margin-bottom: 20px;">Hello ${sanitizeHtml(order.name)},</h2>
-                            <p style="line-height: 1.8; color: #d4c8b8;">Your order status has been updated to: <strong style="color: #d4b892;">${statusMap[status] || status}</strong></p>
+                            <h2 style="color: #d4b892; margin-bottom: 20px;">مرحباً ${sanitizeHtml(order.name)}،</h2>
+                            <p style="line-height: 1.8; color: #d4c8b8;">تم تحديث حالة طلبك إلى: <strong style="color: #d4b892;">${statusMap[status] || status}</strong></p>
                             <div style="margin: 20px 0; padding: 20px; background: #252525; border-radius: 8px; border-right: 3px solid #d4b892;">
-                                <p style="margin: 5px 0; color: #d4c8b8;"><strong style="color: #d4b892;">Order Details:</strong></p>
+                                <p style="margin: 5px 0; color: #d4c8b8;"><strong style="color: #d4b892;">تفاصيل الطلب:</strong></p>
                                 <p style="margin: 10px 0 0 0; color: #e8e0d4;">${sanitizeHtml(order.orderText)}</p>
                             </div>
                             <hr style="border: none; border-top: 1px solid #333; margin: 30px 0;">
                             <p style="color: #999; font-size: 14px; text-align: center;">
-                                (c) 2026 Shulamith Gallery. All rights reserved.
+                                © 2026 Shulamith Gallery. جميع الحقوق محفوظة
                             </p>
                         </div>
                     `
@@ -1209,15 +1210,15 @@ app.get('/api/settings', async (req, res) => {
             res.json({
                 siteName: 'Shulamith Gallery',
                 logo: 'https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg',
-                aboutText: 'Graduate of Fine Arts, creating paintings and decor with the ability to execute any artwork with suitable materials and sizes.',
+                aboutText: 'خريجة فنون جميلة، أقدم أعمال فنية ولوحات وديكور مع إمكانية تنفيذ أي تابلوه بخامة وحجم مناسبين.',
                 phone: '012 76961450',
                 email: 'mrmrtharwat43@gmail.com',
-                address: 'Sohag, Egypt',
+                address: 'سوهاج، مصر',
                 instagram: '',
                 facebook: 'shulamithgallery.7559699',
                 whatsapp: '201276961450',
-                heroText: 'Shulamith Gallery - Where Art Meets Beauty',
-                footerText: '(c) 2026 Shulamith Gallery. All rights reserved.'
+                heroText: 'شولميث جاليري - حيث يلتقي الفن بالجمال',
+                footerText: '© 2026 Shulamith Gallery. جميع الحقوق محفوظة'
             });
         }
     } catch (error) {
@@ -1290,11 +1291,11 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
         const { name, email, message } = req.body;
 
         if (!name || !email || !message) {
-            return res.status(400).json({ error: 'Name, email, and message are required' });
+            return res.status(400).json({ error: 'الاسم والبريد الإلكتروني والرسالة مطلوبة' });
         }
 
         if (!validateEmail(email)) {
-            return res.status(400).json({ error: 'Invalid email format' });
+            return res.status(400).json({ error: 'بريد إلكتروني غير صالح' });
         }
 
         const smtpTransporter = await getTransporter();
@@ -1302,15 +1303,14 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
         if (!smtpTransporter) {
             console.error('Email service not available');
             return res.status(503).json({
-                error: 'Email service not configured. Please try again later.',
-                details: 'SMTP connection failed. Check server logs.'
+                error: 'خدمة البريد الإلكتروني غير متاحة. الرجاء المحاولة لاحقاً.'
             });
         }
 
         const mailOptions = {
             from: '"Shulamith Gallery" <' + process.env.SMTP_FROM_EMAIL + '>',
             to: email,
-            subject: 'Message from Shulamith Gallery',
+            subject: 'رسالة من Shulamith Gallery',
             html: `
                 <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #1a1a1a; color: #e8e0d4; border-radius: 12px; border: 1px solid #333;">
                     <div style="text-align: center; margin-bottom: 30px;">
@@ -1318,22 +1318,22 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
                     </div>
                     <div style="border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px;">
                         <h2 style="color: #d4b892; margin: 0; font-weight: 300;">Shulamith Gallery</h2>
-                        <p style="color: #b0a89a; margin: 5px 0 0 0;">${new Date().toLocaleDateString('en-US')}</p>
+                        <p style="color: #b0a89a; margin: 5px 0 0 0;">${new Date().toLocaleDateString('ar-EG')}</p>
                     </div>
                     <div style="background: #252525; padding: 20px; border-radius: 8px; border-right: 3px solid #d4b892;">
-                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">Message to:</strong> ${sanitizeHtml(name)}</p>
-                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">Email:</strong> ${email}</p>
+                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">رسالة إلى:</strong> ${sanitizeHtml(name)}</p>
+                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">البريد:</strong> ${email}</p>
                         <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
-                            <p style="color: #d4c8b8; margin: 0 0 8px 0;"><strong style="color: #d4b892;">Message:</strong></p>
+                            <p style="color: #d4c8b8; margin: 0 0 8px 0;"><strong style="color: #d4b892;">الرسالة:</strong></p>
                             <p style="color: #e8e0d4; margin: 0; line-height: 1.8; background: #1a1a1a; padding: 12px; border-radius: 6px;">${sanitizeHtml(message)}</p>
                         </div>
                     </div>
                     <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #333; text-align: center;">
                         <p style="color: #999; font-size: 14px; margin: 0;">
-                            (c) 2026 <strong style="color: #d4b892;">Shulamith Gallery</strong>. All rights reserved.
+                            © 2026 <strong style="color: #d4b892;">Shulamith Gallery</strong>. جميع الحقوق محفوظة
                         </p>
                         <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">
-                            Shulamith Gallery - Where Art Meets Beauty
+                            شولميث جاليري — حيث يلتقي الفن بالجمال
                         </p>
                     </div>
                 </div>
@@ -1362,7 +1362,7 @@ app.use((err, req, res, next) => {
 
     if (err instanceof multer.MulterError) {
         if (err.code === 'FILE_TOO_LARGE') {
-            return res.status(413).json({ error: 'File too large. Maximum size is 5MB.' });
+            return res.status(413).json({ error: 'الملف كبير جداً. الحد الأقصى 5 ميجابايت.' });
         }
         if (err.code === 'FILE_TYPE') {
             return res.status(400).json({ error: err.message });
@@ -1371,7 +1371,7 @@ app.use((err, req, res, next) => {
     }
 
     if (err.message === 'Invalid file type. Only images are allowed.') {
-        return res.status(400).json({ error: err.message });
+        return res.status(400).json({ error: 'نوع الملف غير مدعوم. الصور فقط مسموحة.' });
     }
 
     res.status(500).json({ error: 'Internal server error' });

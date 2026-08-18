@@ -2,11 +2,97 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>طلب عمل فني — Shulamith Gallery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>طلب عمل فني مخصص | Shulamith Gallery - شولميث جاليري</title>
+    <meta name="description" content="اطلب عملاً فنياً مخصصاً حسب ذوقك. نوفر تنفيذ تابلوهات بأي خامة وحجم يناسب منزلك أو مكان عملك. استشارة مجانية وتصميم حسب الطلب.">
+    <meta name="keywords" content="طلب عمل فني, تابلوهات مخصصة, لوحات فنية حسب الطلب, شولميث جاليري, تنفيذ تابلوهات, ديكور فني, فن تشكيلي مصر">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://shulamith-gallery.com/order">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://shulamith-gallery.com/order">
+    <meta property="og:title" content="طلب عمل فني مخصص | Shulamith Gallery">
+    <meta property="og:description" content="اطلب عملاً فنياً مخصصاً حسب ذوقك. نوفر تنفيذ تابلوهات بأي خامة وحجم يناسب منزلك أو مكان عملك.">
+    <meta property="og:image" content="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
+    <meta property="og:site_name" content="Shulamith Gallery">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://shulamith-gallery.com/order">
+    <meta name="twitter:title" content="طلب عمل فني مخصص | Shulamith Gallery">
+    <meta name="twitter:description" content="اطلب عملاً فنياً مخصصاً حسب ذوقك. نوفر تنفيذ تابلوهات بأي خامة وحجم يناسب منزلك أو مكان عملك.">
+    <meta name="twitter:image" content="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
+
+    <!-- Structured Data - Breadcrumb -->
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "الرئيسية",
+                    "item": "https://shulamith-gallery.com/"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "طلب عمل فني",
+                    "item": "https://shulamith-gallery.com/order"
+                }
+            ]
+        }
+    </script>
+
+    <!-- Structured Data - WebPage -->
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": "طلب عمل فني مخصص | Shulamith Gallery",
+            "description": "اطلب عملاً فنياً مخصصاً حسب ذوقك. نوفر تنفيذ تابلوهات بأي خامة وحجم يناسب منزلك أو مكان عملك.",
+            "url": "https://shulamith-gallery.com/order",
+            "inLanguage": "ar",
+            "isPartOf": {
+                "@type": "WebSite",
+                "name": "Shulamith Gallery",
+                "url": "https://shulamith-gallery.com/"
+            }
+        }
+    </script>
+
+    <!-- Structured Data - Service (Service offered: Custom Artwork) -->
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "Service",
+            "name": "طلبات فنية مخصصة",
+            "description": "تنفيذ تابلوهات فنية بأي خامة وحجم يناسب مكان العميل. استشارة مجانية وتصميم حسب الطلب.",
+            "provider": {
+                "@type": "Person",
+                "name": "مريم (شولميث)",
+                "jobTitle": "فنانة تشكيلية",
+                "url": "https://shulamith-gallery.com/about"
+            },
+            "areaServed": {
+                "@type": "Country",
+                "name": "مصر"
+            }
+        }
+    </script>
+
+    <!-- Favicon -->
     <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
-    
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
+
+    <!-- Preconnect -->
+    <link rel="preconnect" href="https://i.postimg.cc">
+    <link rel="preconnect" href="https://res.cloudinary.com">
+
     <style>
+        /* ===== CSS Variables ===== */
         :root {
             --color-bg: #0d0b0a;
             --color-bg-secondary: #161210;
@@ -25,9 +111,20 @@
             --radius: 12px;
             --radius-sm: 8px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --header-height: 70px;
+            --container-max: 1200px;
+            --container-padding: clamp(12px, 3vw, 30px);
+            --section-padding: clamp(40px, 8vw, 80px);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+            width: 100%;
+            overflow-x: hidden;
+        }
 
         body {
             font-family: 'Segoe UI', 'Tahoma', Arial, sans-serif;
@@ -35,6 +132,9 @@
             color: var(--color-text);
             line-height: 1.7;
             min-height: 100vh;
+            min-height: 100dvh;
+            width: 100%;
+            overflow-x: hidden;
         }
 
         body.rtl { direction: rtl; }
@@ -45,7 +145,12 @@
         ::-webkit-scrollbar-thumb { background: var(--color-primary-dark); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
 
-        .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+        .container {
+            max-width: var(--container-max);
+            margin: 0 auto;
+            padding: 0 var(--container-padding);
+            width: 100%;
+        }
 
         /* ===== NAVBAR ===== */
         .navbar {
@@ -56,35 +161,45 @@
             z-index: 1000;
             background: rgba(13, 11, 10, 0.92);
             backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--color-border);
+            height: var(--header-height);
         }
 
         .nav-container {
-            max-width: 1200px;
+            max-width: var(--container-max);
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 var(--container-padding);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 70px;
+            height: 100%;
+            width: 100%;
         }
 
-        .nav-logo img { height: 45px; width: auto; border-radius: var(--radius-sm); }
+        .nav-logo a { display: flex; align-items: center; flex-shrink: 0; }
+        .logo-img { height: clamp(30px, 5vw, 45px); width: auto; border-radius: var(--radius-sm); transition: var(--transition); }
+        .logo-img:hover { opacity: 0.85; }
 
         .nav-menu {
             display: flex;
             align-items: center;
-            gap: 32px;
+            gap: clamp(12px, 3vw, 32px);
             list-style: none;
+            margin: 0;
+            padding: 0;
         }
 
         .nav-menu li a {
             color: var(--color-text-muted);
-            font-size: 0.95rem;
-            text-decoration: none;
-            transition: var(--transition);
-            padding: 4px 0;
+            font-size: clamp(0.8rem, 1vw, 0.95rem);
+            font-weight: 400;
+            letter-spacing: 0.5px;
             position: relative;
+            padding: 4px 0;
+            transition: var(--transition);
+            white-space: nowrap;
+            text-decoration: none;
         }
 
         .nav-menu li a::after {
@@ -100,7 +215,7 @@
 
         .nav-menu li a:hover,
         .nav-menu li a.active {
-            color: var(--color-white);
+            color: #fff;
         }
 
         .nav-menu li a:hover::after,
@@ -108,13 +223,14 @@
             width: 100%;
         }
 
-        body.ltr .nav-menu li a::after { left: 0; right: auto; }
         body.rtl .nav-menu li a::after { left: auto; right: 0; }
+        body.ltr .nav-menu li a::after { left: 0; right: auto; }
 
         .nav-actions {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: clamp(6px, 1.5vw, 16px);
+            flex-shrink: 0;
         }
 
         .lang-switch {
@@ -124,11 +240,13 @@
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
             color: var(--color-text);
-            padding: 6px 14px;
+            padding: clamp(3px, 0.6vw, 6px) clamp(8px, 1.5vw, 14px);
             border-radius: 20px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: clamp(0.65rem, 0.8vw, 0.85rem);
             transition: var(--transition);
+            font-family: inherit;
+            line-height: 1;
         }
 
         .lang-switch:hover {
@@ -144,6 +262,7 @@
             border: none;
             cursor: pointer;
             padding: 4px;
+            flex-shrink: 0;
         }
 
         .nav-toggle span {
@@ -153,37 +272,57 @@
             background: var(--color-text);
             transition: var(--transition);
             border-radius: 2px;
+            transform-origin: center;
         }
 
         .nav-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
-        .nav-toggle.active span:nth-child(2) { opacity: 0; }
+        .nav-toggle.active span:nth-child(2) { opacity: 0; transform: scaleX(0); }
         .nav-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
 
         @media (max-width: 768px) {
             .nav-menu {
                 display: none;
                 position: absolute;
-                top: 70px;
+                top: var(--header-height);
                 left: 0;
                 right: 0;
                 background: rgba(13, 11, 10, 0.98);
+                backdrop-filter: blur(12px);
                 flex-direction: column;
                 padding: 20px;
-                gap: 16px;
+                gap: 12px;
                 border-bottom: 1px solid var(--color-border);
+                width: 100%;
             }
-            .nav-menu.active { display: flex; }
+
+            .nav-menu.active { display: flex; animation: slideDown 0.3s ease; }
+
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            .nav-menu li a {
+                font-size: clamp(0.9rem, 2.5vw, 1rem);
+                padding: 10px 0;
+                display: block;
+                text-align: center;
+                width: 100%;
+                white-space: normal;
+            }
+
+            .nav-menu li a::after { display: none; }
             .nav-toggle { display: flex; }
         }
 
         /* ===== PAGE HEADER ===== */
         .page-header {
-            padding: 110px 0 30px;
+            padding: calc(var(--header-height) + 30px) 0 20px;
             text-align: center;
         }
 
         .page-header h1 {
-            font-size: clamp(1.6rem, 4vw, 2.8rem);
+            font-size: clamp(1.8rem, 4.5vw, 3rem);
             font-weight: 300;
             color: var(--color-primary);
             letter-spacing: 2px;
@@ -196,16 +335,20 @@
         }
 
         /* ===== ORDER FORM ===== */
+        .order-section {
+            padding: 0 0 var(--section-padding);
+            background: var(--color-bg);
+        }
+
         .order-form-wrapper {
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
             border-radius: var(--radius);
-            padding: clamp(16px, 4vw, 40px);
-            margin-bottom: 40px;
+            padding: clamp(20px, 4vw, 45px);
         }
 
         .order-form .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
 
         .order-form label {
@@ -272,15 +415,9 @@
             display: block;
         }
 
-        body.rtl .order-form .char-counter {
-            text-align: right;
-        }
+        body.rtl .order-form .char-counter { text-align: right; }
 
         /* ===== FILE UPLOAD ===== */
-        .file-upload-wrapper {
-            position: relative;
-        }
-
         .file-upload-area {
             border: 2px dashed var(--color-border);
             border-radius: var(--radius-sm);
@@ -319,18 +456,9 @@
             display: none;
         }
 
-        .file-upload-area .file-name.visible {
-            display: block;
-        }
-
-        .file-upload-area .file-size {
-            color: var(--color-text-dark);
-            font-size: 0.75rem;
-        }
-
-        .file-upload-area input[type="file"] {
-            display: none;
-        }
+        .file-upload-area .file-name.visible { display: block; }
+        .file-upload-area .file-size { color: var(--color-text-dark); font-size: 0.75rem; }
+        .file-upload-area input[type="file"] { display: none; }
 
         .file-upload-area .remove-file {
             background: none;
@@ -342,9 +470,7 @@
             display: none;
         }
 
-        .file-upload-area .remove-file.visible {
-            display: inline-block;
-        }
+        .file-upload-area .remove-file.visible { display: inline-block; }
 
         .file-preview {
             margin-top: 12px;
@@ -352,9 +478,7 @@
             justify-content: center;
         }
 
-        .file-preview.visible {
-            display: flex;
-        }
+        .file-preview.visible { display: flex; }
 
         .file-preview img {
             max-width: 150px;
@@ -364,6 +488,7 @@
             object-fit: cover;
         }
 
+        /* ===== SUBMIT BUTTON ===== */
         .submit-btn {
             width: 100%;
             padding: 14px;
@@ -391,6 +516,7 @@
 
         .btn-loading { display: none; }
 
+        /* ===== FORM STATUS ===== */
         .form-status {
             margin-top: 16px;
             padding: 12px;
@@ -441,28 +567,134 @@
         }
 
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* ===== FOOTER ===== */
         .footer {
             background: var(--color-bg-secondary);
             border-top: 1px solid var(--color-border);
-            padding: 40px 0 20px;
-            text-align: center;
-            margin-top: 40px;
+            padding: clamp(30px, 6vw, 60px) 0 clamp(12px, 2vw, 20px);
         }
 
-        .footer p {
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+            gap: clamp(20px, 3vw, 40px);
+            margin-bottom: clamp(24px, 4vw, 40px);
+        }
+
+        .footer-brand p {
+            color: var(--color-text-muted);
+            font-size: clamp(0.8rem, 0.95vw, 0.95rem);
+            margin-top: 12px;
+        }
+
+        .footer-logo {
+            height: clamp(35px, 5vw, 50px);
+            width: auto;
+            border-radius: var(--radius-sm);
+        }
+
+        .footer-links h4,
+        .footer-contact h4 {
+            color: var(--color-primary);
+            font-size: clamp(0.9rem, 1.1vw, 1.05rem);
+            font-weight: 400;
+            margin-bottom: clamp(10px, 1.5vw, 16px);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links ul li {
+            margin-bottom: clamp(4px, 0.8vw, 8px);
+        }
+
+        .footer-links ul li a {
+            color: var(--color-text-muted);
+            font-size: clamp(0.8rem, 0.9vw, 0.95rem);
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .footer-links ul li a:hover {
+            color: var(--color-primary);
+        }
+
+        .footer-contact p {
+            color: var(--color-text-muted);
+            font-size: clamp(0.8rem, 0.9vw, 0.95rem);
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+
+        .footer-contact p a {
+            color: var(--color-text-muted);
+            text-decoration: none;
+        }
+
+        .footer-contact p a:hover {
+            color: var(--color-primary);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--color-border);
+            padding-top: clamp(14px, 2vw, 20px);
+            text-align: center;
+        }
+
+        .footer-bottom p {
             color: var(--color-text-dark);
-            font-size: 0.85rem;
+            font-size: clamp(0.7rem, 0.8vw, 0.85rem);
+        }
+
+        @media (max-width: 768px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                text-align: center;
+            }
+
+            .footer-brand { display: flex; flex-direction: column; align-items: center; }
+            .footer-links ul { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 16px; }
+            .footer-links ul li { margin-bottom: 0; }
+            .footer-contact { display: flex; flex-direction: column; align-items: center; }
+        }
+
+        /* ===== SCROLL TOP ===== */
+        .scroll-top {
+            position: fixed;
+            bottom: clamp(16px, 3vw, 30px);
+            right: clamp(16px, 3vw, 30px);
+            width: clamp(38px, 5vw, 48px);
+            height: clamp(38px, 5vw, 48px);
+            background: var(--color-primary);
+            color: var(--color-bg);
+            border: none;
+            border-radius: 50%;
+            font-size: clamp(1rem, 1.5vw, 1.4rem);
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scroll-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-top:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(212, 184, 146, 0.3);
         }
 
         /* ===== RESPONSIVE ===== */
@@ -472,33 +704,80 @@
         }
 
         @media (max-width: 480px) {
-            .page-header { padding: 100px 0 20px; }
+            .page-header { padding: calc(var(--header-height) + 20px) 0 16px; }
             .page-header h1 { font-size: 1.6rem; }
             .order-form-wrapper { padding: 16px; }
             .file-upload-area { padding: 20px 16px; }
         }
+
+        /* ===== REVEAL ANIMATIONS ===== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-left {
+            opacity: 0;
+            transform: translateX(-60px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .reveal-left.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* ===== MEDIA QUERIES ===== */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
     </style>
 </head>
 <body>
+
     <!-- ===== NAVBAR ===== -->
-    <nav class="navbar">
+    <nav class="navbar" id="navbar" role="navigation" aria-label="القائمة الرئيسية">
         <div class="nav-container">
             <div class="nav-logo">
-                <a href="/">
-                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" loading="lazy">
+                <a href="/" aria-label="الرئيسية">
+                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="logo-img" loading="lazy" width="45" height="45">
                 </a>
             </div>
-            <ul class="nav-menu" id="navMenu">
-                <li><a href="/" data-i18n="nav.home">الرئيسية</a></li>
-                <li><a href="/gallery" data-i18n="nav.gallery">المعارض</a></li>
-                <li><a href="https://shulamith-gallery.vercel.app/#about" data-i18n="nav.about">عن الفنانة</a></li>
-                <li><a href="/order" class="active" data-i18n="nav.custom">طلبات خاصة</a></li>
-                <li><a href="/rate" data-i18n="nav.rate">تقييم</a></li>
-                <li><a href="/#contact" data-i18n="nav.contact">تواصل</a></li>
+            <ul class="nav-menu" id="navMenu" role="menubar">
+                <li role="none"><a href="/" role="menuitem" data-i18n="nav.home">الرئيسية</a></li>
+                <li role="none"><a href="/gallery" role="menuitem" data-i18n="nav.gallery">المعارض</a></li>
+                <li role="none"><a href="/#about" role="menuitem" data-i18n="nav.about">عن الفنانة</a></li>
+                <li role="none"><a href="/order" role="menuitem" class="active" data-i18n="nav.custom">طلبات خاصة</a></li>
+                <li role="none"><a href="/rate" role="menuitem" data-i18n="nav.rate">تقييم</a></li>
+                <li role="none"><a href="/#contact" role="menuitem" data-i18n="nav.contact">تواصل</a></li>
             </ul>
             <div class="nav-actions">
-                <button class="lang-switch" id="langSwitch"><span class="lang-text" id="langText">EN</span></button>
-                <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
+                <button class="lang-switch" id="langSwitch" aria-label="تبديل اللغة" title="تبديل اللغة">
+                    <span class="lang-text">EN</span>
+                </button>
+                <button class="nav-toggle" id="navToggle" aria-label="فتح/إغلاق القائمة" title="القائمة">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
             </div>
         </div>
     </nav>
@@ -506,19 +785,19 @@
     <!-- ===== PAGE HEADER ===== -->
     <section class="page-header">
         <div class="container">
-            <h1 data-i18n="page.title">اطلب عمل فني</h1>
-            <p data-i18n="page.subtitle">احصل على عمل فني مخصص حسب طلبك</p>
+            <h1 data-i18n="page.title">اطلب عمل فني مخصص</h1>
+            <p data-i18n="page.subtitle">احصل على تابلوه فني فريد يناسب ذوقك ومساحتك</p>
         </div>
     </section>
 
     <!-- ===== ORDER FORM ===== -->
-    <section>
+    <section class="order-section">
         <div class="container">
-            <div class="order-form-wrapper">
+            <div class="order-form-wrapper reveal">
                 <form id="orderForm" class="order-form" autocomplete="off" novalidate>
                     <input type="hidden" id="csrfToken" value="">
 
-                    <!-- ===== NAME ===== -->
+                    <!-- NAME -->
                     <div class="form-group">
                         <label for="orderName">
                             <span data-i18n="form.name">الاسم</span>
@@ -539,7 +818,7 @@
                         <span class="form-error" id="nameError"></span>
                     </div>
 
-                    <!-- ===== PHONE ===== -->
+                    <!-- PHONE -->
                     <div class="form-group">
                         <label for="orderPhone">
                             <span data-i18n="form.phone">رقم الهاتف</span>
@@ -561,7 +840,7 @@
                         <span class="form-hint" data-i18n="form.phoneHint">أدخل رقم الهاتف مع مفتاح الدولة (مثال: 201234567890)</span>
                     </div>
 
-                    <!-- ===== EMAIL ===== -->
+                    <!-- EMAIL -->
                     <div class="form-group">
                         <label for="orderEmail">
                             <span data-i18n="form.email">البريد الإلكتروني</span>
@@ -581,7 +860,7 @@
                         <span class="form-error" id="emailError"></span>
                     </div>
 
-                    <!-- ===== ORDER DETAILS ===== -->
+                    <!-- ORDER DETAILS -->
                     <div class="form-group">
                         <label for="orderText">
                             <span data-i18n="form.details">تفاصيل الطلب</span>
@@ -603,7 +882,7 @@
                         <span class="form-hint" data-i18n="form.detailsHint">كلما كانت التفاصيل أوضح، كان التنفيذ أفضل</span>
                     </div>
 
-                    <!-- ===== IMAGE UPLOAD ===== -->
+                    <!-- IMAGE UPLOAD -->
                     <div class="form-group">
                         <label data-i18n="form.image">صورة مرجعية (اختياري)</label>
                         <div class="file-upload-area" id="fileUploadArea">
@@ -616,19 +895,19 @@
                             <input type="file" id="orderImage" accept="image/*" data-max-size="5242880">
                         </div>
                         <div class="file-preview" id="filePreview">
-                            <img src="" alt="Preview" id="previewImage">
+                            <img src="" alt="معاينة الصورة" id="previewImage">
                         </div>
                         <span class="form-error" id="imageError"></span>
                     </div>
 
-                    <!-- ===== SUBMIT ===== -->
+                    <!-- SUBMIT -->
                     <button type="submit" class="submit-btn" id="orderSubmit">
                         <span data-i18n="form.submit">إرسال الطلب</span>
                         <span class="btn-loading" data-i18n="form.sending">جاري الإرسال...</span>
                     </button>
 
                     <div class="form-status" id="formStatus"></div>
-                    
+
                     <div class="success-checkmark" id="successCheckmark">
                         <span class="check-icon">✅</span>
                         <p style="color: var(--color-success); font-size: 1.1rem;" data-i18n="form.success">تم إرسال طلبك بنجاح!</p>
@@ -640,11 +919,42 @@
     </section>
 
     <!-- ===== FOOTER ===== -->
-    <footer class="footer">
+    <footer class="footer" role="contentinfo">
         <div class="container">
-            <p data-i18n="footer.copyright">© 2026 Shulamith Gallery. جميع الحقوق محفوظة</p>
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="footer-logo" loading="lazy" width="50" height="50">
+                    <p data-i18n="footer.brand">شولميث جاليري — حيث يلتقي الفن بالجمال</p>
+                </div>
+
+                <div class="footer-links">
+                    <h4 data-i18n="footer.quick">روابط سريعة</h4>
+                    <ul>
+                        <li><a href="/" data-i18n="nav.home">الرئيسية</a></li>
+                        <li><a href="/gallery" data-i18n="nav.gallery">المعارض</a></li>
+                        <li><a href="/#about" data-i18n="nav.about">عن الفنانة</a></li>
+                        <li><a href="/order" data-i18n="nav.custom">طلبات خاصة</a></li>
+                        <li><a href="/rate" data-i18n="nav.rate">تقييم</a></li>
+                        <li><a href="/#contact" data-i18n="nav.contact">تواصل</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-contact">
+                    <h4 data-i18n="footer.contact">تواصل</h4>
+                    <p>📱 <a href="tel:+201276961450">01276961450</a></p>
+                    <p>📧 <a href="mailto:mrmrtharwat43@gmail.com">mrmrtharwat43@gmail.com</a></p>
+                    <p>📍 <span data-i18n="footer.location">سوهاج، مصر</span></p>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p data-i18n="footer.copyright">© 2026 Shulamith Gallery. جميع الحقوق محفوظة</p>
+            </div>
         </div>
     </footer>
+
+    <!-- ===== SCROLL TO TOP ===== -->
+    <button class="scroll-top" id="scrollTop" aria-label="العودة إلى الأعلى">↑</button>
 
     <script>
         // ============================================
@@ -658,8 +968,8 @@
                 'nav.custom': 'طلبات خاصة',
                 'nav.rate': 'تقييم',
                 'nav.contact': 'تواصل',
-                'page.title': 'اطلب عمل فني',
-                'page.subtitle': 'احصل على عمل فني مخصص حسب طلبك',
+                'page.title': 'اطلب عمل فني مخصص',
+                'page.subtitle': 'احصل على تابلوه فني فريد يناسب ذوقك ومساحتك',
                 'form.name': 'الاسم',
                 'form.namePlaceholder': 'أدخل اسمك الكامل',
                 'form.phone': 'رقم الهاتف',
@@ -688,6 +998,10 @@
                 'form.imageInvalid': 'نوع الملف غير مدعوم (JPG, PNG, WEBP فقط)',
                 'form.rateLimit': 'الرجاء الانتظار قبل إرسال طلب آخر',
                 'form.rateLimitInfo': 'تم إرسال عدة طلبات. الرجاء الانتظار دقيقة واحدة قبل المحاولة مرة أخرى.',
+                'footer.brand': 'شولميث جاليري — حيث يلتقي الفن بالجمال',
+                'footer.quick': 'روابط سريعة',
+                'footer.contact': 'تواصل',
+                'footer.location': 'سوهاج، مصر',
                 'footer.copyright': '© 2026 Shulamith Gallery. جميع الحقوق محفوظة'
             },
             en: {
@@ -697,8 +1011,8 @@
                 'nav.custom': 'Custom Orders',
                 'nav.rate': 'Rate',
                 'nav.contact': 'Contact',
-                'page.title': 'Order Artwork',
-                'page.subtitle': 'Get a custom artwork tailored to your request',
+                'page.title': 'Order Custom Artwork',
+                'page.subtitle': 'Get a unique artwork that fits your taste and space',
                 'form.name': 'Full Name',
                 'form.namePlaceholder': 'Enter your full name',
                 'form.phone': 'Phone Number',
@@ -727,6 +1041,10 @@
                 'form.imageInvalid': 'File type not supported (JPG, PNG, WEBP only)',
                 'form.rateLimit': 'Please wait before submitting another request',
                 'form.rateLimitInfo': 'Multiple requests sent. Please wait 1 minute before trying again.',
+                'footer.brand': 'Shulamith Gallery — Where Art Meets Beauty',
+                'footer.quick': 'Quick Links',
+                'footer.contact': 'Contact',
+                'footer.location': 'Sohag, Egypt',
                 'footer.copyright': '© 2026 Shulamith Gallery. All rights reserved'
             }
         };
@@ -776,23 +1094,23 @@
         function setLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('shulamith-lang', lang);
-            
+
             document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
             document.documentElement.lang = lang;
             document.body.className = lang === 'ar' ? 'rtl' : 'ltr';
-            
-            const langText = document.getElementById('langText');
+
+            const langText = document.querySelector('.lang-text');
             if (langText) {
                 langText.textContent = lang === 'ar' ? 'EN' : 'AR';
             }
-            
+
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (translations[lang] && translations[lang][key]) {
                     el.textContent = translations[lang][key];
                 }
             });
-            
+
             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
                 const key = el.getAttribute('data-i18n-placeholder');
                 if (translations[lang] && translations[lang][key]) {
@@ -801,33 +1119,46 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedLang = localStorage.getItem('shulamith-lang') || 'ar';
-            setLanguage(savedLang);
-            
-            const csrfToken = document.getElementById('csrfToken');
-            if (csrfToken) {
-                csrfToken.value = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
-            }
-            
-            setTimeout(() => {
-                document.getElementById('orderName').focus();
-            }, 300);
-        });
-
-        document.getElementById('langSwitch').addEventListener('click', function(e) {
-            e.preventDefault();
-            const newLang = currentLang === 'ar' ? 'en' : 'ar';
-            setLanguage(newLang);
-        });
-
         // ============================================
         // ===== NAV =====
         // ============================================
-        document.getElementById('navToggle').addEventListener('click', function() {
-            document.getElementById('navMenu').classList.toggle('active');
-            this.classList.toggle('active');
-        });
+        function toggleNav() {
+            const menu = document.getElementById('navMenu');
+            const toggle = document.getElementById('navToggle');
+            menu.classList.toggle('active');
+            toggle.classList.toggle('active');
+        }
+
+        function closeNav() {
+            const menu = document.getElementById('navMenu');
+            const toggle = document.getElementById('navToggle');
+            menu.classList.remove('active');
+            toggle.classList.remove('active');
+        }
+
+        // ============================================
+        // ===== SCROLL =====
+        // ============================================
+        function handleScroll() {
+            const btn = document.getElementById('scrollTop');
+            if (window.scrollY > 400) {
+                btn.classList.add('visible');
+            } else {
+                btn.classList.remove('visible');
+            }
+
+            document.querySelectorAll('.reveal, .reveal-left').forEach(el => {
+                const rect = el.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+                if (rect.top < windowHeight - 100) {
+                    el.classList.add('active');
+                }
+            });
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
         // ============================================
         // ===== CHAR COUNTER =====
@@ -835,23 +1166,25 @@
         const orderText = document.getElementById('orderText');
         const charCounter = document.getElementById('charCounter');
 
-        orderText.addEventListener('input', function() {
-            const length = this.value.length;
-            const max = 2000;
-            charCounter.textContent = length + ' / ' + max;
-            
-            if (length > 1800) {
-                charCounter.style.color = 'var(--color-warning)';
-            } else {
-                charCounter.style.color = 'var(--color-text-dark)';
-            }
-            
-            if (length > max) {
-                this.value = this.value.substring(0, max);
-                charCounter.textContent = max + ' / ' + max;
-                charCounter.style.color = 'var(--color-error)';
-            }
-        });
+        if (orderText) {
+            orderText.addEventListener('input', function() {
+                const length = this.value.length;
+                const max = 2000;
+                charCounter.textContent = length + ' / ' + max;
+
+                if (length > 1800) {
+                    charCounter.style.color = 'var(--color-warning)';
+                } else {
+                    charCounter.style.color = 'var(--color-text-dark)';
+                }
+
+                if (length > max) {
+                    this.value = this.value.substring(0, max);
+                    charCounter.textContent = max + ' / ' + max;
+                    charCounter.style.color = 'var(--color-error)';
+                }
+            });
+        }
 
         // ============================================
         // ===== FILE UPLOAD =====
@@ -869,76 +1202,94 @@
 
         let selectedFile = null;
 
-        fileUploadArea.addEventListener('click', function() {
-            fileInput.click();
-        });
+        if (fileUploadArea) {
+            fileUploadArea.addEventListener('click', function() {
+                fileInput.click();
+            });
 
-        fileUploadArea.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.classList.add('dragover');
-        });
+            fileUploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
 
-        fileUploadArea.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-        });
+            fileUploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
 
-        fileUploadArea.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-            if (e.dataTransfer.files.length) {
-                handleFile(e.dataTransfer.files[0]);
-            }
-        });
+            fileUploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+        }
 
-        fileInput.addEventListener('change', function() {
-            if (this.files.length) {
-                handleFile(this.files[0]);
-            }
-        });
+        if (fileInput) {
+            fileInput.addEventListener('change', function() {
+                if (this.files.length) {
+                    handleFile(this.files[0]);
+                }
+            });
+        }
 
         function handleFile(file) {
-            imageError.textContent = '';
-            
+            if (imageError) imageError.textContent = '';
+
             if (!ALLOWED_TYPES.includes(file.type)) {
-                imageError.textContent = translations[currentLang]['form.imageInvalid'] || 'نوع الملف غير مدعوم';
-                fileInput.value = '';
+                if (imageError) imageError.textContent = translations[currentLang]['form.imageInvalid'] || 'نوع الملف غير مدعوم';
+                if (fileInput) fileInput.value = '';
                 return;
             }
-            
+
             if (file.size > MAX_FILE_SIZE) {
-                imageError.textContent = translations[currentLang]['form.imageTooLarge'] || 'حجم الصورة يتجاوز 5MB';
-                fileInput.value = '';
+                if (imageError) imageError.textContent = translations[currentLang]['form.imageTooLarge'] || 'حجم الصورة يتجاوز 5MB';
+                if (fileInput) fileInput.value = '';
                 return;
             }
-            
+
             selectedFile = file;
-            
-            fileName.textContent = file.name;
-            fileName.classList.add('visible');
-            fileSize.textContent = '(' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
-            removeFile.classList.add('visible');
-            
+
+            if (fileName) {
+                fileName.textContent = file.name;
+                fileName.classList.add('visible');
+            }
+            if (fileSize) {
+                fileSize.textContent = '(' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
+            }
+            if (removeFile) {
+                removeFile.classList.add('visible');
+            }
+
             const reader = new FileReader();
             reader.onload = function(e) {
-                previewImage.src = e.target.result;
-                filePreview.classList.add('visible');
+                if (previewImage) {
+                    previewImage.src = e.target.result;
+                }
+                if (filePreview) {
+                    filePreview.classList.add('visible');
+                }
             };
             reader.readAsDataURL(file);
         }
 
-        removeFile.addEventListener('click', function(e) {
-            e.stopPropagation();
-            selectedFile = null;
-            fileInput.value = '';
-            fileName.textContent = '';
-            fileName.classList.remove('visible');
-            fileSize.textContent = '';
-            removeFile.classList.remove('visible');
-            filePreview.classList.remove('visible');
-            previewImage.src = '';
-            imageError.textContent = '';
-        });
+        if (removeFile) {
+            removeFile.addEventListener('click', function(e) {
+                e.stopPropagation();
+                selectedFile = null;
+                if (fileInput) fileInput.value = '';
+                if (fileName) {
+                    fileName.textContent = '';
+                    fileName.classList.remove('visible');
+                }
+                if (fileSize) fileSize.textContent = '';
+                if (removeFile) removeFile.classList.remove('visible');
+                if (filePreview) filePreview.classList.remove('visible');
+                if (previewImage) previewImage.src = '';
+                if (imageError) imageError.textContent = '';
+            });
+        }
 
         // ============================================
         // ===== INPUT SANITIZATION =====
@@ -967,154 +1318,159 @@
         // ============================================
         // ===== SUBMIT ORDER =====
         // ============================================
-        document.getElementById('orderForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        const orderForm = document.getElementById('orderForm');
 
-            document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
-            const status = document.getElementById('formStatus');
-            status.className = 'form-status';
-            status.style.display = 'none';
-            
-            const successCheck = document.getElementById('successCheckmark');
-            successCheck.classList.remove('visible');
+        if (orderForm) {
+            orderForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
 
-            const name = document.getElementById('orderName');
-            const phone = document.getElementById('orderPhone');
-            const email = document.getElementById('orderEmail');
-            const orderText = document.getElementById('orderText');
+                document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
+                const status = document.getElementById('formStatus');
+                status.className = 'form-status';
+                status.style.display = 'none';
 
-            const nameVal = sanitizeInput(name.value.trim());
-            const phoneVal = sanitizeInput(phone.value.trim());
-            const emailVal = email.value.trim();
-            const orderTextVal = sanitizeInput(orderText.value.trim());
+                const successCheck = document.getElementById('successCheckmark');
+                successCheck.classList.remove('visible');
 
-            let isValid = true;
+                const name = document.getElementById('orderName');
+                const phone = document.getElementById('orderPhone');
+                const email = document.getElementById('orderEmail');
+                const orderText = document.getElementById('orderText');
 
-            if (!validateName(nameVal)) {
-                document.getElementById('nameError').textContent = translations[currentLang]['form.nameRequired'];
-                isValid = false;
-                name.style.borderColor = 'var(--color-error)';
-            } else {
-                name.style.borderColor = '';
-            }
+                const nameVal = sanitizeInput(name.value.trim());
+                const phoneVal = sanitizeInput(phone.value.trim());
+                const emailVal = email.value.trim();
+                const orderTextVal = sanitizeInput(orderText.value.trim());
 
-            if (!validatePhone(phoneVal)) {
-                document.getElementById('phoneError').textContent = translations[currentLang]['form.phoneInvalid'];
-                isValid = false;
-                phone.style.borderColor = 'var(--color-error)';
-            } else {
-                phone.style.borderColor = '';
-            }
+                let isValid = true;
 
-            if (!validateEmail(emailVal)) {
-                document.getElementById('emailError').textContent = translations[currentLang]['form.emailInvalid'];
-                isValid = false;
-                email.style.borderColor = 'var(--color-error)';
-            } else {
-                email.style.borderColor = '';
-            }
-
-            if (!validateOrderText(orderTextVal)) {
-                document.getElementById('orderTextError').textContent = translations[currentLang]['form.detailsRequired'];
-                isValid = false;
-                orderText.style.borderColor = 'var(--color-error)';
-            } else {
-                orderText.style.borderColor = '';
-            }
-
-            if (!isValid) {
-                status.className = 'form-status error';
-                status.style.display = 'block';
-                status.textContent = translations[currentLang]['form.error'] || 'الرجاء تصحيح الأخطاء';
-                return;
-            }
-
-            const submitBtn = document.getElementById('orderSubmit');
-            submitBtn.disabled = true;
-            submitBtn.querySelector('span:first-child').style.display = 'none';
-            submitBtn.querySelector('.btn-loading').style.display = 'inline';
-
-            const csrfToken = document.getElementById('csrfToken').value || 'default';
-
-            try {
-                let uploadedImageUrl = '';
-
-                // Upload image first if selected
-                if (selectedFile) {
-                    try {
-                        const uploadFormData = new FormData();
-                        uploadFormData.append('image', selectedFile);
-
-                        const uploadRes = await fetch('/api/upload', {
-                            method: 'POST',
-                            body: uploadFormData
-                        });
-
-                        if (uploadRes.ok) {
-                            const uploadData = await uploadRes.json();
-                            uploadedImageUrl = uploadData.url;
-                        } else {
-                            console.warn('Image upload failed, continuing without image');
-                        }
-                    } catch (uploadError) {
-                        console.warn('Image upload error:', uploadError);
-                    }
+                if (!validateName(nameVal)) {
+                    document.getElementById('nameError').textContent = translations[currentLang]['form.nameRequired'];
+                    isValid = false;
+                    name.style.borderColor = 'var(--color-error)';
+                } else {
+                    name.style.borderColor = '';
                 }
 
-                // Submit order with image URL (or empty if upload failed)
-                const orderData = {
-                    name: nameVal,
-                    phone: phoneVal,
-                    email: emailVal,
-                    orderText: orderTextVal,
-                    imageUrl: uploadedImageUrl
-                };
-
-                const res = await fetch('/api/orders', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': csrfToken
-                    },
-                    body: JSON.stringify(orderData)
-                });
-
-                const data = await res.json();
-
-                if (res.ok) {
-                    status.className = 'form-status success';
-                    status.style.display = 'block';
-                    status.textContent = translations[currentLang]['form.success'] || 'تم الإرسال بنجاح';
-                    
-                    successCheck.classList.add('visible');
-                    
-                    this.reset();
-                    charCounter.textContent = '0 / 2000';
-                    selectedFile = null;
-                    fileName.classList.remove('visible');
-                    fileSize.textContent = '';
-                    removeFile.classList.remove('visible');
-                    filePreview.classList.remove('visible');
-                    previewImage.src = '';
-                    
-                    status.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
+                if (!validatePhone(phoneVal)) {
+                    document.getElementById('phoneError').textContent = translations[currentLang]['form.phoneInvalid'];
+                    isValid = false;
+                    phone.style.borderColor = 'var(--color-error)';
                 } else {
+                    phone.style.borderColor = '';
+                }
+
+                if (!validateEmail(emailVal)) {
+                    document.getElementById('emailError').textContent = translations[currentLang]['form.emailInvalid'];
+                    isValid = false;
+                    email.style.borderColor = 'var(--color-error)';
+                } else {
+                    email.style.borderColor = '';
+                }
+
+                if (!validateOrderText(orderTextVal)) {
+                    document.getElementById('orderTextError').textContent = translations[currentLang]['form.detailsRequired'];
+                    isValid = false;
+                    orderText.style.borderColor = 'var(--color-error)';
+                } else {
+                    orderText.style.borderColor = '';
+                }
+
+                if (!isValid) {
                     status.className = 'form-status error';
                     status.style.display = 'block';
-                    status.textContent = data.error || translations[currentLang]['form.error'];
+                    status.textContent = translations[currentLang]['form.error'] || 'الرجاء تصحيح الأخطاء';
+                    return;
                 }
-            } catch (error) {
-                console.error('Order submission error:', error);
-                status.className = 'form-status error';
-                status.style.display = 'block';
-                status.textContent = translations[currentLang]['form.connectionError'] || 'حدث خطأ في الاتصال';
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.querySelector('span:first-child').style.display = 'inline';
-                submitBtn.querySelector('.btn-loading').style.display = 'none';
-            }
-        });
+
+                const submitBtn = document.getElementById('orderSubmit');
+                submitBtn.disabled = true;
+                submitBtn.querySelector('span:first-child').style.display = 'none';
+                submitBtn.querySelector('.btn-loading').style.display = 'inline';
+
+                const csrfToken = document.getElementById('csrfToken').value || 'default';
+
+                try {
+                    let uploadedImageUrl = '';
+
+                    if (selectedFile) {
+                        try {
+                            const uploadFormData = new FormData();
+                            uploadFormData.append('image', selectedFile);
+
+                            const uploadRes = await fetch('/api/upload', {
+                                method: 'POST',
+                                body: uploadFormData
+                            });
+
+                            if (uploadRes.ok) {
+                                const uploadData = await uploadRes.json();
+                                uploadedImageUrl = uploadData.url;
+                            } else {
+                                console.warn('Image upload failed, continuing without image');
+                            }
+                        } catch (uploadError) {
+                            console.warn('Image upload error:', uploadError);
+                        }
+                    }
+
+                    const orderData = {
+                        name: nameVal,
+                        phone: phoneVal,
+                        email: emailVal,
+                        orderText: orderTextVal,
+                        imageUrl: uploadedImageUrl
+                    };
+
+                    const res = await fetch('/api/orders', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': csrfToken
+                        },
+                        body: JSON.stringify(orderData)
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        status.className = 'form-status success';
+                        status.style.display = 'block';
+                        status.textContent = translations[currentLang]['form.success'] || 'تم الإرسال بنجاح';
+
+                        successCheck.classList.add('visible');
+
+                        this.reset();
+                        charCounter.textContent = '0 / 2000';
+                        selectedFile = null;
+                        if (fileName) {
+                            fileName.classList.remove('visible');
+                            fileName.textContent = '';
+                        }
+                        if (fileSize) fileSize.textContent = '';
+                        if (removeFile) removeFile.classList.remove('visible');
+                        if (filePreview) filePreview.classList.remove('visible');
+                        if (previewImage) previewImage.src = '';
+
+                        status.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    } else {
+                        status.className = 'form-status error';
+                        status.style.display = 'block';
+                        status.textContent = data.error || translations[currentLang]['form.error'];
+                    }
+                } catch (error) {
+                    console.error('Order submission error:', error);
+                    status.className = 'form-status error';
+                    status.style.display = 'block';
+                    status.textContent = translations[currentLang]['form.connectionError'] || 'حدث خطأ في الاتصال';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.querySelector('span:first-child').style.display = 'inline';
+                    submitBtn.querySelector('.btn-loading').style.display = 'none';
+                }
+            });
+        }
 
         // ============================================
         // ===== RATE LIMITING =====
@@ -1124,49 +1480,102 @@
         const SUBMIT_COOLDOWN = 60 * 1000;
         let submitCooldown = false;
 
-        document.getElementById('orderForm').addEventListener('submit', function(e) {
-            if (submitCooldown) {
-                e.preventDefault();
-                const status = document.getElementById('formStatus');
-                status.className = 'form-status error';
-                status.style.display = 'block';
-                status.textContent = translations[currentLang]['form.rateLimit'] || 'الرجاء الانتظار';
-                return;
+        if (orderForm) {
+            orderForm.addEventListener('submit', function(e) {
+                if (submitCooldown) {
+                    e.preventDefault();
+                    const status = document.getElementById('formStatus');
+                    status.className = 'form-status error';
+                    status.style.display = 'block';
+                    status.textContent = translations[currentLang]['form.rateLimit'] || 'الرجاء الانتظار';
+                    return;
+                }
+
+                submitAttempts++;
+
+                if (submitAttempts >= MAX_SUBMIT_ATTEMPTS) {
+                    submitCooldown = true;
+                    const status = document.getElementById('formStatus');
+                    status.className = 'form-status info';
+                    status.style.display = 'block';
+                    status.textContent = translations[currentLang]['form.rateLimitInfo'] || 'تم إرسال عدة طلبات. الرجاء الانتظار دقيقة واحدة.';
+
+                    setTimeout(() => {
+                        submitAttempts = 0;
+                        submitCooldown = false;
+                        status.className = 'form-status';
+                        status.style.display = 'none';
+                    }, SUBMIT_COOLDOWN);
+                }
+            });
+        }
+
+        // ============================================
+        // ===== INIT =====
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLang = localStorage.getItem('shulamith-lang') || 'ar';
+            setLanguage(savedLang);
+
+            const csrfToken = document.getElementById('csrfToken');
+            if (csrfToken) {
+                csrfToken.value = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
             }
 
-            submitAttempts++;
-            
-            if (submitAttempts >= MAX_SUBMIT_ATTEMPTS) {
-                submitCooldown = true;
-                const status = document.getElementById('formStatus');
-                status.className = 'form-status info';
-                status.style.display = 'block';
-                status.textContent = translations[currentLang]['form.rateLimitInfo'] || 'تم إرسال عدة طلبات. الرجاء الانتظار دقيقة واحدة.';
-                
-                setTimeout(() => {
-                    submitAttempts = 0;
-                    submitCooldown = false;
-                    status.className = 'form-status';
-                    status.style.display = 'none';
-                }, SUBMIT_COOLDOWN);
+            setTimeout(() => {
+                const nameInput = document.getElementById('orderName');
+                if (nameInput) nameInput.focus();
+            }, 300);
+
+            // Language switch
+            const langSwitch = document.getElementById('langSwitch');
+            if (langSwitch) {
+                langSwitch.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const newLang = currentLang === 'ar' ? 'en' : 'ar';
+                    setLanguage(newLang);
+                });
             }
+
+            // Nav toggle
+            const navToggle = document.getElementById('navToggle');
+            if (navToggle) {
+                navToggle.addEventListener('click', toggleNav);
+            }
+
+            // Nav links close menu
+            document.querySelectorAll('.nav-menu a').forEach(link => {
+                link.addEventListener('click', closeNav);
+            });
+
+            // Scroll top
+            const scrollBtn = document.getElementById('scrollTop');
+            if (scrollBtn) {
+                scrollBtn.addEventListener('click', scrollToTop);
+            }
+
+            // Scroll events
+            window.addEventListener('scroll', handleScroll);
+            handleScroll();
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    if (document.getElementById('navMenu').classList.contains('active')) {
+                        closeNav();
+                    }
+                }
+            });
         });
 
         // ============================================
-        // ===== CONSOLE PROTECTION =====
+        // ===== CONSOLE =====
         // ============================================
-        console.log('Shulamith Gallery - Order Page (Secure)');
+        console.log('Shulamith Gallery - Order Page (SEO Optimized)');
         console.log('Secured against XSS, CSRF, and spam attacks.');
         console.log('Fully responsive for all devices.');
-
-        Object.defineProperty(window, 'orderForm', {
-            get: function() {
-                console.warn('Direct access to form is restricted.');
-                return null;
-            }
-        });
-
-        console.log('Order page secured successfully.');
+        console.log('Structured Data implemented for better SEO.');
     </script>
+
 </body>
 </html>

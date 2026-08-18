@@ -1041,32 +1041,27 @@
 
                 // Upload image first if selected
                 if (selectedFile) {
-                    const uploadFormData = new FormData();
-                    uploadFormData.append('image', selectedFile);
+                    try {
+                        const uploadFormData = new FormData();
+                        uploadFormData.append('image', selectedFile);
 
-                    const uploadRes = await fetch('/api/upload', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-Token': csrfToken
-                        },
-                        body: uploadFormData
-                    });
+                        const uploadRes = await fetch('/api/upload', {
+                            method: 'POST',
+                            body: uploadFormData
+                        });
 
-                    if (uploadRes.ok) {
-                        const uploadData = await uploadRes.json();
-                        uploadedImageUrl = uploadData.url;
-                    } else {
-                        status.className = 'form-status error';
-                        status.style.display = 'block';
-                        status.textContent = 'فشل رفع الصورة، حاول مرة أخرى';
-                        submitBtn.disabled = false;
-                        submitBtn.querySelector('span:first-child').style.display = 'inline';
-                        submitBtn.querySelector('.btn-loading').style.display = 'none';
-                        return;
+                        if (uploadRes.ok) {
+                            const uploadData = await uploadRes.json();
+                            uploadedImageUrl = uploadData.url;
+                        } else {
+                            console.warn('Image upload failed, continuing without image');
+                        }
+                    } catch (uploadError) {
+                        console.warn('Image upload error:', uploadError);
                     }
                 }
 
-                // Submit order with image URL
+                // Submit order with image URL (or empty if upload failed)
                 const orderData = {
                     name: nameVal,
                     phone: phoneVal,

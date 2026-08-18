@@ -55,7 +55,6 @@
             --header-height: 70px;
             --container-max: 1200px;
             
-            /* Fluid Variables */
             --container-padding: clamp(12px, 3vw, 30px);
             --section-padding: clamp(40px, 8vw, 80px);
             --gap-sm: clamp(8px, 1vw, 16px);
@@ -1532,7 +1531,6 @@
     <section id="gallery" class="gallery-section" aria-label="المعرض الفني">
         <div class="container">
             <h2 class="section-title reveal" data-i18n="gallery.title">المعرض الفني</h2>
-            <p class="section-subtitle reveal" data-i18n="gallery.subtitle">استمتع بمجموعة من الأعمال الفنية المميزة</p>
             
             <div class="gallery-filters reveal" id="galleryFilters" role="tablist" aria-label="فلترة الأعمال">
                 <button class="filter-btn active" data-filter="all" role="tab" aria-selected="true" data-i18n="gallery.all">الكل</button>
@@ -1566,11 +1564,11 @@
                     <div class="about-services">
                         <h3 data-i18n="about.services.title">الخدمات</h3>
                         <ul>
-                            <li data-i18n="about.services.1">🎨 تنفيذ تابلوهات فنية</li>
-                            <li data-i18n="about.services.2">🏠 اختيار أعمال مناسبة للمكان</li>
-                            <li data-i18n="about.services.3">🖼️ ديكور منزلي فني</li>
-                            <li data-i18n="about.services.4">✨ أعمال فنية حسب الطلب</li>
-                            <li data-i18n="about.services.5">🎁 هدايا إبداعية</li>
+                            <li data-i18n="about.services.1">تنفيذ تابلوهات فنية</li>
+                            <li data-i18n="about.services.2">اختيار أعمال مناسبة للمكان</li>
+                            <li data-i18n="about.services.3">ديكور منزلي فني</li>
+                            <li data-i18n="about.services.4">أعمال فنية حسب الطلب</li>
+                            <li data-i18n="about.services.5">هدايا إبداعية</li>
                         </ul>
                     </div>
                 </div>
@@ -1661,6 +1659,8 @@
                 
                 <div class="contact-form-wrapper reveal-right">
                     <form id="contactForm" class="contact-form">
+                        <input type="hidden" id="csrfToken" value="">
+                        
                         <div class="form-group">
                             <label for="contactName" data-i18n="contact.form.name">الاسم</label>
                             <input type="text" id="contactName" name="name" required placeholder="أدخل اسمك" autocomplete="name" data-i18n="contact.form.namePlaceholder">
@@ -1754,7 +1754,7 @@
 
     <script>
         // ============================================
-        // 🔒 SECURITY: ESCAPE HTML
+        // SECURITY: ESCAPE HTML
         // ============================================
         function escapeHtml(text) {
             if (!text) return '';
@@ -1764,7 +1764,7 @@
         }
 
         // ============================================
-        // 🔒 SECURITY: SANITIZE INPUT
+        // SECURITY: SANITIZE INPUT
         // ============================================
         function sanitizeInput(text) {
             if (!text) return '';
@@ -1798,7 +1798,6 @@
                 'hero.cta': 'استكشف الأعمال',
                 
                 'gallery.title': 'المعرض الفني',
-                'gallery.subtitle': 'استمتع بمجموعة من الأعمال الفنية المميزة',
                 'gallery.all': 'الكل',
                 'gallery.loading': 'جاري تحميل الأعمال...',
                 'gallery.empty': 'لا توجد أعمال فنية حالياً',
@@ -1858,7 +1857,7 @@
             },
             en: {
                 'nav.home': 'Home',
-                'nav.gallery': 'Gallerys',
+                'nav.gallery': 'Gallery',
                 'nav.about': 'About',
                 'nav.custom': 'Custom Art',
                 'nav.rate': 'Rate',
@@ -1873,7 +1872,6 @@
                 'hero.cta': 'Explore Artworks',
                 
                 'gallery.title': 'Art Gallery',
-                'gallery.subtitle': 'Explore a collection of unique artworks',
                 'gallery.all': 'All',
                 'gallery.loading': 'Loading artworks...',
                 'gallery.empty': 'No artworks available',
@@ -1940,12 +1938,6 @@
         let allArtworks = [];
         let refreshInterval = null;
         let isLoading = false;
-
-        // ============================================
-        // DOM REFS
-        // ============================================
-        const $ = (sel) => document.querySelector(sel);
-        const $$ = (sel) => document.querySelectorAll(sel);
 
         // ============================================
         // LANGUAGE
@@ -2042,9 +2034,9 @@
             img.alt = escapeHtml(artwork.title);
             title.textContent = escapeHtml(artwork.title);
             desc.textContent = escapeHtml(artwork.description || '');
-            material.textContent = artwork.material ? '🖌️ ' + escapeHtml(artwork.material) : '';
-            dimensions.textContent = artwork.dimensions ? '📐 ' + escapeHtml(artwork.dimensions) : '';
-            gallery.textContent = artwork.galleryName ? '🖼️ ' + escapeHtml(artwork.galleryName) : '';
+            material.textContent = artwork.material ? escapeHtml(artwork.material) : '';
+            dimensions.textContent = artwork.dimensions ? escapeHtml(artwork.dimensions) : '';
+            gallery.textContent = artwork.galleryName ? escapeHtml(artwork.galleryName) : '';
             
             lb.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -2080,6 +2072,7 @@
                 
                 if (allArtworks.length === 0) {
                     grid.innerHTML = `<div class="empty-state" data-i18n="gallery.empty">لا توجد أعمال فنية حالياً</div>`;
+                    isLoading = false;
                     return;
                 }
                 
@@ -2254,16 +2247,23 @@
                 message.style.borderColor = '';
             }
             
-            if (!isValid) return;
+            if (!isValid) {
+                status.className = 'form-status error';
+                status.style.display = 'block';
+                status.textContent = 'الرجاء تصحيح الأخطاء';
+                return;
+            }
             
-            const csrfToken = document.getElementById('csrfToken').value || 'default';
+            const csrfToken = document.getElementById('csrfToken') ? document.getElementById('csrfToken').value : 'default';
             
             submitBtn.disabled = true;
             const originalText = submitBtn.querySelector('span:first-child');
             const loadingText = submitBtn.querySelector('.btn-loading');
-            originalText.style.display = 'none';
-            loadingText.style.display = 'inline';
-            loadingText.textContent = translations[currentLang]['contact.form.sending'];
+            if (originalText) originalText.style.display = 'none';
+            if (loadingText) {
+                loadingText.style.display = 'inline';
+                loadingText.textContent = translations[currentLang]['contact.form.sending'];
+            }
             
             try {
                 const res = await fetch('/api/contact', {
@@ -2293,13 +2293,14 @@
                     status.textContent = data.error || translations[currentLang]['contact.form.error'];
                 }
             } catch (error) {
+                console.error('Contact form error:', error);
                 status.className = 'form-status error';
                 status.style.display = 'block';
                 status.textContent = translations[currentLang]['contact.form.connectionError'];
             } finally {
                 submitBtn.disabled = false;
-                originalText.style.display = 'inline';
-                loadingText.style.display = 'none';
+                if (originalText) originalText.style.display = 'inline';
+                if (loadingText) loadingText.style.display = 'none';
             }
         }
 
@@ -2317,7 +2318,7 @@
                 const status = document.getElementById('formStatus');
                 status.className = 'form-status error';
                 status.style.display = 'block';
-                status.textContent = '⏳ الرجاء الانتظار قبل إرسال رسالة أخرى';
+                status.textContent = 'الرجاء الانتظار قبل إرسال رسالة أخرى';
                 return;
             }
 
@@ -2328,7 +2329,7 @@
                 const status = document.getElementById('formStatus');
                 status.className = 'form-status info';
                 status.style.display = 'block';
-                status.textContent = '⏳ تم إرسال عدة رسائل. الرجاء الانتظار دقيقة واحدة قبل المحاولة مرة أخرى.';
+                status.textContent = 'تم إرسال عدة رسائل. الرجاء الانتظار دقيقة واحدة قبل المحاولة مرة أخرى.';
                 
                 setTimeout(() => {
                     submitAttempts = 0;
@@ -2416,16 +2417,6 @@
         });
 
         // ============================================
-        // CONSOLE PROTECTION
-        // ============================================
-        console.log('%c🎨 Shulamith Gallery - Home Page (Secure & Responsive)', 
-            'color: #d4b892; font-size: 16px; font-weight: bold;');
-        console.log('%c🔒 Secured against XSS, CSRF, and spam attacks.', 
-            'color: #2ecc71; font-size: 12px;');
-        console.log('%c📱 Fully responsive for all devices.', 
-            'color: #3498db; font-size: 12px;');
-
-        // ============================================
         // START
         // ============================================
         if (document.readyState === 'loading') {
@@ -2433,8 +2424,6 @@
         } else {
             init();
         }
-
-        console.log('✅ Home page secured and responsive successfully.');
     </script>
 </body>
 </html>

@@ -6,31 +6,24 @@
     <title>Shulamith Gallery — شولميث جاليري</title>
     <meta name="description" content="Shulamith Gallery - أعمال فنية ولوحات وديكور للفنانة مريم (شولميث)، تنفيذ تابلوهات بخامات وأحجام مختلفة.">
     
-    <!-- Open Graph -->
     <meta property="og:title" content="Shulamith Gallery — شولميث جاليري">
     <meta property="og:description" content="أعمال فنية ولوحات وديكور للفنانة مريم (شولميث)">
     <meta property="og:image" content="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
     <meta property="og:url" content="https://shulamith-gallery.com">
     <meta property="og:type" content="website">
     
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Shulamith Gallery — شولميث جاليري">
     <meta name="twitter:description" content="أعمال فنية ولوحات وديكور للفنانة مريم (شولميث)">
     <meta name="twitter:image" content="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
     
-    <!-- Favicon -->
     <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
     
-    <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://i.postimg.cc">
     <link rel="preconnect" href="https://res.cloudinary.com">
     
     <style>
-        /* ============================================
-           ROOT VARIABLES
-           ============================================ */
         :root {
             --color-bg: #0d0b0a;
             --color-bg-secondary: #161210;
@@ -54,7 +47,6 @@
             --hero-background-image: url('https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg');
             --header-height: 70px;
             --container-max: 1200px;
-            
             --container-padding: clamp(12px, 3vw, 30px);
             --section-padding: clamp(40px, 8vw, 80px);
             --gap-sm: clamp(8px, 1vw, 16px);
@@ -62,9 +54,6 @@
             --gap-lg: clamp(24px, 3vw, 50px);
         }
 
-        /* ============================================
-           RESET
-           ============================================ */
         * {
             margin: 0;
             padding: 0;
@@ -120,9 +109,6 @@
             display: block;
         }
 
-        /* ============================================
-           CONTAINER
-           ============================================ */
         .container {
             max-width: var(--container-max);
             margin: 0 auto;
@@ -130,9 +116,6 @@
             width: 100%;
         }
 
-        /* ============================================
-           SECTION TITLES
-           ============================================ */
         .section-title {
             font-size: clamp(1.6rem, 4vw, 2.5rem);
             font-weight: 300;
@@ -149,9 +132,6 @@
             margin-bottom: clamp(24px, 4vw, 40px);
         }
 
-        /* ============================================
-           SCROLLBAR
-           ============================================ */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -169,9 +149,6 @@
             background: var(--color-primary);
         }
 
-        /* ============================================
-           NAVBAR — Fully Responsive
-           ============================================ */
         .navbar {
             position: fixed;
             top: 0;
@@ -214,7 +191,6 @@
             opacity: 0.85;
         }
 
-        /* ===== Desktop Nav Menu ===== */
         .nav-menu {
             display: flex;
             align-items: center;
@@ -292,7 +268,6 @@
             font-size: clamp(0.65rem, 0.8vw, 0.85rem);
         }
 
-        /* ===== Hamburger Toggle (Mobile) ===== */
         .nav-toggle {
             display: none;
             flex-direction: column;
@@ -327,7 +302,6 @@
             transform: rotate(-45deg) translate(5px, -5px);
         }
 
-        /* ===== Mobile Menu ===== */
         @media (max-width: 768px) {
             .nav-menu {
                 display: none;
@@ -396,9 +370,6 @@
             }
         }
 
-        /* ============================================
-           HERO
-           ============================================ */
         .hero {
             position: relative;
             min-height: 100vh;
@@ -539,9 +510,6 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* ============================================
-           REVEAL ANIMATIONS
-           ============================================ */
         .reveal {
             opacity: 0;
             transform: translateY(40px);
@@ -586,9 +554,6 @@
             transform: scale(1);
         }
 
-        /* ============================================
-           GALLERY SECTION
-           ============================================ */
         .gallery-section {
             padding: var(--section-padding) 0;
             background: var(--color-bg-secondary);
@@ -738,9 +703,6 @@
             font-size: clamp(0.9rem, 1.2vw, 1.1rem);
         }
 
-        /* ============================================
-           ABOUT SECTION
-           ============================================ */
         .about-section {
             padding: var(--section-padding) 0;
             background: var(--color-bg);
@@ -826,9 +788,6 @@
             }
         }
 
-        /* ============================================
-           CUSTOM SECTION
-           ============================================ */
         .custom-section {
             padding: var(--section-padding) 0;
             background: var(--color-bg-secondary);
@@ -904,9 +863,6 @@
             box-shadow: 0 10px 40px rgba(212, 184, 146, 0.2);
         }
 
-        /* ============================================
-           CONTACT SECTION
-           ============================================ */
         .contact-section {
             padding: var(--section-padding) 0;
             background: var(--color-bg);
@@ -1137,9 +1093,6 @@
             }
         }
 
-        /* ============================================
-           LIGHTBOX
-           ============================================ */
         .lightbox {
             display: none;
             position: fixed;
@@ -1239,9 +1192,6 @@
             border: 1px solid var(--color-border);
         }
 
-        /* ============================================
-           FOOTER
-           ============================================ */
         .footer {
             background: var(--color-bg-secondary);
             border-top: 1px solid var(--color-border);
@@ -1353,9 +1303,6 @@
             }
         }
 
-        /* ============================================
-           SCROLL TO TOP
-           ============================================ */
         .scroll-top {
             position: fixed;
             bottom: clamp(16px, 3vw, 30px);
@@ -1393,9 +1340,6 @@
             transform: scale(0.9);
         }
 
-        /* ============================================
-           RTL/LTR ADJUSTMENTS
-           ============================================ */
         body.ltr .about-content .section-title {
             text-align: left;
         }
@@ -1435,9 +1379,6 @@
             left: clamp(12px, 2vw, 30px);
         }
 
-        /* ============================================
-           ACCESSIBILITY
-           ============================================ */
         @media (prefers-reduced-motion: reduce) {
             *,
             *::before,
@@ -1454,9 +1395,6 @@
             outline-offset: 2px;
         }
 
-        /* ============================================
-           PRINT STYLES
-           ============================================ */
         @media print {
             .navbar,
             .scroll-top,
@@ -1480,7 +1418,6 @@
     </style>
 </head>
 <body>
-    <!-- ===== NAVBAR ===== -->
     <nav class="navbar" id="navbar" role="navigation" aria-label="القائمة الرئيسية">
         <div class="nav-container">
             <div class="nav-logo">
@@ -1511,7 +1448,6 @@
         </div>
     </nav>
 
-    <!-- ===== HERO SECTION ===== -->
     <section id="home" class="hero" aria-label="الرئيسية">
         <div class="hero-overlay"></div>
         <div class="hero-content">
@@ -1527,7 +1463,6 @@
         </div>
     </section>
 
-    <!-- ===== GALLERY SECTION ===== -->
     <section id="gallery" class="gallery-section" aria-label="المعرض الفني">
         <div class="container">
             <h2 class="section-title reveal" data-i18n="gallery.title">المعرض الفني</h2>
@@ -1545,7 +1480,6 @@
         </div>
     </section>
 
-    <!-- ===== ABOUT SECTION ===== -->
     <section id="about" class="about-section" aria-label="عن الفنانة">
         <div class="container">
             <div class="about-grid">
@@ -1576,7 +1510,6 @@
         </div>
     </section>
 
-    <!-- ===== CUSTOM ART SECTION ===== -->
     <section id="custom" class="custom-section" aria-label="طلبات خاصة">
         <div class="container">
             <div class="custom-content">
@@ -1604,7 +1537,6 @@
         </div>
     </section>
 
-    <!-- ===== CONTACT SECTION ===== -->
     <section id="contact" class="contact-section" aria-label="تواصل معنا">
         <div class="container">
             <h2 class="section-title reveal" data-i18n="contact.title">تواصل معنا</h2>
@@ -1697,7 +1629,6 @@
         </div>
     </section>
 
-    <!-- ===== FOOTER ===== -->
     <footer class="footer" role="contentinfo">
         <div class="container">
             <div class="footer-grid">
@@ -1732,7 +1663,6 @@
         </div>
     </footer>
 
-    <!-- ===== LIGHTBOX ===== -->
     <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="عرض العمل الفني">
         <button class="lightbox-close" id="lightboxClose" aria-label="إغلاق">✕</button>
         <div class="lightbox-content">
@@ -1749,13 +1679,9 @@
         </div>
     </div>
 
-    <!-- ===== SCROLL TO TOP ===== -->
     <button class="scroll-top" id="scrollTop" aria-label="العودة إلى الأعلى">↑</button>
 
     <script>
-        // ============================================
-        // SECURITY: ESCAPE HTML
-        // ============================================
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
@@ -1763,9 +1689,6 @@
             return div.innerHTML;
         }
 
-        // ============================================
-        // SECURITY: SANITIZE INPUT
-        // ============================================
         function sanitizeInput(text) {
             if (!text) return '';
             return text
@@ -1777,9 +1700,6 @@
                 .trim();
         }
 
-        // ============================================
-        // TRANSLATIONS
-        // ============================================
         const translations = {
             ar: {
                 'nav.home': 'الرئيسية',
@@ -1931,17 +1851,14 @@
             }
         };
 
-        // ============================================
-        // STATE
-        // ============================================
         let currentLang = localStorage.getItem('language') || 'ar';
         let allArtworks = [];
         let refreshInterval = null;
         let isLoading = false;
 
-        // ============================================
-        // LANGUAGE
-        // ============================================
+        const $ = (sel) => document.querySelector(sel);
+        const $$ = (sel) => document.querySelectorAll(sel);
+
         function setLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('language', lang);
@@ -1977,9 +1894,6 @@
             setLanguage(nextLang);
         }
 
-        // ============================================
-        // NAVBAR
-        // ============================================
         function toggleNav() {
             const menu = document.getElementById('navMenu');
             const toggle = document.getElementById('navToggle');
@@ -1994,9 +1908,6 @@
             toggle.classList.remove('active');
         }
 
-        // ============================================
-        // SCROLL TO TOP
-        // ============================================
         function handleScroll() {
             const btn = document.getElementById('scrollTop');
             if (window.scrollY > 400) {
@@ -2018,9 +1929,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // ============================================
-        // LIGHTBOX
-        // ============================================
         function openLightbox(artwork) {
             const lb = document.getElementById('lightbox');
             const img = document.getElementById('lightboxImage');
@@ -2048,18 +1956,12 @@
             document.body.style.overflow = '';
         }
 
-        // ============================================
-        // API
-        // ============================================
         async function apiGet(url) {
             const res = await fetch(url);
             if (!res.ok) throw new Error('API error');
             return res.json();
         }
 
-        // ============================================
-        // LOAD ARTWORKS
-        // ============================================
         async function loadArtworks() {
             if (isLoading) return;
             isLoading = true;
@@ -2125,9 +2027,6 @@
             }
         }
 
-        // ============================================
-        // RENDER ARTWORKS (SECURE)
-        // ============================================
         function renderArtworks(artworks) {
             const grid = document.getElementById('galleryGrid');
             
@@ -2172,9 +2071,6 @@
             }, 100);
         }
 
-        // ============================================
-        // AUTO REFRESH
-        // ============================================
         function startAutoRefresh() {
             if (refreshInterval) {
                 clearInterval(refreshInterval);
@@ -2191,9 +2087,6 @@
             }
         }
 
-        // ============================================
-        // CONTACT FORM
-        // ============================================
         async function handleContactSubmit(e) {
             e.preventDefault();
             
@@ -2239,7 +2132,7 @@
                 phone.style.borderColor = '';
             }
             
-            if (!messageVal || messageVal.length < 10) {
+            if (!messageVal || messageVal.length === 0) {
                 document.getElementById('messageError').textContent = translations[currentLang]['contact.form.messageRequired'];
                 isValid = false;
                 message.style.borderColor = 'var(--color-error)';
@@ -2304,9 +2197,6 @@
             }
         }
 
-        // ============================================
-        // RATE LIMITING (Client-side)
-        // ============================================
         let submitAttempts = 0;
         const MAX_SUBMIT_ATTEMPTS = 3;
         const SUBMIT_COOLDOWN = 60 * 1000;
@@ -2340,9 +2230,6 @@
             }
         });
 
-        // ============================================
-        // GENERATE CSRF TOKEN
-        // ============================================
         document.addEventListener('DOMContentLoaded', function() {
             const csrfToken = document.getElementById('csrfToken');
             if (csrfToken) {
@@ -2350,9 +2237,6 @@
             }
         });
 
-        // ============================================
-        // INPUT SANITIZATION
-        // ============================================
         document.querySelectorAll('input, textarea').forEach(input => {
             input.addEventListener('paste', function(e) {
                 const pasted = (e.clipboardData || window.clipboardData).getData('text');
@@ -2374,9 +2258,6 @@
             });
         });
 
-        // ============================================
-        // INIT
-        // ============================================
         function init() {
             setLanguage(currentLang);
             
@@ -2411,14 +2292,10 @@
             startAutoRefresh();
         }
 
-        // Clean up interval on page unload
         window.addEventListener('beforeunload', function() {
             stopAutoRefresh();
         });
 
-        // ============================================
-        // START
-        // ============================================
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {

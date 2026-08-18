@@ -838,7 +838,7 @@
         orderText.addEventListener('input', function() {
             const length = this.value.length;
             const max = 2000;
-            charCounter.textContent = `${length} / ${max}`;
+            charCounter.textContent = length + ' / ' + max;
             
             if (length > 1800) {
                 charCounter.style.color = 'var(--color-warning)';
@@ -848,7 +848,7 @@
             
             if (length > max) {
                 this.value = this.value.substring(0, max);
-                charCounter.textContent = `${max} / ${max}`;
+                charCounter.textContent = max + ' / ' + max;
                 charCounter.style.color = 'var(--color-error)';
             }
         });
@@ -864,7 +864,7 @@
         const previewImage = document.getElementById('previewImage');
         const removeFile = document.getElementById('removeFile');
         const imageError = document.getElementById('imageError');
-        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+        const MAX_FILE_SIZE = 5 * 1024 * 1024;
         const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
         let selectedFile = null;
@@ -900,14 +900,12 @@
         function handleFile(file) {
             imageError.textContent = '';
             
-            // Check type
             if (!ALLOWED_TYPES.includes(file.type)) {
                 imageError.textContent = translations[currentLang]['form.imageInvalid'] || 'نوع الملف غير مدعوم';
                 fileInput.value = '';
                 return;
             }
             
-            // Check size
             if (file.size > MAX_FILE_SIZE) {
                 imageError.textContent = translations[currentLang]['form.imageTooLarge'] || 'حجم الصورة يتجاوز 5MB';
                 fileInput.value = '';
@@ -916,13 +914,11 @@
             
             selectedFile = file;
             
-            // Show file name and size
             fileName.textContent = file.name;
             fileName.classList.add('visible');
-            fileSize.textContent = `(${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            fileSize.textContent = '(' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
             removeFile.classList.add('visible');
             
-            // Preview
             const reader = new FileReader();
             reader.onload = function(e) {
                 previewImage.src = e.target.result;
@@ -986,7 +982,6 @@
             const phone = document.getElementById('orderPhone');
             const email = document.getElementById('orderEmail');
             const orderText = document.getElementById('orderText');
-            const imageError = document.getElementById('imageError');
 
             const nameVal = sanitizeInput(name.value.trim());
             const phoneVal = sanitizeInput(phone.value.trim());
@@ -1030,7 +1025,7 @@
             if (!isValid) {
                 status.className = 'form-status error';
                 status.style.display = 'block';
-                status.textContent = '❌ ' + (translations[currentLang]['form.error'] || 'الرجاء تصحيح الأخطاء');
+                status.textContent = translations[currentLang]['form.error'] || 'الرجاء تصحيح الأخطاء';
                 return;
             }
 
@@ -1041,22 +1036,52 @@
 
             const csrfToken = document.getElementById('csrfToken').value || 'default';
 
-            const formData = new FormData();
-            formData.append('name', nameVal);
-            formData.append('phone', phoneVal);
-            formData.append('email', emailVal);
-            formData.append('orderText', orderTextVal);
-            if (selectedFile) {
-                formData.append('image', selectedFile);
-            }
-
             try {
+                let uploadedImageUrl = '';
+
+                // Upload image first if selected
+                if (selectedFile) {
+                    const uploadFormData = new FormData();
+                    uploadFormData.append('image', selectedFile);
+
+                    const uploadRes = await fetch('/api/upload', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-Token': csrfToken
+                        },
+                        body: uploadFormData
+                    });
+
+                    if (uploadRes.ok) {
+                        const uploadData = await uploadRes.json();
+                        uploadedImageUrl = uploadData.url;
+                    } else {
+                        status.className = 'form-status error';
+                        status.style.display = 'block';
+                        status.textContent = 'فشل رفع الصورة، حاول مرة أخرى';
+                        submitBtn.disabled = false;
+                        submitBtn.querySelector('span:first-child').style.display = 'inline';
+                        submitBtn.querySelector('.btn-loading').style.display = 'none';
+                        return;
+                    }
+                }
+
+                // Submit order with image URL
+                const orderData = {
+                    name: nameVal,
+                    phone: phoneVal,
+                    email: emailVal,
+                    orderText: orderTextVal,
+                    imageUrl: uploadedImageUrl
+                };
+
                 const res = await fetch('/api/orders', {
                     method: 'POST',
                     headers: {
+                        'Content-Type': 'application/json',
                         'X-CSRF-Token': csrfToken
                     },
-                    body: formData
+                    body: JSON.stringify(orderData)
                 });
 
                 const data = await res.json();
@@ -1064,7 +1089,7 @@
                 if (res.ok) {
                     status.className = 'form-status success';
                     status.style.display = 'block';
-                    status.textContent = '✅ ' + (translations[currentLang]['form.success'] || 'تم الإرسال بنجاح');
+                    status.textContent = translations[currentLang]['form.success'] || 'تم الإرسال بنجاح';
                     
                     successCheck.classList.add('visible');
                     
@@ -1082,13 +1107,13 @@
                 } else {
                     status.className = 'form-status error';
                     status.style.display = 'block';
-                    status.textContent = '❌ ' + (data.error || translations[currentLang]['form.error']);
+                    status.textContent = data.error || translations[currentLang]['form.error'];
                 }
             } catch (error) {
                 console.error('Order submission error:', error);
                 status.className = 'form-status error';
                 status.style.display = 'block';
-                status.textContent = '❌ ' + (translations[currentLang]['form.connectionError']);
+                status.textContent = translations[currentLang]['form.connectionError'] || 'حدث خطأ في الاتصال';
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.querySelector('span:first-child').style.display = 'inline';
@@ -1110,7 +1135,7 @@
                 const status = document.getElementById('formStatus');
                 status.className = 'form-status error';
                 status.style.display = 'block';
-                status.textContent = '⏳ ' + (translations[currentLang]['form.rateLimit'] || 'الرجاء الانتظار');
+                status.textContent = translations[currentLang]['form.rateLimit'] || 'الرجاء الانتظار';
                 return;
             }
 
@@ -1121,7 +1146,7 @@
                 const status = document.getElementById('formStatus');
                 status.className = 'form-status info';
                 status.style.display = 'block';
-                status.textContent = '⏳ ' + (translations[currentLang]['form.rateLimitInfo'] || 'تم إرسال عدة طلبات. الرجاء الانتظار دقيقة واحدة.');
+                status.textContent = translations[currentLang]['form.rateLimitInfo'] || 'تم إرسال عدة طلبات. الرجاء الانتظار دقيقة واحدة.';
                 
                 setTimeout(() => {
                     submitAttempts = 0;
@@ -1135,18 +1160,18 @@
         // ============================================
         // ===== CONSOLE PROTECTION =====
         // ============================================
-        console.log('🎨 Shulamith Gallery - Order Page (Secure)');
-        console.log('🔒 Secured against XSS, CSRF, and spam attacks.');
-        console.log('📱 Fully responsive for all devices.');
+        console.log('Shulamith Gallery - Order Page (Secure)');
+        console.log('Secured against XSS, CSRF, and spam attacks.');
+        console.log('Fully responsive for all devices.');
 
         Object.defineProperty(window, 'orderForm', {
             get: function() {
-                console.warn('🔒 Direct access to form is restricted.');
+                console.warn('Direct access to form is restricted.');
                 return null;
             }
         });
 
-        console.log('✅ Order page secured successfully.');
+        console.log('Order page secured successfully.');
     </script>
 </body>
 </html>

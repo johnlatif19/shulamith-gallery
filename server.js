@@ -10,7 +10,6 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-const sharp = require('sharp');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,7 +23,6 @@ const timeoutMiddleware = (req, res, next) => {
     next();
 };
 
-// ===== HELMET =====
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -50,10 +48,7 @@ app.use(helmet({
     xssFilter: true
 }));
 
-// ===== CORS =====
 const allowedOrigins = [
-    'https://shulamith-gallery.vercel.app',
-    'https://shulamith-gallery-git-main.vercel.app',
     'https://shulamith-gallery.vercel.app',
     'https://shulamith-gallery.com',
     'http://localhost:3000',
@@ -82,7 +77,6 @@ app.use(express.static('public'));
 
 app.use(timeoutMiddleware);
 
-// ===== RATE LIMITING =====
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -124,7 +118,6 @@ app.use('/api/send-email', limiter);
 
 const revokedTokens = new Set();
 
-// ===== FIREBASE =====
 let firebaseConfig;
 try {
     firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
@@ -149,14 +142,12 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-// ===== CLOUDINARY =====
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// ===== NODEMAILER =====
 let transporter = null;
 let emailConfigured = false;
 let initializationPromise = null;
@@ -253,7 +244,6 @@ function isEmailConfigured() {
     return transporter !== null && emailConfigured === true;
 }
 
-// ===== JWT =====
 const generateToken = (username) => {
     return jwt.sign(
         { 
@@ -298,7 +288,6 @@ const requireAuth = (req, res, next) => {
     next();
 };
 
-// ===== VALIDATION =====
 const validateEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
@@ -333,7 +322,6 @@ function sanitizeInput(text) {
         .trim();
 }
 
-// ===== AUTH ROUTES =====
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -383,7 +371,6 @@ app.post('/api/verify', requireAuth, (req, res) => {
     res.json({ valid: true, user: req.user });
 });
 
-// ===== GALLERIES =====
 app.get('/api/galleries', async (req, res) => {
     try {
         const snapshot = await db.collection('galleries').limit(100).get();
@@ -497,16 +484,9 @@ app.delete('/api/galleries/:id', requireAuth, async (req, res) => {
     }
 });
 
-// ===== ARTWORKS (مع Pagination) =====
 app.get('/api/artworks', async (req, res) => {
     try {
-        const { 
-            galleryId, 
-            featured, 
-            visible,
-            limit = 20, 
-            lastId = null 
-        } = req.query;
+        const { galleryId, featured } = req.query;
         
         if (galleryId && !validateFirestoreId(galleryId)) {
             return res.status(400).json({ error: 'Invalid galleryId' });
@@ -516,54 +496,25 @@ app.get('/api/artworks', async (req, res) => {
             return res.status(400).json({ error: 'Invalid featured value' });
         }
 
-        // بناء الـ query الأساسي
-        let query = db.collection('artworks')
-            .orderBy('createdAt', 'desc')
-            .limit(parseInt(limit));
+        let query = db.collection('artworks').limit(100);
 
-        // فلترة حسب المعرض
         if (galleryId) {
             query = query.where('galleryId', '==', galleryId);
         }
 
-        // فلترة حسب المميز
         if (featured === 'true') {
             query = query.where('featured', '==', true);
         }
 
-        // فلترة حسب الظهور
-        if (visible === 'false') {
-            query = query.where('visible', '==', false);
-        } else if (visible !== 'only-hidden') {
-            // افتراضياً، نظهر فقط الأعمال الظاهرة
-            query = query.where('visible', '==', true);
-        }
-
-        // Pagination - إذا كان هناك lastId
-        if (lastId) {
-            const lastDoc = await db.collection('artworks').doc(lastId).get();
-            if (lastDoc.exists) {
-                query = query.startAfter(lastDoc);
-            }
-        }
-
         const snapshot = await query.get();
         const artworks = [];
-        let lastDocId = null;
-        
         snapshot.forEach(doc => {
             artworks.push({ id: doc.id, ...doc.data() });
-            lastDocId = doc.id;
         });
 
-        res.json({
-            data: artworks,
-            pagination: {
-                limit: parseInt(limit),
-                lastId: lastDocId,
-                hasMore: artworks.length === parseInt(limit)
-            }
-        });
+        artworks.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+        res.json(artworks);
     } catch (error) {
         console.error('Error fetching artworks:', error);
         res.status(500).json({ error: 'Failed to fetch artworks' });
@@ -697,7 +648,6 @@ app.delete('/api/artworks/:id', requireAuth, async (req, res) => {
     }
 });
 
-// ===== UPLOAD (مع ضغط الصور) =====
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -713,57 +663,22 @@ const upload = multer({
     }
 });
 
+// رفع الصور - بدون توثيق للسماح للعملاء برفع الصور
 app.post('/api/upload', upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No image file provided' });
         }
 
-        // ===== ضغط الصورة باستخدام Sharp =====
-        let processedBuffer = req.file.buffer;
-        let format = req.file.mimetype;
-        let metadata = null;
-        
-        try {
-            const image = sharp(req.file.buffer);
-            metadata = await image.metadata();
-            
-            // ضغط وتحسين الصورة
-            processedBuffer = await image
-                .resize(1200, 1200, { 
-                    fit: 'inside', 
-                    withoutEnlargement: true 
-                })
-                .webp({ 
-                    quality: 80, 
-                    effort: 6,
-                    lossless: false
-                })
-                .toBuffer();
-            
-            format = 'image/webp';
-            console.log(`Image compressed: ${(req.file.size / 1024).toFixed(1)}KB → ${(processedBuffer.length / 1024).toFixed(1)}KB`);
-        } catch (sharpError) {
-            console.warn('Sharp compression failed, using original:', sharpError.message);
-            // استخدم الصورة الأصلية إذا فشل الضغط
-        }
-
-        // ===== رفع إلى Cloudinary =====
-        const b64 = Buffer.from(processedBuffer).toString('base64');
-        const dataURI = `data:${format};base64,${b64}`;
+        const b64 = Buffer.from(req.file.buffer).toString('base64');
+        const dataURI = 'data:' + req.file.mimetype + ';base64,' + b64;
 
         const result = await Promise.race([
             cloudinary.uploader.upload(dataURI, {
-                folder: 'shulamith-gallery/artworks',
-                resource_type: 'auto',
-                transformation: [
-                    { quality: 'auto:good' },
-                    { fetch_format: 'auto' }
-                ]
+                folder: 'shulamith-gallery/orders',
+                resource_type: 'auto'
             }),
-            new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Upload timeout')), 30000)
-            )
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timeout')), 30000))
         ]);
 
         res.json({
@@ -772,11 +687,8 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
             width: result.width,
             height: result.height,
             format: result.format,
-            bytes: result.bytes,
-            originalSize: req.file.size,
-            compressedSize: processedBuffer.length
+            bytes: result.bytes
         });
-        
     } catch (error) {
         console.error('Upload error:', error);
         if (error.message === 'Upload timeout') {
@@ -787,7 +699,6 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
     }
 });
 
-// ===== CONTACT =====
 app.post('/api/contact', async (req, res) => {
     try {
         const { name, email, phone, message } = req.body;
@@ -861,7 +772,6 @@ app.post('/api/contact', async (req, res) => {
     }
 });
 
-// ===== MESSAGES =====
 app.get('/api/messages', requireAuth, async (req, res) => {
     try {
         const { unread } = req.query;
@@ -944,7 +854,6 @@ app.delete('/api/messages/:id', requireAuth, async (req, res) => {
     }
 });
 
-// ===== RATES =====
 app.post('/api/rates', async (req, res) => {
     try {
         const { name, email, rating, opinion } = req.body;
@@ -1078,7 +987,6 @@ app.delete('/api/rates/:id', requireAuth, async (req, res) => {
     }
 });
 
-// ===== ORDERS =====
 app.post('/api/orders', async (req, res) => {
     try {
         const { name, phone, email, orderText, imageUrl } = req.body;
@@ -1293,7 +1201,6 @@ app.delete('/api/orders/:id', requireAuth, async (req, res) => {
     }
 });
 
-// ===== SETTINGS =====
 app.get('/api/settings', async (req, res) => {
     try {
         const doc = await db.collection('settings').doc('site').get();
@@ -1341,7 +1248,6 @@ app.put('/api/settings', requireAuth, async (req, res) => {
     }
 });
 
-// ===== STATS =====
 app.get('/api/stats', requireAuth, async (req, res) => {
     try {
         const statsPromise = Promise.all([
@@ -1380,7 +1286,6 @@ app.get('/api/stats', requireAuth, async (req, res) => {
     }
 });
 
-// ===== SEND EMAIL =====
 app.post('/api/send-email', requireAuth, async (req, res) => {
     try {
         const { name, email, message } = req.body;
@@ -1445,7 +1350,6 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
     }
 });
 
-// ===== HEALTH =====
 app.get('/api/health', requireAuth, (req, res) => {
     res.json({
         status: 'ok',
@@ -1453,7 +1357,6 @@ app.get('/api/health', requireAuth, (req, res) => {
     });
 });
 
-// ===== ERROR HANDLING =====
 app.use((err, req, res, next) => {
     console.error('Server error:', err);
 

@@ -183,7 +183,7 @@
         }
 
         .page-header h1 {
-            font-size: 2.8rem;
+            font-size: clamp(1.6rem, 4vw, 2.8rem);
             font-weight: 300;
             color: var(--color-primary);
             letter-spacing: 2px;
@@ -191,7 +191,7 @@
 
         .page-header p {
             color: var(--color-text-muted);
-            font-size: 1.1rem;
+            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
             margin-top: 8px;
         }
 
@@ -200,7 +200,7 @@
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
             border-radius: var(--radius);
-            padding: 40px;
+            padding: clamp(16px, 4vw, 40px);
             margin-bottom: 40px;
         }
 
@@ -240,11 +240,6 @@
             outline: none;
             border-color: var(--color-primary-dark);
             box-shadow: 0 0 0 3px rgba(212, 184, 146, 0.08);
-        }
-
-        .rate-form input:invalid,
-        .rate-form textarea:invalid {
-            border-color: var(--color-error);
         }
 
         .rate-form textarea {
@@ -391,7 +386,7 @@
 
         .rates-section h2 {
             color: var(--color-primary);
-            font-size: 1.6rem;
+            font-size: clamp(1.2rem, 2.5vw, 1.6rem);
             font-weight: 300;
             margin-bottom: 20px;
             text-align: center;
@@ -556,15 +551,15 @@
                 </a>
             </div>
             <ul class="nav-menu" id="navMenu">
-                <li><a href="/">الرئيسية</a></li>
-                <li><a href="/gallery">المعارض</a></li>
-                <li><a href="https://shulamith-gallery.vercel.app/#about">عن الفنانة</a></li>
-                <li><a href="/order">طلبات خاصة</a></li>
-                <li><a href="/rate" class="active">تقييم</a></li>
-                <li><a href="/#contact">تواصل</a></li>
+                <li><a href="/" data-i18n="nav.home">الرئيسية</a></li>
+                <li><a href="/gallery" data-i18n="nav.gallery">المعارض</a></li>
+                <li><a href="https://shulamith-gallery.vercel.app/#about" data-i18n="nav.about">عن الفنانة</a></li>
+                <li><a href="/order" data-i18n="nav.custom">طلبات خاصة</a></li>
+                <li><a href="/rate" class="active" data-i18n="nav.rate">تقييم</a></li>
+                <li><a href="/#contact" data-i18n="nav.contact">تواصل</a></li>
             </ul>
             <div class="nav-actions">
-                <button class="lang-switch" id="langSwitch"><span class="lang-text">AR</span></button>
+                <button class="lang-switch" id="langSwitch"><span class="lang-text" id="langText">EN</span></button>
                 <button class="nav-toggle" id="navToggle"><span></span><span></span><span></span></button>
             </div>
         </div>
@@ -573,8 +568,8 @@
     <!-- ===== PAGE HEADER ===== -->
     <section class="page-header">
         <div class="container">
-            <h1>⭐ التقييمات</h1>
-            <p>شاركنا رأيك وساعدنا في تحسين خدماتنا</p>
+            <h1 data-i18n="page.title">التقييمات</h1>
+            <p data-i18n="page.subtitle">شاركنا رأيك وساعدنا في تحسين خدماتنا</p>
         </div>
     </section>
 
@@ -583,12 +578,12 @@
         <div class="container">
             <div class="rate-form-wrapper">
                 <form id="rateForm" class="rate-form" autocomplete="off" novalidate>
-                    <!-- ===== CSRF TOKEN ===== -->
                     <input type="hidden" id="csrfToken" value="">
 
+                    <!-- ===== NAME ===== -->
                     <div class="form-group">
                         <label for="rateName">
-                            👤 الاسم
+                            <span data-i18n="form.name">الاسم</span>
                             <span class="required-star">*</span>
                         </label>
                         <input 
@@ -601,13 +596,15 @@
                             maxlength="100"
                             minlength="2"
                             aria-describedby="nameError"
+                            data-i18n-placeholder="form.namePlaceholder"
                         >
                         <span class="form-error" id="nameError"></span>
                     </div>
 
+                    <!-- ===== EMAIL ===== -->
                     <div class="form-group">
                         <label for="rateEmail">
-                            📧 البريد الإلكتروني
+                            <span data-i18n="form.email">البريد الإلكتروني</span>
                             <span class="required-star">*</span>
                         </label>
                         <input 
@@ -619,13 +616,15 @@
                             autocomplete="email"
                             maxlength="100"
                             aria-describedby="emailError"
+                            data-i18n-placeholder="form.emailPlaceholder"
                         >
                         <span class="form-error" id="emailError"></span>
                     </div>
 
+                    <!-- ===== RATING ===== -->
                     <div class="form-group">
                         <label>
-                            ⭐ التقييم
+                            <span data-i18n="form.rating">التقييم</span>
                             <span class="required-star">*</span>
                         </label>
                         <div class="star-rating" id="starRating">
@@ -640,13 +639,14 @@
                             <input type="radio" name="rating" id="star1" value="1">
                             <label for="star1" title="ضعيف">★</label>
                         </div>
-                        <span class="rating-text" id="ratingText">اختر تقييمك</span>
+                        <span class="rating-text" id="ratingText" data-i18n="form.ratingText">اختر تقييمك</span>
                         <span class="form-error" id="ratingError"></span>
                     </div>
 
+                    <!-- ===== OPINION ===== -->
                     <div class="form-group">
                         <label for="rateOpinion">
-                            📝 الرأي
+                            <span data-i18n="form.opinion">الرأي</span>
                             <span class="required-star">*</span>
                         </label>
                         <textarea 
@@ -658,23 +658,25 @@
                             maxlength="1000"
                             minlength="10"
                             aria-describedby="opinionError"
+                            data-i18n-placeholder="form.opinionPlaceholder"
                         ></textarea>
                         <span class="form-error" id="opinionError"></span>
-                        <span class="char-counter" id="charCounter">0 / 1000 حرف</span>
-                        <span class="form-hint">💡 رأيك مهم لنا ويساعد في تحسين خدماتنا</span>
+                        <span class="char-counter" id="charCounter">0 / 1000</span>
+                        <span class="form-hint" data-i18n="form.opinionHint">رأيك مهم لنا ويساعد في تحسين خدماتنا</span>
                     </div>
 
+                    <!-- ===== SUBMIT ===== -->
                     <button type="submit" class="submit-btn" id="rateSubmit">
-                        <span>⭐ إرسال التقييم</span>
-                        <span class="btn-loading">⏳ جاري الإرسال...</span>
+                        <span data-i18n="form.submit">إرسال التقييم</span>
+                        <span class="btn-loading" data-i18n="form.sending">جاري الإرسال...</span>
                     </button>
 
                     <div class="form-status" id="formStatus"></div>
                     
                     <div class="success-checkmark" id="successCheckmark">
                         <span class="check-icon">✅</span>
-                        <p style="color: var(--color-success); font-size: 1.1rem;">شكراً لتقييمك!</p>
-                        <p style="color: var(--color-text-muted); font-size: 0.9rem;">رأيك مهم لنا</p>
+                        <p style="color: var(--color-success); font-size: 1.1rem;" data-i18n="form.success">شكراً لتقييمك!</p>
+                        <p style="color: var(--color-text-muted); font-size: 0.9rem;" data-i18n="form.successSub">رأيك مهم لنا</p>
                     </div>
                 </form>
             </div>
@@ -685,11 +687,11 @@
     <section>
         <div class="container">
             <div class="rates-section">
-                <h2>🗣️ آراء العملاء</h2>
+                <h2 data-i18n="rates.title">آراء العملاء</h2>
                 <div class="rates-grid" id="ratesGrid">
                     <div class="loading-spinner">
                         <div class="spinner"></div>
-                        <p>جاري تحميل التقييمات...</p>
+                        <p data-i18n="rates.loading">جاري تحميل التقييمات...</p>
                     </div>
                 </div>
             </div>
@@ -699,13 +701,99 @@
     <!-- ===== FOOTER ===== -->
     <footer class="footer">
         <div class="container">
-            <p>© 2026 Shulamith Gallery. جميع الحقوق محفوظة</p>
+            <p data-i18n="footer.copyright">© 2026 Shulamith Gallery. جميع الحقوق محفوظة</p>
         </div>
     </footer>
 
     <script>
         // ============================================
-        // ===== 🔒 SECURITY: ESCAPE HTML =====
+        // ===== TRANSLATIONS =====
+        // ============================================
+        const translations = {
+            ar: {
+                'nav.home': 'الرئيسية',
+                'nav.gallery': 'المعارض',
+                'nav.about': 'عن الفنانة',
+                'nav.custom': 'طلبات خاصة',
+                'nav.rate': 'تقييم',
+                'nav.contact': 'تواصل',
+                'page.title': 'التقييمات',
+                'page.subtitle': 'شاركنا رأيك وساعدنا في تحسين خدماتنا',
+                'form.name': 'الاسم',
+                'form.namePlaceholder': 'أدخل اسمك الكامل',
+                'form.email': 'البريد الإلكتروني',
+                'form.emailPlaceholder': 'أدخل بريدك الإلكتروني',
+                'form.rating': 'التقييم',
+                'form.ratingText': 'اختر تقييمك',
+                'form.ratingTexts': ['ضعيف', 'مقبول', 'جيد', 'جيد جداً', 'ممتاز'],
+                'form.ratingEmojis': ['😞', '😐', '🙂', '😊', '🤩'],
+                'form.opinion': 'الرأي',
+                'form.opinionPlaceholder': 'اكتب رأيك هنا... ما الذي أعجبك؟ ما الذي يمكن تحسينه؟',
+                'form.opinionHint': 'رأيك مهم لنا ويساعد في تحسين خدماتنا',
+                'form.submit': 'إرسال التقييم',
+                'form.sending': 'جاري الإرسال...',
+                'form.success': 'شكراً لتقييمك!',
+                'form.successSub': 'رأيك مهم لنا',
+                'form.error': 'حدث خطأ، حاول مرة أخرى',
+                'form.connectionError': 'حدث خطأ في الاتصال، حاول مرة أخرى',
+                'form.nameRequired': 'الاسم مطلوب (2-100 حرف)',
+                'form.emailInvalid': 'بريد إلكتروني غير صالح',
+                'form.ratingRequired': 'الرجاء اختيار تقييم',
+                'form.opinionRequired': 'الرأي مطلوب (10-1000 حرف)',
+                'form.rateLimit': 'الرجاء الانتظار قبل إرسال تقييم آخر',
+                'form.rateLimitInfo': 'تم إرسال عدة تقييمات. الرجاء الانتظار دقيقة واحدة قبل المحاولة مرة أخرى.',
+                'rates.title': 'آراء العملاء',
+                'rates.loading': 'جاري تحميل التقييمات...',
+                'rates.empty': 'لا توجد تقييمات حالياً',
+                'rates.emptySub': 'كن أول من يقيم!',
+                'rates.error': 'حدث خطأ في تحميل التقييمات',
+                'rates.errorSub': 'يرجى تحديث الصفحة',
+                'footer.copyright': '© 2026 Shulamith Gallery. جميع الحقوق محفوظة'
+            },
+            en: {
+                'nav.home': 'Home',
+                'nav.gallery': 'Gallery',
+                'nav.about': 'About',
+                'nav.custom': 'Custom Orders',
+                'nav.rate': 'Rate',
+                'nav.contact': 'Contact',
+                'page.title': 'Ratings',
+                'page.subtitle': 'Share your feedback and help us improve our services',
+                'form.name': 'Full Name',
+                'form.namePlaceholder': 'Enter your full name',
+                'form.email': 'Email Address',
+                'form.emailPlaceholder': 'Enter your email address',
+                'form.rating': 'Rating',
+                'form.ratingText': 'Choose your rating',
+                'form.ratingTexts': ['Poor', 'Fair', 'Good', 'Very Good', 'Excellent'],
+                'form.ratingEmojis': ['😞', '😐', '🙂', '😊', '🤩'],
+                'form.opinion': 'Opinion',
+                'form.opinionPlaceholder': 'Write your opinion here... What did you like? What can be improved?',
+                'form.opinionHint': 'Your opinion matters to us and helps improve our services',
+                'form.submit': 'Submit Rating',
+                'form.sending': 'Sending...',
+                'form.success': 'Thank you for your rating!',
+                'form.successSub': 'Your opinion matters to us',
+                'form.error': 'An error occurred, please try again',
+                'form.connectionError': 'Connection error, please try again',
+                'form.nameRequired': 'Name is required (2-100 characters)',
+                'form.emailInvalid': 'Invalid email address',
+                'form.ratingRequired': 'Please select a rating',
+                'form.opinionRequired': 'Opinion is required (10-1000 characters)',
+                'form.rateLimit': 'Please wait before submitting another rating',
+                'form.rateLimitInfo': 'Multiple ratings submitted. Please wait 1 minute before trying again.',
+                'rates.title': 'Customer Reviews',
+                'rates.loading': 'Loading ratings...',
+                'rates.empty': 'No ratings yet',
+                'rates.emptySub': 'Be the first to rate!',
+                'rates.error': 'Error loading ratings',
+                'rates.errorSub': 'Please refresh the page',
+                'footer.copyright': '© 2026 Shulamith Gallery. All rights reserved'
+            }
+        };
+
+        // ============================================
+        // ===== SECURITY =====
         // ============================================
         function escapeHtml(text) {
             if (!text) return '';
@@ -714,9 +802,6 @@
             return div.innerHTML;
         }
 
-        // ============================================
-        // ===== 🔒 SANITIZE INPUT =====
-        // ============================================
         function sanitizeInput(text) {
             if (!text) return '';
             return text
@@ -728,9 +813,6 @@
                 .trim();
         }
 
-        // ============================================
-        // ===== 🔒 VALIDATION FUNCTIONS =====
-        // ============================================
         function validateEmail(email) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         }
@@ -748,17 +830,63 @@
         // ============================================
         let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
         let refreshInterval = null;
+        let isLoading = false;
 
         function setLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('shulamith-lang', lang);
+            
             document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            document.documentElement.lang = lang;
             document.body.className = lang === 'ar' ? 'rtl' : 'ltr';
-            document.querySelector('.lang-text').textContent = lang.toUpperCase();
+            
+            const langText = document.getElementById('langText');
+            if (langText) {
+                langText.textContent = lang === 'ar' ? 'EN' : 'AR';
+            }
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+            
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (translations[lang] && translations[lang][key]) {
+                    el.placeholder = translations[lang][key];
+                }
+            });
+
+            // Update rating text if already selected
+            const selected = document.querySelector('input[name="rating"]:checked');
+            if (selected) {
+                updateRatingText(parseInt(selected.value));
+            }
         }
 
-        document.getElementById('langSwitch').addEventListener('click', () => {
-            setLanguage(currentLang === 'ar' ? 'en' : 'ar');
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLang = localStorage.getItem('shulamith-lang') || 'ar';
+            setLanguage(savedLang);
+            
+            const csrfToken = document.getElementById('csrfToken');
+            if (csrfToken) {
+                csrfToken.value = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
+            }
+            
+            loadRates();
+            startAutoRefresh();
+            
+            setTimeout(() => {
+                document.getElementById('rateName').focus();
+            }, 300);
+        });
+
+        document.getElementById('langSwitch').addEventListener('click', function(e) {
+            e.preventDefault();
+            const newLang = currentLang === 'ar' ? 'en' : 'ar';
+            setLanguage(newLang);
         });
 
         // ============================================
@@ -770,39 +898,37 @@
         });
 
         // ============================================
-        // ===== 🔒 RATING TEXT =====
+        // ===== RATING TEXT =====
         // ============================================
-        const ratingTexts = {
-            1: 'ضعيف 😞',
-            2: 'مقبول 😐',
-            3: 'جيد 🙂',
-            4: 'جيد جداً 😊',
-            5: 'ممتاز 🤩'
-        };
+        function updateRatingText(rating) {
+            const text = document.getElementById('ratingText');
+            const t = translations[currentLang];
+            const index = rating - 1;
+            if (t['form.ratingTexts'] && t['form.ratingEmojis'] && t['form.ratingTexts'][index]) {
+                text.textContent = '⭐ ' + t['form.ratingTexts'][index] + ' ' + t['form.ratingEmojis'][index];
+                text.style.color = '#f1c40f';
+            } else {
+                text.textContent = t['form.ratingText'] || 'اختر تقييمك';
+                text.style.color = 'var(--color-text-muted)';
+            }
+        }
 
         document.querySelectorAll('input[name="rating"]').forEach(input => {
             input.addEventListener('change', function() {
-                const rating = parseInt(this.value);
-                const text = document.getElementById('ratingText');
-                if (ratingTexts[rating]) {
-                    text.textContent = `⭐ ${ratingTexts[rating]}`;
-                    text.style.color = '#f1c40f';
-                } else {
-                    text.textContent = 'اختر تقييمك';
-                    text.style.color = 'var(--color-text-muted)';
-                }
+                updateRatingText(parseInt(this.value));
             });
         });
 
         // ============================================
-        // ===== 🔒 CHAR COUNTER =====
+        // ===== CHAR COUNTER =====
         // ============================================
         const rateOpinion = document.getElementById('rateOpinion');
         const charCounter = document.getElementById('charCounter');
 
         rateOpinion.addEventListener('input', function() {
             const length = this.value.length;
-            charCounter.textContent = `${Math.min(length, 1000)} / 1000 حرف`;
+            const max = 1000;
+            charCounter.textContent = `${Math.min(length, max)} / ${max}`;
             
             if (length > 800) {
                 charCounter.style.color = 'var(--color-warning)';
@@ -810,15 +936,15 @@
                 charCounter.style.color = 'var(--color-text-dark)';
             }
             
-            if (length > 1000) {
-                this.value = this.value.substring(0, 1000);
-                charCounter.textContent = '1000 / 1000 حرف (الحد الأقصى)';
+            if (length > max) {
+                this.value = this.value.substring(0, max);
+                charCounter.textContent = `${max} / ${max}`;
                 charCounter.style.color = 'var(--color-error)';
             }
         });
 
         // ============================================
-        // ===== 🔒 INPUT SANITIZATION =====
+        // ===== INPUT SANITIZATION =====
         // ============================================
         document.querySelectorAll('input, textarea').forEach(input => {
             input.addEventListener('paste', function(e) {
@@ -842,10 +968,15 @@
         });
 
         // ============================================
-        // ===== 🔒 LOAD RATES =====
+        // ===== LOAD RATES =====
         // ============================================
         async function loadRates() {
+            if (isLoading) return;
+            isLoading = true;
+            
             const grid = document.getElementById('ratesGrid');
+            const t = translations[currentLang];
+            
             try {
                 const res = await fetch('/api/rates');
                 if (!res.ok) {
@@ -856,17 +987,19 @@
                 if (!data || data.length === 0) {
                     grid.innerHTML = `
                         <div class="empty-state">
-                            🗣️ لا توجد تقييمات حالياً<br>
-                            <span style="font-size: 0.85rem; color: var(--color-text-dark);">كن أول من يقيم!</span>
+                            ${t['rates.empty']}
+                            <br>
+                            <span style="font-size: 0.85rem; color: var(--color-text-dark);">${t['rates.emptySub']}</span>
                         </div>
                     `;
+                    isLoading = false;
                     return;
                 }
 
                 let html = '';
                 data.forEach((rate, index) => {
                     const stars = '★'.repeat(rate.rating) + '☆'.repeat(5 - rate.rating);
-                    const date = rate.createdAt ? new Date(rate.createdAt).toLocaleDateString('ar') : '';
+                    const date = rate.createdAt ? new Date(rate.createdAt).toLocaleDateString(currentLang === 'ar' ? 'ar' : 'en') : '';
                     const delay = (index % 5) * 0.08;
                     html += `
                         <div class="rate-item" style="animation-delay: ${delay}s;">
@@ -886,20 +1019,22 @@
                 console.error('Error loading rates:', error);
                 grid.innerHTML = `
                     <div class="empty-state">
-                        ❌ حدث خطأ في تحميل التقييمات<br>
-                        <span style="font-size: 0.85rem; color: var(--color-text-dark);">يرجى تحديث الصفحة</span>
+                        ${t['rates.error']}
+                        <br>
+                        <span style="font-size: 0.85rem; color: var(--color-text-dark);">${t['rates.errorSub']}</span>
                     </div>
                 `;
             }
+            
+            isLoading = false;
         }
 
         // ============================================
-        // ===== 🔒 SUBMIT RATE =====
+        // ===== SUBMIT RATE =====
         // ============================================
         document.getElementById('rateForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            // ===== RESET ERRORS =====
             document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
             const status = document.getElementById('formStatus');
             status.className = 'form-status';
@@ -908,7 +1043,6 @@
             const successCheck = document.getElementById('successCheckmark');
             successCheck.classList.remove('visible');
 
-            // ===== GET VALUES =====
             const name = document.getElementById('rateName');
             const email = document.getElementById('rateEmail');
             const opinion = document.getElementById('rateOpinion');
@@ -918,36 +1052,31 @@
             const emailVal = email.value.trim();
             const opinionVal = sanitizeInput(opinion.value.trim());
 
-            // ===== VALIDATE =====
             let isValid = true;
 
-            // Validate Name
             if (!validateName(nameVal)) {
-                document.getElementById('nameError').textContent = 'الاسم مطلوب (2-100 حرف)';
+                document.getElementById('nameError').textContent = translations[currentLang]['form.nameRequired'];
                 isValid = false;
                 name.style.borderColor = 'var(--color-error)';
             } else {
                 name.style.borderColor = '';
             }
 
-            // Validate Email
             if (!validateEmail(emailVal)) {
-                document.getElementById('emailError').textContent = 'بريد إلكتروني غير صالح';
+                document.getElementById('emailError').textContent = translations[currentLang]['form.emailInvalid'];
                 isValid = false;
                 email.style.borderColor = 'var(--color-error)';
             } else {
                 email.style.borderColor = '';
             }
 
-            // Validate Rating
             if (!rating) {
-                document.getElementById('ratingError').textContent = 'الرجاء اختيار تقييم';
+                document.getElementById('ratingError').textContent = translations[currentLang]['form.ratingRequired'];
                 isValid = false;
             }
 
-            // Validate Opinion
             if (!validateOpinion(opinionVal)) {
-                document.getElementById('opinionError').textContent = 'الرأي مطلوب (10-1000 حرف)';
+                document.getElementById('opinionError').textContent = translations[currentLang]['form.opinionRequired'];
                 isValid = false;
                 opinion.style.borderColor = 'var(--color-error)';
             } else {
@@ -957,17 +1086,15 @@
             if (!isValid) {
                 status.className = 'form-status error';
                 status.style.display = 'block';
-                status.textContent = '❌ الرجاء تصحيح الأخطاء في النموذج';
+                status.textContent = '❌ ' + (translations[currentLang]['form.error'] || 'الرجاء تصحيح الأخطاء');
                 return;
             }
 
-            // ===== SUBMIT =====
             const submitBtn = document.getElementById('rateSubmit');
             submitBtn.disabled = true;
             submitBtn.querySelector('span:first-child').style.display = 'none';
             submitBtn.querySelector('.btn-loading').style.display = 'inline';
 
-            // ===== CSRF TOKEN =====
             const csrfToken = document.getElementById('csrfToken').value || 'default';
 
             try {
@@ -988,36 +1115,31 @@
                 const data = await res.json();
 
                 if (res.ok) {
-                    // ===== SUCCESS =====
                     status.className = 'form-status success';
                     status.style.display = 'block';
-                    status.textContent = '✅ تم إرسال التقييم بنجاح! شكراً لك.';
+                    status.textContent = '✅ ' + (translations[currentLang]['form.success'] || 'تم الإرسال بنجاح');
                     
                     successCheck.classList.add('visible');
                     
-                    // ===== RESET FORM =====
                     this.reset();
-                    charCounter.textContent = '0 / 1000 حرف';
-                    document.getElementById('ratingText').textContent = 'اختر تقييمك';
+                    charCounter.textContent = '0 / 1000';
+                    document.getElementById('ratingText').textContent = translations[currentLang]['form.ratingText'];
                     document.getElementById('ratingText').style.color = 'var(--color-text-muted)';
                     
-                    // ===== RELOAD RATES =====
                     await loadRates();
                     
-                    // ===== SCROLL TO STATUS =====
                     status.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     
                 } else {
-                    // ===== ERROR =====
                     status.className = 'form-status error';
                     status.style.display = 'block';
-                    status.textContent = data.error || '❌ حدث خطأ، حاول مرة أخرى';
+                    status.textContent = '❌ ' + (data.error || translations[currentLang]['form.error']);
                 }
             } catch (error) {
                 console.error('Rate submission error:', error);
                 status.className = 'form-status error';
                 status.style.display = 'block';
-                status.textContent = '❌ حدث خطأ في الاتصال، حاول مرة أخرى';
+                status.textContent = '❌ ' + (translations[currentLang]['form.connectionError']);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.querySelector('span:first-child').style.display = 'inline';
@@ -1026,11 +1148,11 @@
         });
 
         // ============================================
-        // ===== 🔒 RATE LIMITING (Client-side) =====
+        // ===== RATE LIMITING =====
         // ============================================
         let submitAttempts = 0;
         const MAX_SUBMIT_ATTEMPTS = 3;
-        const SUBMIT_COOLDOWN = 60 * 1000; // 1 دقيقة
+        const SUBMIT_COOLDOWN = 60 * 1000;
         let submitCooldown = false;
 
         document.getElementById('rateForm').addEventListener('submit', function(e) {
@@ -1039,7 +1161,7 @@
                 const status = document.getElementById('formStatus');
                 status.className = 'form-status error';
                 status.style.display = 'block';
-                status.textContent = '⏳ الرجاء الانتظار قبل إرسال تقييم آخر';
+                status.textContent = '⏳ ' + (translations[currentLang]['form.rateLimit'] || 'الرجاء الانتظار');
                 return;
             }
 
@@ -1050,7 +1172,7 @@
                 const status = document.getElementById('formStatus');
                 status.className = 'form-status info';
                 status.style.display = 'block';
-                status.textContent = '⏳ تم إرسال عدة تقييمات. الرجاء الانتظار دقيقة واحدة قبل المحاولة مرة أخرى.';
+                status.textContent = '⏳ ' + (translations[currentLang]['form.rateLimitInfo'] || 'تم إرسال عدة تقييمات. الرجاء الانتظار دقيقة واحدة.');
                 
                 setTimeout(() => {
                     submitAttempts = 0;
@@ -1062,55 +1184,31 @@
         });
 
         // ============================================
-        // ===== 🔒 AUTO REFRESH =====
+        // ===== AUTO REFRESH =====
         // ============================================
         function startAutoRefresh() {
             if (refreshInterval) {
                 clearInterval(refreshInterval);
             }
             refreshInterval = setInterval(() => {
-                loadRates();
-            }, 30000); // 30 ثانية
+                if (!isLoading) {
+                    loadRates();
+                }
+            }, 30000);
         }
 
         // ============================================
-        // ===== 🔒 GENERATE CSRF TOKEN =====
+        // ===== CONSOLE PROTECTION =====
         // ============================================
-        document.addEventListener('DOMContentLoaded', function() {
-            const csrfToken = document.getElementById('csrfToken');
-            if (csrfToken) {
-                csrfToken.value = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
-            }
+        console.log('⭐ Shulamith Gallery - Rate Page (Secure)');
+        console.log('🔒 Secured against XSS, CSRF, and spam attacks.');
+        console.log('📱 Fully responsive for all devices.');
 
-            // ===== SET LANGUAGE =====
-            setLanguage(currentLang);
-
-            // ===== LOAD RATES =====
-            loadRates();
-            startAutoRefresh();
-
-            // ===== FOCUS FIRST INPUT =====
-            setTimeout(() => {
-                document.getElementById('rateName').focus();
-            }, 300);
-        });
-
-        // ============================================
-        // ===== 🔒 CLEANUP =====
-        // ============================================
         window.addEventListener('beforeunload', function() {
             if (refreshInterval) {
                 clearInterval(refreshInterval);
             }
         });
-
-        // ============================================
-        // ===== 🔒 CONSOLE PROTECTION =====
-        // ============================================
-        console.log('%c⭐ Shulamith Gallery - Rate Page (Secure)', 
-            'color: #d4b892; font-size: 16px; font-weight: bold;');
-        console.log('%c🔒 This page is secured against XSS, CSRF, and spam attacks.', 
-            'color: #2ecc71; font-size: 12px;');
 
         console.log('✅ Rate page secured successfully.');
     </script>

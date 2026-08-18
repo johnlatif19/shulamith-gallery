@@ -356,7 +356,6 @@
             <div class="login-header">
                 <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="login-logo" loading="lazy">
                 <h1>Shulamith Gallery</h1>
-                <p>🔐 لوحة التحكم</p>
             </div>
             
             <form id="loginForm" class="login-form" autocomplete="off">
@@ -364,7 +363,7 @@
                 <input type="hidden" id="csrfToken" value="">
                 
                 <div class="form-group">
-                    <label for="username">👤 اسم المستخدم</label>
+                    <label for="username">اسم المستخدم</label>
                     <input 
                         type="text" 
                         id="username" 
@@ -379,7 +378,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="password">🔑 كلمة المرور</label>
+                    <label for="password">كلمة المرور</label>
                     <div class="password-wrapper">
                         <input 
                             type="password" 
@@ -398,7 +397,7 @@
                             aria-label="إظهار/إخفاء كلمة المرور"
                             title="إظهار/إخفاء كلمة المرور"
                         >
-                            👁️
+                            🐵
                         </button>
                     </div>
                     <span class="form-error" id="passwordError"></span>
@@ -406,23 +405,21 @@
                 
                 <!-- ===== RATE LIMIT WARNING ===== -->
                 <div class="rate-limit-warning" id="rateLimitWarning">
-                    ⚠️ تم تجاوز عدد محاولات تسجيل الدخول. الرجاء الانتظار 15 دقيقة.
+                    تم تجاوز عدد محاولات تسجيل الدخول. الرجاء الانتظار 15 دقيقة.
                 </div>
                 
                 <button type="submit" class="login-btn" id="loginBtn">
-                    <span>🚀 تسجيل الدخول</span>
+                    <span>تسجيل الدخول</span>
                     <span class="btn-loading">⏳ جاري التحقق...</span>
                 </button>
                 
                 <div class="login-status" id="loginStatus"></div>
                 
-                <div class="security-notice">
-                    🔒 اتصال آمن &bull; <span>محمي بـ HTTPS</span>
-                </div>
+
             </form>
             
             <div class="login-footer">
-                <a href="/" title="العودة إلى الموقع الرئيسي">← العودة إلى الموقع</a>
+                <a href="/">العودة الى الموقع الرئيسي</a>
             </div>
         </div>
     </div>
@@ -456,7 +453,7 @@
         togglePassword.addEventListener('click', function() {
             const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
             password.setAttribute('type', type);
-            this.textContent = type === 'password' ? '👁️' : '🙈';
+            this.textContent = type === 'password' ? '🐵' : '🙈';
             this.setAttribute('aria-label', type === 'password' ? 'إظهار كلمة المرور' : 'إخفاء كلمة المرور');
         });
 

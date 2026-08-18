@@ -420,6 +420,13 @@
             height: 50px;
             object-fit: cover;
             border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        td .image-thumb:hover {
+            transform: scale(1.05);
+            border-color: var(--color-primary);
         }
 
         .table-actions {
@@ -742,6 +749,13 @@
             min-height: 80px;
         }
 
+        .modal .form-group .form-hint {
+            color: var(--color-text-dark);
+            font-size: 0.8rem;
+            margin-top: 4px;
+            display: block;
+        }
+
         .modal .form-group.checkbox,
         .modal .form-group.checkbox-group {
             display: flex;
@@ -1055,6 +1069,57 @@
             resize: vertical;
         }
 
+        .settings-form .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--color-primary);
+            color: var(--color-bg);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .settings-form .submit-btn:hover {
+            background: var(--color-primary-light);
+        }
+
+        /* ===== STAR RATING ===== */
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        body.ltr .star-rating {
+            flex-direction: row;
+        }
+
+        .star-rating input {
+            display: none;
+        }
+
+        .star-rating label {
+            font-size: 2.2rem;
+            color: var(--color-border);
+            cursor: pointer;
+            transition: var(--transition);
+            margin: 0;
+        }
+
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+            color: #f1c40f;
+        }
+
+        body.ltr .star-rating label:hover ~ label {
+            color: #f1c40f;
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 992px) {
             .sidebar {
@@ -1217,38 +1282,25 @@
             }
         }
 
-        /* ===== STAR RATING ===== */
-        .star-rating {
-            display: flex;
-            flex-direction: row-reverse;
-            gap: 8px;
-            justify-content: flex-end;
-        }
-
-        body.ltr .star-rating {
-            flex-direction: row;
-        }
-
-        .star-rating input {
-            display: none;
-        }
-
-        .star-rating label {
-            font-size: 2.2rem;
-            color: var(--color-border);
+        /* ===== IMAGE PREVIEW IN ORDERS ===== */
+        .order-image-thumb {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
             cursor: pointer;
+            border: 1px solid var(--color-border);
             transition: var(--transition);
-            margin: 0;
         }
 
-        .star-rating label:hover,
-        .star-rating label:hover ~ label,
-        .star-rating input:checked ~ label {
-            color: #f1c40f;
+        .order-image-thumb:hover {
+            border-color: var(--color-primary);
+            transform: scale(1.05);
         }
 
-        body.ltr .star-rating label:hover ~ label {
-            color: #f1c40f;
+        .no-image {
+            color: var(--color-text-dark);
+            font-size: 0.75rem;
         }
     </style>
 </head>
@@ -1534,7 +1586,7 @@
                                 <input type="text" id="footerText" name="footerText">
                             </div>
                         </div>
-                        <button type="submit" class="add-btn" id="settingsSubmit" style="margin-top:16px; width:100%; padding:12px;">
+                        <button type="submit" class="submit-btn" id="settingsSubmit" style="margin-top:16px;">
                             <span>حفظ الإعدادات</span>
                             <span class="btn-loading" style="display:none;">جاري الحفظ...</span>
                         </button>
@@ -1700,6 +1752,12 @@
                     <textarea id="editOrderText" rows="4" required></textarea>
                 </div>
                 <div class="form-group">
+                    <label for="editOrderImage">صورة مرفقة</label>
+                    <div id="editOrderImagePreview" style="margin-bottom:8px;"></div>
+                    <input type="url" id="editOrderImage" placeholder="https://example.com/image.jpg">
+                    <span class="form-hint">رابط الصورة المرفقة (اختياري)</span>
+                </div>
+                <div class="form-group">
                     <label for="editOrderStatus">الحالة</label>
                     <select id="editOrderStatus">
                         <option value="pending">قيد الانتظار</option>
@@ -1713,6 +1771,22 @@
                     <span class="btn-loading" style="display:none;">جاري الحفظ...</span>
                 </button>
             </form>
+        </div>
+    </div>
+
+    <!-- Image Preview Modal for Orders -->
+    <div class="modal" id="imagePreviewModal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>صورة الطلب</h3>
+                <button class="modal-close" data-modal="imagePreviewModal">✕</button>
+            </div>
+            <div style="text-align:center; padding:10px;">
+                <img id="previewOrderImage" src="" alt="صورة الطلب" style="max-width:100%; max-height:70vh; border-radius:8px; border:1px solid var(--color-border);">
+            </div>
+            <div style="text-align:center; color:var(--color-text-muted); font-size:0.85rem; margin-top:8px;">
+                <span id="previewOrderName"></span>
+            </div>
         </div>
     </div>
 
@@ -1782,7 +1856,7 @@
     
     <script>
         // ============================================
-        // ===== 🔒 ESCAPE HTML (XSS Protection) =====
+        // ===== ESCAPE HTML (XSS Protection) =====
         // ============================================
         function escapeHtml(text) {
             if (!text) return '';
@@ -1963,6 +2037,15 @@
             else if (section === 'orders') loadOrders();
             else if (section === 'settings') loadSettings();
         }
+
+        // ============================================
+        // ===== PREVIEW ORDER IMAGE =====
+        // ============================================
+        window.previewOrderImage = function(imageUrl, name) {
+            document.getElementById('previewOrderImage').src = imageUrl;
+            document.getElementById('previewOrderName').textContent = 'الطلب: ' + name;
+            document.getElementById('imagePreviewModal').classList.add('active');
+        };
 
         // ============================================
         // ===== LOAD STATS =====
@@ -2461,6 +2544,7 @@
                         <table>
                             <thead>
                                 <tr>
+                                    <th>الصورة</th>
                                     <th>الاسم</th>
                                     <th>الهاتف</th>
                                     <th>البريد</th>
@@ -2481,8 +2565,12 @@
                 data.forEach(order => {
                     const statusText = statusMap[order.status] || order.status;
                     const date = order.createdAt ? new Date(order.createdAt).toLocaleDateString('ar') : '';
+                    const hasImage = order.imageUrl && order.imageUrl.length > 0;
                     html += `
                         <tr>
+                            <td>
+                                ${hasImage ? `<img src="${escapeHtml(order.imageUrl)}" alt="صورة الطلب" class="order-image-thumb" onclick="window.previewOrderImage('${escapeHtml(order.imageUrl)}', '${escapeHtml(order.name)}')">` : '<span class="no-image">لا توجد</span>'}
+                            </td>
                             <td>${escapeHtml(order.name)}</td>
                             <td>${escapeHtml(order.phone)}</td>
                             <td>${escapeHtml(order.email)}</td>
@@ -2536,6 +2624,15 @@
             document.getElementById('editOrderEmail').value = order.email;
             document.getElementById('editOrderText').value = order.orderText;
             document.getElementById('editOrderStatus').value = order.status;
+            document.getElementById('editOrderImage').value = order.imageUrl || '';
+            
+            const preview = document.getElementById('editOrderImagePreview');
+            if (order.imageUrl) {
+                preview.innerHTML = `<img src="${escapeHtml(order.imageUrl)}" alt="الصورة المرفقة" style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--color-border);">`;
+            } else {
+                preview.innerHTML = '<span style="color:var(--color-text-dark); font-size:0.85rem;">لا توجد صورة مرفقة</span>';
+            }
+            
             document.getElementById('editOrderModal').classList.add('active');
         };
 
@@ -2560,6 +2657,98 @@
                 showToast('حدث خطأ', 'error');
             }
         };
+
+        // ============================================
+        // ===== EDIT ORDER SUBMIT =====
+        // ============================================
+        document.getElementById('editOrderForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('editOrderId').value;
+            const data = {
+                name: document.getElementById('editOrderName').value.trim(),
+                phone: document.getElementById('editOrderPhone').value.trim(),
+                email: document.getElementById('editOrderEmail').value.trim(),
+                orderText: document.getElementById('editOrderText').value.trim(),
+                status: document.getElementById('editOrderStatus').value,
+                imageUrl: document.getElementById('editOrderImage').value.trim()
+            };
+            
+            const submitBtn = document.getElementById('editOrderSubmit');
+            submitBtn.disabled = true;
+            submitBtn.querySelector('span:first-child').style.display = 'none';
+            submitBtn.querySelector('.btn-loading').style.display = 'inline';
+            
+            try {
+                const res = await fetch(`/api/orders/${id}`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify(data)
+                });
+                
+                if (res.ok) {
+                    showToast('تم تحديث الطلب بنجاح');
+                    document.getElementById('editOrderModal').classList.remove('active');
+                    loadOrders(document.getElementById('ordersFilter').value);
+                    loadStats();
+                } else {
+                    const result = await res.json();
+                    showToast(result.error || 'حدث خطأ', 'error');
+                }
+            } catch (error) {
+                showToast('حدث خطأ في الاتصال', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.querySelector('span:first-child').style.display = 'inline';
+                submitBtn.querySelector('.btn-loading').style.display = 'none';
+            }
+        });
+
+        // ============================================
+        // ===== EDIT RATE SUBMIT =====
+        // ============================================
+        document.getElementById('editRateForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('editRateId').value;
+            const rating = document.querySelector('input[name="editRating"]:checked');
+            
+            const data = {
+                name: document.getElementById('editRateName').value.trim(),
+                email: document.getElementById('editRateEmail').value.trim(),
+                rating: rating ? parseInt(rating.value) : 1,
+                opinion: document.getElementById('editRateOpinion').value.trim()
+            };
+            
+            const submitBtn = document.getElementById('editRateSubmit');
+            submitBtn.disabled = true;
+            submitBtn.querySelector('span:first-child').style.display = 'none';
+            submitBtn.querySelector('.btn-loading').style.display = 'inline';
+            
+            try {
+                const res = await fetch(`/api/rates/${id}`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify(data)
+                });
+                
+                if (res.ok) {
+                    showToast('تم تحديث التقييم بنجاح');
+                    document.getElementById('editRateModal').classList.remove('active');
+                    loadRates(document.getElementById('ratesFilter').value);
+                    loadStats();
+                } else {
+                    const result = await res.json();
+                    showToast(result.error || 'حدث خطأ', 'error');
+                }
+            } catch (error) {
+                showToast('حدث خطأ في الاتصال', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.querySelector('span:first-child').style.display = 'inline';
+                submitBtn.querySelector('.btn-loading').style.display = 'none';
+            }
+        });
 
         // ============================================
         // ===== LOAD SETTINGS =====
@@ -2652,113 +2841,6 @@
         });
 
         // ============================================
-        // ===== CONFIRM DELETE =====
-        // ============================================
-        window.confirmDelete = function(type, id) {
-            deleteTarget = { type, id };
-            const messages = {
-                gallery: 'هل أنت متأكد من حذف هذا المعرض؟',
-                artwork: 'هل أنت متأكد من حذف هذا العمل الفني؟',
-                message: 'هل أنت متأكد من حذف هذه الرسالة؟',
-                rate: 'هل أنت متأكد من حذف هذا التقييم؟',
-                order: 'هل أنت متأكد من حذف هذا الطلب؟'
-            };
-            document.getElementById('confirmMessage').textContent = messages[type] || 'هل أنت متأكد من حذف هذا العنصر؟';
-            document.getElementById('confirmModal').classList.add('active');
-        };
-
-        // ============================================
-        // ===== EDIT ORDER SUBMIT =====
-        // ============================================
-        document.getElementById('editOrderForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const id = document.getElementById('editOrderId').value;
-            const data = {
-                name: document.getElementById('editOrderName').value.trim(),
-                phone: document.getElementById('editOrderPhone').value.trim(),
-                email: document.getElementById('editOrderEmail').value.trim(),
-                orderText: document.getElementById('editOrderText').value.trim(),
-                status: document.getElementById('editOrderStatus').value
-            };
-            
-            const submitBtn = document.getElementById('editOrderSubmit');
-            submitBtn.disabled = true;
-            submitBtn.querySelector('span:first-child').style.display = 'none';
-            submitBtn.querySelector('.btn-loading').style.display = 'inline';
-            
-            try {
-                const res = await fetch(`/api/orders/${id}`, {
-                    method: 'PUT',
-                    headers: getHeaders(),
-                    body: JSON.stringify(data)
-                });
-                
-                if (res.ok) {
-                    showToast('تم تحديث الطلب بنجاح');
-                    document.getElementById('editOrderModal').classList.remove('active');
-                    loadOrders(document.getElementById('ordersFilter').value);
-                    loadStats();
-                } else {
-                    const result = await res.json();
-                    showToast(result.error || 'حدث خطأ', 'error');
-                }
-            } catch (error) {
-                showToast('حدث خطأ في الاتصال', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.querySelector('span:first-child').style.display = 'inline';
-                submitBtn.querySelector('.btn-loading').style.display = 'none';
-            }
-        });
-
-        // ============================================
-        // ===== EDIT RATE SUBMIT =====
-        // ============================================
-        document.getElementById('editRateForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const id = document.getElementById('editRateId').value;
-            const rating = document.querySelector('input[name="editRating"]:checked');
-            
-            const data = {
-                name: document.getElementById('editRateName').value.trim(),
-                email: document.getElementById('editRateEmail').value.trim(),
-                rating: rating ? parseInt(rating.value) : 1,
-                opinion: document.getElementById('editRateOpinion').value.trim()
-            };
-            
-            const submitBtn = document.getElementById('editRateSubmit');
-            submitBtn.disabled = true;
-            submitBtn.querySelector('span:first-child').style.display = 'none';
-            submitBtn.querySelector('.btn-loading').style.display = 'inline';
-            
-            try {
-                const res = await fetch(`/api/rates/${id}`, {
-                    method: 'PUT',
-                    headers: getHeaders(),
-                    body: JSON.stringify(data)
-                });
-                
-                if (res.ok) {
-                    showToast('تم تحديث التقييم بنجاح');
-                    document.getElementById('editRateModal').classList.remove('active');
-                    loadRates(document.getElementById('ratesFilter').value);
-                    loadStats();
-                } else {
-                    const result = await res.json();
-                    showToast(result.error || 'حدث خطأ', 'error');
-                }
-            } catch (error) {
-                showToast('حدث خطأ في الاتصال', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.querySelector('span:first-child').style.display = 'inline';
-                submitBtn.querySelector('.btn-loading').style.display = 'none';
-            }
-        });
-
-        // ============================================
         // ===== GALLERY IMAGE UPLOAD =====
         // ============================================
         document.getElementById('galleryImageFile').addEventListener('change', function(e) {
@@ -2791,6 +2873,141 @@
                         const data = JSON.parse(xhr.response);
                         document.getElementById('galleryCover').value = data.url;
                         document.getElementById('galleryUploadPreview').innerHTML = `<img src="${escapeHtml(data.url)}" alt="Uploaded">`;
+                        showToast('تم رفع الصورة بنجاح');
+                    } else if (xhr.status === 401) {
+                        localStorage.removeItem('shulamith-token');
+                        window.location.href = '/login';
+                    } else {
+                        showToast('فشل رفع الصورة', 'error');
+                    }
+                    progress.style.display = 'none';
+                };
+                
+                xhr.onerror = function() {
+                    showToast('حدث خطأ في الرفع', 'error');
+                    progress.style.display = 'none';
+                };
+                
+                xhr.send(formData);
+            } catch (error) {
+                showToast('حدث خطأ', 'error');
+                progress.style.display = 'none';
+            }
+        });
+
+        // ============================================
+        // ===== CONFIRM DELETE =====
+        // ============================================
+        window.confirmDelete = function(type, id) {
+            deleteTarget = { type, id };
+            const messages = {
+                gallery: 'هل أنت متأكد من حذف هذا المعرض؟',
+                artwork: 'هل أنت متأكد من حذف هذا العمل الفني؟',
+                message: 'هل أنت متأكد من حذف هذه الرسالة؟',
+                rate: 'هل أنت متأكد من حذف هذا التقييم؟',
+                order: 'هل أنت متأكد من حذف هذا الطلب؟'
+            };
+            document.getElementById('confirmMessage').textContent = messages[type] || 'هل أنت متأكد من حذف هذا العنصر؟';
+            document.getElementById('confirmModal').classList.add('active');
+        };
+
+        // ============================================
+        // ===== SETTINGS SUBMIT =====
+        // ============================================
+        document.getElementById('settingsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const data = {
+                siteName: document.getElementById('siteName').value.trim(),
+                logo: document.getElementById('siteLogo').value.trim(),
+                aboutText: document.getElementById('aboutText').value.trim(),
+                phone: document.getElementById('sitePhone').value.trim(),
+                email: document.getElementById('siteEmail').value.trim(),
+                address: document.getElementById('siteAddress').value.trim(),
+                instagram: document.getElementById('instagramUrl').value.trim(),
+                facebook: document.getElementById('facebookUrl').value.trim(),
+                whatsapp: document.getElementById('whatsappNumber').value.trim(),
+                heroText: document.getElementById('heroText').value.trim(),
+                footerText: document.getElementById('footerText').value.trim()
+            };
+            
+            const submitBtn = document.getElementById('settingsSubmit');
+            const status = document.getElementById('settingsStatus');
+            submitBtn.disabled = true;
+            submitBtn.querySelector('span:first-child').style.display = 'none';
+            submitBtn.querySelector('.btn-loading').style.display = 'inline';
+            status.style.display = 'none';
+            
+            try {
+                const res = await fetch('/api/settings', {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    status.className = 'form-status';
+                    status.style.display = 'block';
+                    status.style.background = 'rgba(46,204,113,0.15)';
+                    status.style.color = '#2ecc71';
+                    status.style.border = '1px solid rgba(46,204,113,0.3)';
+                    status.textContent = 'تم حفظ الإعدادات بنجاح';
+                    showToast('تم حفظ الإعدادات بنجاح');
+                } else {
+                    status.className = 'form-status';
+                    status.style.display = 'block';
+                    status.style.background = 'rgba(231,76,60,0.15)';
+                    status.style.color = '#e74c3c';
+                    status.style.border = '1px solid rgba(231,76,60,0.3)';
+                    status.textContent = result.error || 'حدث خطأ';
+                }
+            } catch (error) {
+                status.className = 'form-status';
+                status.style.display = 'block';
+                status.style.background = 'rgba(231,76,60,0.15)';
+                status.style.color = '#e74c3c';
+                status.style.border = '1px solid rgba(231,76,60,0.3)';
+                status.textContent = 'حدث خطأ في الاتصال';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.querySelector('span:first-child').style.display = 'inline';
+                submitBtn.querySelector('.btn-loading').style.display = 'none';
+            }
+        });
+
+        // ============================================
+        // ===== ARTWORK IMAGE UPLOAD =====
+        // ============================================
+        document.getElementById('artworkImageFile').addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (!file) return;
+            
+            const progress = document.getElementById('uploadProgress');
+            const fill = document.getElementById('progressFill');
+            const text = document.getElementById('progressText');
+            progress.style.display = 'block';
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/api/upload');
+                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                
+                xhr.upload.onprogress = function(e) {
+                    if (e.lengthComputable) {
+                        const pct = Math.round((e.loaded / e.total) * 100);
+                        fill.style.width = pct + '%';
+                        text.textContent = pct + '%';
+                    }
+                };
+                
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        const data = JSON.parse(xhr.response);
+                        document.getElementById('artworkImageUrl').value = data.url;
+                        document.getElementById('uploadPreview').innerHTML = `<img src="${escapeHtml(data.url)}" alt="Uploaded">`;
                         showToast('تم رفع الصورة بنجاح');
                     } else if (xhr.status === 401) {
                         localStorage.removeItem('shulamith-token');
@@ -2957,59 +3174,6 @@
                 openArtworkModal();
             });
             
-            // Image upload for artwork
-            document.getElementById('artworkImageFile').addEventListener('change', function(e) {
-                const file = this.files[0];
-                if (!file) return;
-                
-                const progress = document.getElementById('uploadProgress');
-                const fill = document.getElementById('progressFill');
-                const text = document.getElementById('progressText');
-                progress.style.display = 'block';
-                
-                const formData = new FormData();
-                formData.append('image', file);
-                
-                try {
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('POST', '/api/upload');
-                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-                    
-                    xhr.upload.onprogress = function(e) {
-                        if (e.lengthComputable) {
-                            const pct = Math.round((e.loaded / e.total) * 100);
-                            fill.style.width = pct + '%';
-                            text.textContent = pct + '%';
-                        }
-                    };
-                    
-                    xhr.onload = function() {
-                        if (xhr.status === 200) {
-                            const data = JSON.parse(xhr.response);
-                            document.getElementById('artworkImageUrl').value = data.url;
-                            document.getElementById('uploadPreview').innerHTML = `<img src="${escapeHtml(data.url)}" alt="Uploaded">`;
-                            showToast('تم رفع الصورة بنجاح');
-                        } else if (xhr.status === 401) {
-                            localStorage.removeItem('shulamith-token');
-                            window.location.href = '/login.html';
-                        } else {
-                            showToast('فشل رفع الصورة', 'error');
-                        }
-                        progress.style.display = 'none';
-                    };
-                    
-                    xhr.onerror = function() {
-                        showToast('حدث خطأ في الرفع', 'error');
-                        progress.style.display = 'none';
-                    };
-                    
-                    xhr.send(formData);
-                } catch (error) {
-                    showToast('حدث خطأ', 'error');
-                    progress.style.display = 'none';
-                }
-            });
-            
             // Message filter
             document.getElementById('messageFilter').addEventListener('change', function() {
                 loadMessages(this.value);
@@ -3023,67 +3187,6 @@
             // Orders filter
             document.getElementById('ordersFilter').addEventListener('change', function() {
                 loadOrders(this.value);
-            });
-            
-            // Settings form
-            document.getElementById('settingsForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const data = {
-                    siteName: document.getElementById('siteName').value.trim(),
-                    logo: document.getElementById('siteLogo').value.trim(),
-                    aboutText: document.getElementById('aboutText').value.trim(),
-                    phone: document.getElementById('sitePhone').value.trim(),
-                    email: document.getElementById('siteEmail').value.trim(),
-                    address: document.getElementById('siteAddress').value.trim(),
-                    instagram: document.getElementById('instagramUrl').value.trim(),
-                    facebook: document.getElementById('facebookUrl').value.trim(),
-                    whatsapp: document.getElementById('whatsappNumber').value.trim(),
-                    heroText: document.getElementById('heroText').value.trim(),
-                    footerText: document.getElementById('footerText').value.trim()
-                };
-                
-                const submitBtn = document.getElementById('settingsSubmit');
-                const status = document.getElementById('settingsStatus');
-                submitBtn.disabled = true;
-                submitBtn.querySelector('span:first-child').style.display = 'none';
-                submitBtn.querySelector('.btn-loading').style.display = 'inline';
-                status.style.display = 'none';
-                
-                try {
-                    const res = await fetch('/api/settings', {
-                        method: 'PUT',
-                        headers: getHeaders(),
-                        body: JSON.stringify(data)
-                    });
-                    const result = await res.json();
-                    if (res.ok) {
-                        status.className = 'form-status';
-                        status.style.display = 'block';
-                        status.style.background = 'rgba(46,204,113,0.15)';
-                        status.style.color = '#2ecc71';
-                        status.style.border = '1px solid rgba(46,204,113,0.3)';
-                        status.textContent = 'تم حفظ الإعدادات بنجاح';
-                        showToast('تم حفظ الإعدادات بنجاح');
-                    } else {
-                        status.className = 'form-status';
-                        status.style.display = 'block';
-                        status.style.background = 'rgba(231,76,60,0.15)';
-                        status.style.color = '#e74c3c';
-                        status.style.border = '1px solid rgba(231,76,60,0.3)';
-                        status.textContent = result.error || 'حدث خطأ';
-                    }
-                } catch (error) {
-                    status.className = 'form-status';
-                    status.style.display = 'block';
-                    status.style.background = 'rgba(231,76,60,0.15)';
-                    status.style.color = '#e74c3c';
-                    status.style.border = '1px solid rgba(231,76,60,0.3)';
-                    status.textContent = 'حدث خطأ في الاتصال';
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.querySelector('span:first-child').style.display = 'inline';
-                    submitBtn.querySelector('.btn-loading').style.display = 'none';
-                }
             });
             
             // Confirm delete

@@ -1998,6 +1998,10 @@
             }
         }
 
+        /**
+         * دالة عرض الأعمال الفنية مع حماية XSS
+         * تم تعديلها لاستخدام escapeHtml() على جميع البيانات القادمة من API
+         */
         function renderArtworks(artworks) {
             const grid = document.getElementById('galleryGrid');
             
@@ -2009,15 +2013,21 @@
             let html = '';
             artworks.forEach((artwork, index) => {
                 const delay = (index % 6) * 0.08;
+                // تنقية جميع البيانات قبل إدخالها في HTML
+                const escapedTitle = escapeHtml(artwork.title);
+                const escapedGalleryName = escapeHtml(artwork.galleryName || '');
+                const escapedId = escapeHtml(artwork.id);
+                const escapedImageUrl = escapeHtml(artwork.imageUrl);
+                
                 html += `
-                    <div class="gallery-item reveal-scale" style="transition-delay: ${delay}s;" data-id="${escapeHtml(artwork.id)}" role="listitem">
-                        <img src="${escapeHtml(artwork.imageUrl)}" alt="${escapeHtml(artwork.title)}" loading="lazy" width="280" height="300">
+                    <div class="gallery-item reveal-scale" style="transition-delay: ${delay}s;" data-id="${escapedId}" role="listitem">
+                        <img src="${escapedImageUrl}" alt="${escapedTitle}" loading="lazy" width="280" height="300">
                         <div class="artwork-overlay">
                             <span data-i18n="gallery.view">عرض التفاصيل</span>
                         </div>
                         <div class="gallery-item-info">
-                            <h4>${escapeHtml(artwork.title)}</h4>
-                            <p>${escapeHtml(artwork.galleryName || '')}</p>
+                            <h4>${escapedTitle}</h4>
+                            <p>${escapedGalleryName}</p>
                         </div>
                     </div>
                 `;

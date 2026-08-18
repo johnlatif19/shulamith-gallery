@@ -2,7 +2,7 @@
 User-agent: *
 Allow: /
 
-# Sitemap location - يوجه محركات البحث إلى خريطة الموقع الخاصة بك
+# Sitemap location - يوجه محركات البحث إلى خريطة الموقع
 Sitemap: https://shulamith-gallery.vercel.app/sitemap.xml
 
 # Disallow admin and login pages (حماية لوحة التحكم وصفحات الدخول)
@@ -26,7 +26,7 @@ Disallow: /private/
 Disallow: /secret/
 Disallow: /database/
 
-# Disallow dynamic API endpoints and system paths (منع فهرسة واجهات API والمسارات الداخلية)
+# Disallow dynamic API endpoints and system paths
 Disallow: /api/
 Disallow: /api/*
 Disallow: /admin-api/

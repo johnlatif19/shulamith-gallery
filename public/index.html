@@ -19,7 +19,6 @@
     
     <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
-    <link rel="sitemap" type="application/xml" href="/sitemap.xml">
     
     <link rel="preconnect" href="https://i.postimg.cc">
     <link rel="preconnect" href="https://res.cloudinary.com">
@@ -1416,57 +1415,6 @@
                 break-inside: avoid;
             }
         }
-
-        /* ===== Load More Button ===== */
-        #loadMoreContainer {
-            text-align: center;
-            padding: 20px 0;
-        }
-
-        #loadMoreBtn {
-            display: none;
-            padding: 12px 40px;
-            background: var(--color-primary);
-            color: var(--color-bg);
-            border: none;
-            border-radius: var(--radius-sm);
-            font-size: clamp(0.9rem, 1vw, 1rem);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        #loadMoreBtn:hover {
-            background: var(--color-primary-light);
-            transform: translateY(-2px);
-        }
-
-        #loadMoreBtn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        #loadingMore {
-            display: none;
-            color: var(--color-text-muted);
-            padding: 12px 0;
-        }
-
-        #loadingMore .spinner-small {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--color-border);
-            border-top-color: var(--color-primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        body.ltr #loadingMore .spinner-small {
-            margin-right: 0;
-            margin-left: 8px;
-        }
     </style>
 </head>
 <body>
@@ -1717,7 +1665,6 @@
     <button class="scroll-top" id="scrollTop" aria-label="العودة إلى الأعلى">↑</button>
 
     <script>
-        // ===== SECURITY: ESCAPE HTML =====
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
@@ -1736,11 +1683,6 @@
                 .trim();
         }
 
-        function validateEmail(email) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        }
-
-        // ===== TRANSLATIONS =====
         const translations = {
             ar: {
                 'nav.home': 'الرئيسية',
@@ -1880,59 +1822,14 @@
             }
         };
 
-        // ===== LANGUAGE =====
         let currentLang = localStorage.getItem('language') || 'ar';
         let allArtworks = [];
         let refreshInterval = null;
         let isLoading = false;
 
-        // ===== PAGINATION VARIABLES =====
-        let currentPage = 0;
-        let hasMore = true;
-        let isLoadingMore = false;
-        let lastId = null;
-
-        // ===== CACHING =====
-        const CACHE_KEY = 'shulamith-artworks-cache';
-        const CACHE_DURATION = 5 * 60 * 1000; // 5 دقائق
-
-        function getCachedArtworks() {
-            try {
-                const cached = localStorage.getItem(CACHE_KEY);
-                if (!cached) return null;
-                
-                const { data, timestamp } = JSON.parse(cached);
-                if (Date.now() - timestamp > CACHE_DURATION) {
-                    localStorage.removeItem(CACHE_KEY);
-                    return null;
-                }
-                return data;
-            } catch (error) {
-                console.warn('Cache read error:', error);
-                return null;
-            }
-        }
-
-        function setCachedArtworks(data) {
-            try {
-                localStorage.setItem(CACHE_KEY, JSON.stringify({
-                    data,
-                    timestamp: Date.now()
-                }));
-            } catch (error) {
-                console.warn('Cache write error:', error);
-            }
-        }
-
-        function clearCache() {
-            localStorage.removeItem(CACHE_KEY);
-        }
-
-        // ===== DOM REFS =====
         const $ = (sel) => document.querySelector(sel);
         const $$ = (sel) => document.querySelectorAll(sel);
 
-        // ===== SET LANGUAGE =====
         function setLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('language', lang);
@@ -1968,7 +1865,6 @@
             setLanguage(nextLang);
         }
 
-        // ===== NAV =====
         function toggleNav() {
             const menu = document.getElementById('navMenu');
             const toggle = document.getElementById('navToggle');
@@ -1983,7 +1879,6 @@
             toggle.classList.remove('active');
         }
 
-        // ===== SCROLL =====
         function handleScroll() {
             const btn = document.getElementById('scrollTop');
             if (window.scrollY > 400) {
@@ -1999,23 +1894,12 @@
                     el.classList.add('active');
                 }
             });
-
-            // ===== Infinite Scroll =====
-            const scrollPosition = window.innerHeight + window.scrollY;
-            const pageHeight = document.body.offsetHeight;
-            
-            if (scrollPosition >= pageHeight * 0.8) {
-                if (hasMore && !isLoadingMore) {
-                    loadArtworks(true);
-                }
-            }
         }
 
         function scrollToTop() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // ===== LIGHTBOX =====
         function openLightbox(artwork) {
             const lb = document.getElementById('lightbox');
             const img = document.getElementById('lightboxImage');
@@ -2043,90 +1927,81 @@
             document.body.style.overflow = '';
         }
 
-        // ===== API =====
         async function apiGet(url) {
             const res = await fetch(url);
             if (!res.ok) throw new Error('API error');
             return res.json();
         }
 
-        // ===== LOAD ARTWORKS (مع Pagination و Caching) =====
-        async function loadArtworks(loadMore = false) {
-            if (isLoadingMore) return;
-            if (loadMore && !hasMore) return;
+        async function loadArtworks() {
+            if (isLoading) return;
+            isLoading = true;
             
-            // إذا كان التحميل الأول، حاول قراءة من الكاش
-            if (!loadMore) {
-                const cached = getCachedArtworks();
-                if (cached && cached.length > 0) {
-                    allArtworks = cached;
-                    renderArtworks(allArtworks);
-                    // استمر في التحميل في الخلفية للتحديث
-                    setTimeout(() => loadArtworksFromServer(false), 100);
-                    return;
-                }
-            }
-            
-            await loadArtworksFromServer(loadMore);
-        }
-
-        async function loadArtworksFromServer(loadMore = false) {
-            if (isLoadingMore) return;
-            if (loadMore && !hasMore) return;
-            
-            isLoadingMore = true;
-            
-            // إظهار مؤشر التحميل
-            const loadingMore = document.getElementById('loadingMore');
-            if (loadMore) {
-                loadingMore.style.display = 'block';
-            }
-            
-            let url = '/api/artworks?limit=20';
-            if (lastId && loadMore) {
-                url += `&lastId=${lastId}`;
-            }
+            const grid = document.getElementById('galleryGrid');
             
             try {
-                const result = await apiGet(url);
+                const data = await apiGet('/api/artworks');
+                allArtworks = data.filter(a => a.visible !== false);
                 
-                if (loadMore) {
-                    allArtworks = [...allArtworks, ...result.data];
-                } else {
-                    allArtworks = result.data;
-                    // تخزين في الكاش
-                    setCachedArtworks(allArtworks);
+                if (allArtworks.length === 0) {
+                    grid.innerHTML = `<div class="empty-state" data-i18n="gallery.empty">لا توجد أعمال فنية حالياً</div>`;
+                    isLoading = false;
+                    return;
                 }
                 
-                hasMore = result.pagination.hasMore;
-                lastId = result.pagination.lastId;
+                const filters = document.getElementById('galleryFilters');
+                const galleries = [...new Set(allArtworks.map(a => a.galleryId))];
+                const galleryNames = {};
                 
-                renderArtworks(allArtworks);
+                const galleriesData = await apiGet('/api/galleries');
+                galleriesData.forEach(g => {
+                    galleryNames[g.id] = g.name;
+                });
                 
-                // إظهار/إخفاء زر "تحميل المزيد"
-                const loadMoreBtn = document.getElementById('loadMoreBtn');
-                if (loadMoreBtn) {
-                    loadMoreBtn.style.display = hasMore ? 'block' : 'none';
-                }
+                allArtworks.forEach(a => {
+                    a.galleryName = galleryNames[a.galleryId] || '';
+                });
+                
+                const activeFilter = filters.querySelector('.filter-btn.active');
+                const currentFilter = activeFilter ? activeFilter.dataset.filter : 'all';
+                
+                let filterHTML = `<button class="filter-btn active" data-filter="all" role="tab" aria-selected="true" data-i18n="gallery.all">الكل</button>`;
+                galleries.forEach(gId => {
+                    const name = galleryNames[gId] || gId;
+                    const activeClass = gId === currentFilter ? ' active' : '';
+                    filterHTML += `<button class="filter-btn${activeClass}" data-filter="${gId}" role="tab" aria-selected="${gId === currentFilter}">${escapeHtml(name)}</button>`;
+                });
+                filters.innerHTML = filterHTML;
+                
+                const filtered = currentFilter === 'all' ? allArtworks : allArtworks.filter(a => a.galleryId === currentFilter);
+                renderArtworks(filtered);
+                
+                filters.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        filters.querySelectorAll('.filter-btn').forEach(b => {
+                            b.classList.remove('active');
+                            b.setAttribute('aria-selected', 'false');
+                        });
+                        this.classList.add('active');
+                        this.setAttribute('aria-selected', 'true');
+                        const filter = this.dataset.filter;
+                        const filtered = filter === 'all' ? allArtworks : allArtworks.filter(a => a.galleryId === filter);
+                        renderArtworks(filtered);
+                    });
+                });
                 
             } catch (error) {
                 console.error('Error loading artworks:', error);
-                const grid = document.getElementById('galleryGrid');
-                if (grid && allArtworks.length === 0) {
-                    grid.innerHTML = `<div class="empty-state">حدث خطأ في تحميل الأعمال</div>`;
-                }
+                grid.innerHTML = `<div class="empty-state">حدث خطأ في تحميل الأعمال</div>`;
             } finally {
-                isLoadingMore = false;
-                const loadingMore = document.getElementById('loadingMore');
-                loadingMore.style.display = 'none';
+                isLoading = false;
             }
         }
 
-        // ===== RENDER ARTWORKS (مع XSS Protection) =====
         function renderArtworks(artworks) {
             const grid = document.getElementById('galleryGrid');
             
-            if (!artworks || artworks.length === 0) {
+            if (artworks.length === 0) {
                 grid.innerHTML = `<div class="empty-state" data-i18n="gallery.empty">لا توجد أعمال فنية حالياً</div>`;
                 return;
             }
@@ -2136,7 +2011,7 @@
                 const delay = (index % 6) * 0.08;
                 html += `
                     <div class="gallery-item reveal-scale" style="transition-delay: ${delay}s;" data-id="${escapeHtml(artwork.id)}" role="listitem">
-                        <img src="${escapeHtml(artwork.imageUrl)}" alt="${escapeHtml(artwork.title)}" loading="lazy" width="280" height="300" decoding="async">
+                        <img src="${escapeHtml(artwork.imageUrl)}" alt="${escapeHtml(artwork.title)}" loading="lazy" width="280" height="300">
                         <div class="artwork-overlay">
                             <span data-i18n="gallery.view">عرض التفاصيل</span>
                         </div>
@@ -2150,15 +2025,13 @@
             
             grid.innerHTML = html;
             
-            // إضافة حدث النقر لكل عنصر
             grid.querySelectorAll('.gallery-item').forEach((item, index) => {
                 item.addEventListener('click', () => {
-                    const artwork = allArtworks[index];
+                    const artwork = artworks[index];
                     if (artwork) openLightbox(artwork);
                 });
             });
             
-            // تفعيل تأثير الـ Reveal
             setTimeout(() => {
                 grid.querySelectorAll('.gallery-item').forEach(el => {
                     const rect = el.getBoundingClientRect();
@@ -2169,52 +2042,22 @@
             }, 100);
         }
 
-        // ===== LOAD GALLERIES FOR FILTERS =====
-        async function loadGalleriesForFilters() {
-            try {
-                const data = await apiGet('/api/galleries');
-                const filters = document.getElementById('galleryFilters');
-                
-                let filterHTML = `<button class="filter-btn active" data-filter="all" role="tab" aria-selected="true" data-i18n="gallery.all">الكل</button>`;
-                
-                data.forEach(gallery => {
-                    if (gallery.visible !== false) {
-                        filterHTML += `<button class="filter-btn" data-filter="${escapeHtml(gallery.id)}" role="tab">${escapeHtml(gallery.name)}</button>`;
-                    }
-                });
-                
-                filters.innerHTML = filterHTML;
-                
-                // إضافة حدث النقر للفلاتر
-                filters.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        filters.querySelectorAll('.filter-btn').forEach(b => {
-                            b.classList.remove('active');
-                            b.setAttribute('aria-selected', 'false');
-                        });
-                        this.classList.add('active');
-                        this.setAttribute('aria-selected', 'true');
-                        
-                        const filter = this.dataset.filter;
-                        // إعادة تعيين Pagination
-                        lastId = null;
-                        hasMore = true;
-                        
-                        if (filter === 'all') {
-                            loadArtworks(false);
-                        } else {
-                            // تحميل الأعمال حسب المعرض
-                            isLoadingMore = false;
-                            loadArtworksFromServer(false);
-                        }
-                    });
-                });
-            } catch (error) {
-                console.error('Error loading galleries for filters:', error);
+        function startAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            refreshInterval = setInterval(() => {
+                loadArtworks();
+            }, 5000);
+        }
+
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
             }
         }
 
-        // ===== CONTACT FORM =====
         async function handleContactSubmit(e) {
             e.preventDefault();
             
@@ -2244,7 +2087,7 @@
                 name.style.borderColor = '';
             }
             
-            if (!emailVal || !validateEmail(emailVal)) {
+            if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
                 document.getElementById('emailError').textContent = translations[currentLang]['contact.form.emailInvalid'];
                 isValid = false;
                 email.style.borderColor = 'var(--color-error)';
@@ -2275,7 +2118,7 @@
                 return;
             }
             
-            const csrfToken = document.getElementById('csrfToken').value || 'default';
+            const csrfToken = document.getElementById('csrfToken') ? document.getElementById('csrfToken').value : 'default';
             
             submitBtn.disabled = true;
             const originalText = submitBtn.querySelector('span:first-child');
@@ -2325,34 +2168,75 @@
             }
         }
 
-        // ===== AUTO REFRESH =====
-        function startAutoRefresh() {
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
+        let submitAttempts = 0;
+        const MAX_SUBMIT_ATTEMPTS = 3;
+        const SUBMIT_COOLDOWN = 60 * 1000;
+        let submitCooldown = false;
+
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            if (submitCooldown) {
+                e.preventDefault();
+                const status = document.getElementById('formStatus');
+                status.className = 'form-status error';
+                status.style.display = 'block';
+                status.textContent = 'الرجاء الانتظار قبل إرسال رسالة أخرى';
+                return;
             }
-            refreshInterval = setInterval(() => {
-                if (!isLoadingMore) {
-                    loadArtworksFromServer(false);
+
+            submitAttempts++;
+            
+            if (submitAttempts >= MAX_SUBMIT_ATTEMPTS) {
+                submitCooldown = true;
+                const status = document.getElementById('formStatus');
+                status.className = 'form-status info';
+                status.style.display = 'block';
+                status.textContent = 'تم إرسال عدة رسائل. الرجاء الانتظار دقيقة واحدة قبل المحاولة مرة أخرى.';
+                
+                setTimeout(() => {
+                    submitAttempts = 0;
+                    submitCooldown = false;
+                    status.className = 'form-status';
+                    status.style.display = 'none';
+                }, SUBMIT_COOLDOWN);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const csrfToken = document.getElementById('csrfToken');
+            if (csrfToken) {
+                csrfToken.value = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
+            }
+        });
+
+        document.querySelectorAll('input, textarea').forEach(input => {
+            input.addEventListener('paste', function(e) {
+                const pasted = (e.clipboardData || window.clipboardData).getData('text');
+                if (pasted && /<script|<iframe|onerror|onload|javascript:/i.test(pasted)) {
+                    e.preventDefault();
+                    const cleaned = sanitizeInput(pasted);
+                    this.value = cleaned;
+                    this.style.borderColor = 'var(--color-error)';
+                    setTimeout(() => {
+                        this.style.borderColor = '';
+                    }, 1000);
                 }
-            }, 30000); // كل 30 ثانية
-        }
+            });
 
-        function stopAutoRefresh() {
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
-                refreshInterval = null;
-            }
-        }
+            input.addEventListener('blur', function() {
+                if (this.value) {
+                    this.value = sanitizeInput(this.value);
+                }
+            });
+        });
 
-        // ===== INIT =====
         function init() {
             setLanguage(currentLang);
             
-            // ===== EVENT LISTENERS =====
             document.getElementById('langSwitch').addEventListener('click', toggleLanguage);
             document.getElementById('navToggle').addEventListener('click', toggleNav);
             document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
             document.getElementById('scrollTop').addEventListener('click', scrollToTop);
+            
             document.getElementById('contactForm').addEventListener('submit', handleContactSubmit);
             
             document.getElementById('lightbox').addEventListener('click', function(e) {
@@ -2372,45 +2256,22 @@
                 link.addEventListener('click', closeNav);
             });
             
-            // ===== LOAD MORE BUTTON =====
-            document.getElementById('loadMoreBtn').addEventListener('click', function() {
-                loadArtworks(true);
-            });
-            
-            // ===== SCROLL =====
             window.addEventListener('scroll', handleScroll);
             handleScroll();
             
-            // ===== GENERATE CSRF TOKEN =====
-            const csrfToken = document.getElementById('csrfToken');
-            if (csrfToken) {
-                csrfToken.value = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
-            }
-            
-            // ===== LOAD DATA =====
-            loadGalleriesForFilters();
-            loadArtworks(false);
+            loadArtworks();
             startAutoRefresh();
-        }
-
-        // ===== CONSOLE PROTECTION =====
-        console.log('Shulamith Gallery - Secure Version 2.0');
-        console.log('✅ XSS Protection');
-        console.log('✅ Pagination');
-        console.log('✅ Caching');
-        console.log('✅ CSRF Protection');
-        console.log('✅ Rate Limiting');
-
-        // ===== START =====
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
         }
 
         window.addEventListener('beforeunload', function() {
             stopAutoRefresh();
         });
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>

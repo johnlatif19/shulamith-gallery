@@ -1,27 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <!-- الصفحة الرئيسية (تمثل #home) -->
     <url>
         <loc>https://shulamith-gallery.vercel.app/</loc>
         <lastmod>2026-08-18</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
     </url>
+    
+    <!-- قسم "عن الفنانة" -->
+    <url>
+        <loc>https://shulamith-gallery.vercel.app/#about</loc>
+        <lastmod>2026-08-18</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    
+    <!-- قسم "طلبات خاصة" -->
+    <url>
+        <loc>https://shulamith-gallery.vercel.app/#custom</loc>
+        <lastmod>2026-08-18</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    
+    <!-- صفحة "المعارض" -->
     <url>
         <loc>https://shulamith-gallery.vercel.app/gallery</loc>
         <lastmod>2026-08-18</lastmod>
         <changefreq>daily</changefreq>
         <priority>0.9</priority>
     </url>
+    
+    <!-- صفحة "طلب عمل فني" -->
     <url>
         <loc>https://shulamith-gallery.vercel.app/order</loc>
         <lastmod>2026-08-18</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>
+    
+    <!-- صفحة "التقييمات" -->
     <url>
         <loc>https://shulamith-gallery.vercel.app/rate</loc>
         <lastmod>2026-08-18</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
+    </url>
+    
+    <!-- قسم "تواصل معنا" -->
+    <url>
+        <loc>https://shulamith-gallery.vercel.app/#contact</loc>
+        <lastmod>2026-08-18</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
     </url>
 </urlset>

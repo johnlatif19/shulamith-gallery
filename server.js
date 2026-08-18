@@ -14,10 +14,8 @@ const crypto = require('crypto');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ============ ✅ مهم جداً لـ Vercel ============
 app.set('trust proxy', true);
 
-// ============ Timeout Middleware ============
 const timeoutMiddleware = (req, res, next) => {
     req.setTimeout(30000, () => {
         res.status(504).json({ error: 'Request timeout' });
@@ -25,14 +23,13 @@ const timeoutMiddleware = (req, res, next) => {
     next();
 };
 
-// ============ 🔒 SECURITY HEADERS IMPROVED ============
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
             imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://i.postimg.cc"],
-            scriptSrc: ["'self'"], // ✅ إزالة 'unsafe-inline'
-            styleSrc: ["'self'", "'unsafe-inline'"], // ✅ ضروري للتصميم المضمن
+            scriptSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
             connectSrc: ["'self'", "https://firestore.googleapis.com", "https://api.cloudinary.com"],
             baseUri: ["'self'"],
             frameAncestors: ["'none'"],
@@ -51,7 +48,6 @@ app.use(helmet({
     xssFilter: true
 }));
 
-// ============ 🔒 CORS FIXED ============
 const allowedOrigins = [
     'https://shulamith-gallery.vercel.app',
     'https://shulamith-gallery.com',
@@ -61,13 +57,12 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: function (origin, callback) {
-        // السماح للطلبات من نفس الخادم (بدون origin)
         if (!origin) return callback(null, true);
         
         if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
             callback(null, true);
         } else {
-            console.warn(`⚠️ CORS blocked: ${origin}`);
+            console.warn('CORS blocked: ' + origin);
             callback(new Error('Not allowed by CORS'));
         }
     },
@@ -82,7 +77,6 @@ app.use(express.static('public'));
 
 app.use(timeoutMiddleware);
 
-// ============ 🔒 RATE LIMITING IMPROVED ============
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -122,10 +116,8 @@ app.use('/api/upload', limiter);
 app.use('/api/stats', limiter);
 app.use('/api/send-email', limiter);
 
-// ============ 🔒 REVOKED TOKENS SET ============
 const revokedTokens = new Set();
 
-// ============ Firebase Admin ============
 let firebaseConfig;
 try {
     firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
@@ -139,52 +131,49 @@ if (!admin.apps.length) {
         admin.initializeApp({
             credential: admin.credential.cert(firebaseConfig)
         });
-        console.log('✅ Firebase initialized successfully');
+        console.log('Firebase initialized successfully');
     } catch (error) {
-        console.error('❌ Firebase initialization failed:', error.message);
+        console.error('Firebase initialization failed:', error.message);
         process.exit(1);
     }
 } else {
-    console.log('✅ Firebase app already exists, reusing...');
+    console.log('Firebase app already exists, reusing...');
 }
 
 const db = admin.firestore();
 
-// ============ Cloudinary ============
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// ============ 🔒 Email Transporter with SECURE TLS ============
 let transporter = null;
 let emailConfigured = false;
 let initializationPromise = null;
 
 const initializeTransporter = async () => {
     if (initializationPromise) {
-        console.log('⏳ SMTP initialization already in progress, waiting...');
+        console.log('SMTP initialization already in progress, waiting...');
         return initializationPromise;
     }
 
     initializationPromise = (async () => {
         try {
             if (!nodemailer || typeof nodemailer.createTransport !== 'function') {
-                console.warn('⚠️ Nodemailer not available or invalid');
+                console.warn('Nodemailer not available or invalid');
                 return false;
             }
 
             const requiredEnv = ['SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASSWORD', 'SMTP_FROM_EMAIL'];
             const missing = requiredEnv.filter(key => !process.env[key]);
             if (missing.length > 0) {
-                console.warn(`⚠️ Missing SMTP env variables: ${missing.join(', ')}`);
+                console.warn('Missing SMTP env variables: ' + missing.join(', '));
                 return false;
             }
 
-            console.log(`📧 Connecting to SMTP: ${process.env.SMTP_HOST}:${process.env.SMTP_PORT}`);
+            console.log('Connecting to SMTP: ' + process.env.SMTP_HOST + ':' + process.env.SMTP_PORT);
 
-            // ✅ SECURE TLS - enabled certificate validation
             const newTransporter = nodemailer.createTransport({
                 host: process.env.SMTP_HOST,
                 port: parseInt(process.env.SMTP_PORT),
@@ -197,7 +186,6 @@ const initializeTransporter = async () => {
                 greetingTimeout: 30000,
                 socketTimeout: 30000,
                 tls: {
-                    // ✅ FIXED: إزالة rejectUnauthorized: false
                     rejectUnauthorized: true
                 }
             });
@@ -211,18 +199,18 @@ const initializeTransporter = async () => {
 
             transporter = newTransporter;
             emailConfigured = true;
-            console.log('✅ SMTP configured and verified successfully');
+            console.log('SMTP configured and verified successfully');
             return true;
             
         } catch (error) {
-            console.error('❌ SMTP initialization FAILED:', error.message);
+            console.error('SMTP initialization FAILED:', error.message);
             
             if (error.message.includes('535-5.7.8')) {
-                console.error('🔴 GMAIL AUTH ERROR: Use App Password, not regular password');
-                console.error('🔴 Get one at: https://myaccount.google.com/apppasswords');
+                console.error('GMAIL AUTH ERROR: Use App Password, not regular password');
+                console.error('Get one at: https://myaccount.google.com/apppasswords');
             } else if (error.message.includes('timeout')) {
-                console.error('🔴 TIMEOUT: Vercel might be blocking the connection');
-                console.error('🔴 Try changing SMTP_PORT to 587 and SMTP_SECURE to false');
+                console.error('TIMEOUT: Vercel might be blocking the connection');
+                console.error('Try changing SMTP_PORT to 587 and SMTP_SECURE to false');
             }
             
             transporter = null;
@@ -256,7 +244,6 @@ function isEmailConfigured() {
     return transporter !== null && emailConfigured === true;
 }
 
-// ============ 🔒 JWT Helpers IMPROVED ============
 const generateToken = (username) => {
     return jwt.sign(
         { 
@@ -285,7 +272,6 @@ const verifyToken = (token) => {
     }
 };
 
-// ============ 🔒 Auth Middleware ============
 const requireAuth = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
 
@@ -302,7 +288,6 @@ const requireAuth = (req, res, next) => {
     next();
 };
 
-// ============ 🔒 Validation Helpers ============
 const validateEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
@@ -311,7 +296,6 @@ const validatePhone = (phone) => {
     return /^[\d+\s-()]{8,20}$/.test(phone);
 };
 
-// ✅ NEW: HTML sanitization
 function sanitizeHtml(text) {
     if (!text) return '';
     return text
@@ -323,7 +307,6 @@ function sanitizeHtml(text) {
         .replace(/\n/g, '<br>');
 }
 
-// ✅ NEW: Input validation for Firestore queries
 function validateFirestoreId(id) {
     return id && typeof id === 'string' && /^[a-zA-Z0-9_-]+$/.test(id);
 }
@@ -339,11 +322,6 @@ function sanitizeInput(text) {
         .trim();
 }
 
-// ============================================================
-// ============ 🚀 ALL API ROUTES ============
-// ============================================================
-
-// ---------- 🔒 Auth (SECURE) ----------
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -355,14 +333,11 @@ app.post('/api/login', async (req, res) => {
         const adminUsername = process.env.ADMIN_USERNAME;
         const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
 
-        // ✅ التحقق من اسم المستخدم
         if (username !== adminUsername) {
-            // تأخير لمنع هجمات التوقيت
             await new Promise(resolve => setTimeout(resolve, 100));
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        // ✅ استخدام bcrypt للتحقق من كلمة المرور
         const isValid = await bcrypt.compare(password, adminPasswordHash);
         if (!isValid) {
             await new Promise(resolve => setTimeout(resolve, 100));
@@ -396,7 +371,6 @@ app.post('/api/verify', requireAuth, (req, res) => {
     res.json({ valid: true, user: req.user });
 });
 
-// ---------- 🔒 Galleries ----------
 app.get('/api/galleries', async (req, res) => {
     try {
         const snapshot = await db.collection('galleries').limit(100).get();
@@ -446,7 +420,6 @@ app.put('/api/galleries/:id', requireAuth, async (req, res) => {
         const { id } = req.params;
         const { name, description, coverImage, visible, order } = req.body;
 
-        // ✅ التحقق من صحة المعرف
         if (!validateFirestoreId(id)) {
             return res.status(400).json({ error: 'Invalid gallery ID' });
         }
@@ -455,7 +428,6 @@ app.put('/api/galleries/:id', requireAuth, async (req, res) => {
             return res.status(400).json({ error: 'Gallery name is required' });
         }
 
-        // ✅ التحقق من وجود المعرض
         const docRef = db.collection('galleries').doc(id);
         const doc = await docRef.get();
         if (!doc.exists) {
@@ -512,12 +484,10 @@ app.delete('/api/galleries/:id', requireAuth, async (req, res) => {
     }
 });
 
-// ---------- 🔒 Artworks (SECURE) ----------
 app.get('/api/artworks', async (req, res) => {
     try {
         const { galleryId, featured } = req.query;
         
-        // ✅ التحقق من صحة المدخلات
         if (galleryId && !validateFirestoreId(galleryId)) {
             return res.status(400).json({ error: 'Invalid galleryId' });
         }
@@ -618,7 +588,6 @@ app.put('/api/artworks/:id', requireAuth, async (req, res) => {
             return res.status(400).json({ error: 'Image URL is required' });
         }
 
-        // ✅ التحقق من وجود العمل الفني
         const docRef = db.collection('artworks').doc(id);
         const doc = await docRef.get();
         if (!doc.exists) {
@@ -679,7 +648,6 @@ app.delete('/api/artworks/:id', requireAuth, async (req, res) => {
     }
 });
 
-// ---------- 🔒 Cloudinary Upload (SECURE) ----------
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -702,7 +670,7 @@ app.post('/api/upload', requireAuth, upload.single('image'), async (req, res) =>
         }
 
         const b64 = Buffer.from(req.file.buffer).toString('base64');
-        const dataURI = `data:${req.file.mimetype};base64,${b64}`;
+        const dataURI = 'data:' + req.file.mimetype + ';base64,' + b64;
 
         const result = await Promise.race([
             cloudinary.uploader.upload(dataURI, {
@@ -730,7 +698,6 @@ app.post('/api/upload', requireAuth, upload.single('image'), async (req, res) =>
     }
 });
 
-// ---------- 🔒 Messages (SECURE) ----------
 app.post('/api/contact', async (req, res) => {
     try {
         const { name, email, phone, message } = req.body;
@@ -747,7 +714,6 @@ app.post('/api/contact', async (req, res) => {
             return res.status(400).json({ error: 'Invalid phone number format' });
         }
 
-        // ✅ تنقية المدخلات
         const messageData = {
             name: sanitizeInput(name.trim()),
             email: email.trim(),
@@ -759,40 +725,39 @@ app.post('/api/contact', async (req, res) => {
 
         const docRef = await db.collection('messages').add(messageData);
 
-        // Send confirmation email to the user
         if (email && transporter && emailConfigured) {
             setImmediate(async () => {
                 try {
                     await transporter.sendMail({
-                        from: `"${process.env.SMTP_FROM_NAME || 'Shulamith Gallery'}" <${process.env.SMTP_FROM_EMAIL}>`,
+                        from: '"' + (process.env.SMTP_FROM_NAME || 'Shulamith Gallery') + '" <' + process.env.SMTP_FROM_EMAIL + '>',
                         to: email,
-                        subject: 'شكراً لتواصلك مع Shulamith Gallery',
+                        subject: 'Thank you for contacting Shulamith Gallery',
                         html: `
                             <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #1a1a1a; color: #e8e0d4; border-radius: 12px;">
                                 <div style="text-align: center; margin-bottom: 30px;">
                                     <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" style="max-width: 150px; height: auto; border-radius: 8px;">
                                 </div>
-                                <h2 style="color: #d4b892; margin-bottom: 20px;">مرحباً ${sanitizeHtml(name)}،</h2>
-                                <p style="line-height: 1.8; color: #d4c8b8;">تم استلام استفساركم وسيتم الرد في أقرب وقت.</p>
-                                <p style="line-height: 1.8; color: #d4c8b8;">شكراً لتواصلك مع <strong style="color: #d4b892;">Shulamith Gallery</strong>.</p>
+                                <h2 style="color: #d4b892; margin-bottom: 20px;">Hello ${sanitizeHtml(name)},</h2>
+                                <p style="line-height: 1.8; color: #d4c8b8;">Your message has been received and we will respond as soon as possible.</p>
+                                <p style="line-height: 1.8; color: #d4c8b8;">Thank you for contacting <strong style="color: #d4b892;">Shulamith Gallery</strong>.</p>
                                 <div style="margin: 30px 0; padding: 20px; background: #252525; border-radius: 8px; border-right: 3px solid #d4b892;">
-                                    <p style="margin: 5px 0; color: #d4c8b8;"><strong style="color: #d4b892;">رسالتك:</strong></p>
+                                    <p style="margin: 5px 0; color: #d4c8b8;"><strong style="color: #d4b892;">Your message:</strong></p>
                                     <p style="margin: 10px 0 0 0; color: #e8e0d4; font-style: italic;">${sanitizeHtml(message)}</p>
                                 </div>
                                 <hr style="border: none; border-top: 1px solid #333; margin: 30px 0;">
                                 <p style="color: #999; font-size: 14px; text-align: center;">
-                                    © 2026 Shulamith Gallery. All rights reserved.
+                                    (c) 2026 Shulamith Gallery. All rights reserved.
                                 </p>
                             </div>
                         `
                     });
-                    console.log('✅ Confirmation email sent to:', email);
+                    console.log('Confirmation email sent to:', email);
                 } catch (error) {
-                    console.error('❌ Error sending confirmation email:', error.message);
+                    console.error('Error sending confirmation email:', error.message);
                 }
             });
         } else {
-            console.log('ℹ️ Email service not configured, skipping confirmation email');
+            console.log('Email service not configured, skipping confirmation email');
         }
 
         res.status(201).json({
@@ -888,7 +853,6 @@ app.delete('/api/messages/:id', requireAuth, async (req, res) => {
     }
 });
 
-// ---------- 🔒 Rates (SECURE) ----------
 app.post('/api/rates', async (req, res) => {
     try {
         const { name, email, rating, opinion } = req.body;
@@ -905,7 +869,6 @@ app.post('/api/rates', async (req, res) => {
             return res.status(400).json({ error: 'Rating must be between 1 and 5' });
         }
 
-        // ✅ تنقية المدخلات
         const rateData = {
             name: sanitizeInput(name.trim()),
             email: email.trim(),
@@ -1023,10 +986,9 @@ app.delete('/api/rates/:id', requireAuth, async (req, res) => {
     }
 });
 
-// ---------- 🔒 Orders (SECURE) ----------
 app.post('/api/orders', async (req, res) => {
     try {
-        const { name, phone, email, orderText } = req.body;
+        const { name, phone, email, orderText, imageUrl } = req.body;
 
         if (!name || !phone || !email || !orderText) {
             return res.status(400).json({ error: 'All fields are required' });
@@ -1040,13 +1002,13 @@ app.post('/api/orders', async (req, res) => {
             return res.status(400).json({ error: 'Invalid phone format' });
         }
 
-        // ✅ تنقية المدخلات
         const orderData = {
             name: sanitizeInput(name.trim()),
             phone: sanitizeInput(phone.trim()),
             email: email.trim(),
             orderText: sanitizeInput(orderText.trim()),
             status: 'pending',
+            imageUrl: imageUrl || '',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
@@ -1098,7 +1060,7 @@ app.get('/api/orders', requireAuth, async (req, res) => {
 app.put('/api/orders/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, phone, email, orderText, status } = req.body;
+        const { name, phone, email, orderText, status, imageUrl } = req.body;
 
         if (!validateFirestoreId(id)) {
             return res.status(400).json({ error: 'Invalid order ID' });
@@ -1133,6 +1095,7 @@ app.put('/api/orders/:id', requireAuth, async (req, res) => {
             email: email.trim(),
             orderText: sanitizeInput(orderText.trim()),
             status: status || 'pending',
+            imageUrl: imageUrl || '',
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
 
@@ -1169,44 +1132,43 @@ app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
 
-        // Send email notification when status changes
         try {
             const order = doc.data();
             const statusMap = {
-                pending: 'قيد الانتظار',
-                processing: 'قيد التنفيذ',
-                completed: 'مكتمل',
-                cancelled: 'ملغي'
+                pending: 'pending',
+                processing: 'processing',
+                completed: 'completed',
+                cancelled: 'cancelled'
             };
             
             const transporterInstance = await getTransporter();
             if (transporterInstance && order.email) {
                 await transporterInstance.sendMail({
-                    from: `"Shulamith Gallery" <${process.env.SMTP_FROM_EMAIL}>`,
+                    from: '"Shulamith Gallery" <' + process.env.SMTP_FROM_EMAIL + '>',
                     to: order.email,
-                    subject: `تحديث حالة الطلب #${id.substring(0, 8)}`,
+                    subject: 'Order Update #' + id.substring(0, 8),
                     html: `
                         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #1a1a1a; color: #e8e0d4; border-radius: 12px; border: 1px solid #333;">
                             <div style="text-align: center; margin-bottom: 30px;">
                                 <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" style="max-width: 150px; height: auto; border-radius: 8px;">
                             </div>
-                            <h2 style="color: #d4b892; margin-bottom: 20px;">مرحباً ${sanitizeHtml(order.name)}،</h2>
-                            <p style="line-height: 1.8; color: #d4c8b8;">تم تحديث حالة طلبك إلى: <strong style="color: #d4b892;">${statusMap[status] || status}</strong></p>
+                            <h2 style="color: #d4b892; margin-bottom: 20px;">Hello ${sanitizeHtml(order.name)},</h2>
+                            <p style="line-height: 1.8; color: #d4c8b8;">Your order status has been updated to: <strong style="color: #d4b892;">${statusMap[status] || status}</strong></p>
                             <div style="margin: 20px 0; padding: 20px; background: #252525; border-radius: 8px; border-right: 3px solid #d4b892;">
-                                <p style="margin: 5px 0; color: #d4c8b8;"><strong style="color: #d4b892;">تفاصيل الطلب:</strong></p>
+                                <p style="margin: 5px 0; color: #d4c8b8;"><strong style="color: #d4b892;">Order Details:</strong></p>
                                 <p style="margin: 10px 0 0 0; color: #e8e0d4;">${sanitizeHtml(order.orderText)}</p>
                             </div>
                             <hr style="border: none; border-top: 1px solid #333; margin: 30px 0;">
                             <p style="color: #999; font-size: 14px; text-align: center;">
-                                © 2026 Shulamith Gallery. All rights reserved.
+                                (c) 2026 Shulamith Gallery. All rights reserved.
                             </p>
                         </div>
                     `
                 });
-                console.log('✅ Status update email sent to:', order.email);
+                console.log('Status update email sent to:', order.email);
             }
         } catch (emailError) {
-            console.error('❌ Error sending status email:', emailError.message);
+            console.error('Error sending status email:', emailError.message);
         }
 
         res.json({ success: true });
@@ -1238,7 +1200,6 @@ app.delete('/api/orders/:id', requireAuth, async (req, res) => {
     }
 });
 
-// ---------- 🔒 Settings ----------
 app.get('/api/settings', async (req, res) => {
     try {
         const doc = await db.collection('settings').doc('site').get();
@@ -1248,15 +1209,15 @@ app.get('/api/settings', async (req, res) => {
             res.json({
                 siteName: 'Shulamith Gallery',
                 logo: 'https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg',
-                aboutText: 'خريجة فنون جميلة، أقدم أعمال فنية ولوحات وديكور مع إمكانية تنفيذ أي تابلوه بخامة وحجم مناسبين.',
+                aboutText: 'Graduate of Fine Arts, creating paintings and decor with the ability to execute any artwork with suitable materials and sizes.',
                 phone: '012 76961450',
                 email: 'mrmrtharwat43@gmail.com',
                 address: 'Sohag, Egypt',
                 instagram: '',
                 facebook: 'shulamithgallery.7559699',
                 whatsapp: '201276961450',
-                heroText: 'شولميث جاليري - حيث يلتقي الفن بالجمال',
-                footerText: '© 2026 Shulamith Gallery. All rights reserved.'
+                heroText: 'Shulamith Gallery - Where Art Meets Beauty',
+                footerText: '(c) 2026 Shulamith Gallery. All rights reserved.'
             });
         }
     } catch (error) {
@@ -1272,7 +1233,7 @@ app.put('/api/settings', requireAuth, async (req, res) => {
         const requiredFields = ['siteName', 'logo'];
         for (const field of requiredFields) {
             if (!settings[field]) {
-                return res.status(400).json({ error: `${field} is required` });
+                return res.status(400).json({ error: field + ' is required' });
             }
         }
 
@@ -1286,7 +1247,6 @@ app.put('/api/settings', requireAuth, async (req, res) => {
     }
 });
 
-// ---------- 🔒 Stats (SECURE) ----------
 app.get('/api/stats', requireAuth, async (req, res) => {
     try {
         const statsPromise = Promise.all([
@@ -1325,7 +1285,6 @@ app.get('/api/stats', requireAuth, async (req, res) => {
     }
 });
 
-// ---------- 🔒 Send Email (Admin) ----------
 app.post('/api/send-email', requireAuth, async (req, res) => {
     try {
         const { name, email, message } = req.body;
@@ -1341,7 +1300,7 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
         const smtpTransporter = await getTransporter();
         
         if (!smtpTransporter) {
-            console.error('❌ Email service not available');
+            console.error('Email service not available');
             return res.status(503).json({
                 error: 'Email service not configured. Please try again later.',
                 details: 'SMTP connection failed. Check server logs.'
@@ -1349,9 +1308,9 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
         }
 
         const mailOptions = {
-            from: `"Shulamith Gallery" <${process.env.SMTP_FROM_EMAIL}>`,
+            from: '"Shulamith Gallery" <' + process.env.SMTP_FROM_EMAIL + '>',
             to: email,
-            subject: `رسالة من Shulamith Gallery`,
+            subject: 'Message from Shulamith Gallery',
             html: `
                 <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; background: #1a1a1a; color: #e8e0d4; border-radius: 12px; border: 1px solid #333;">
                     <div style="text-align: center; margin-bottom: 30px;">
@@ -1359,22 +1318,22 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
                     </div>
                     <div style="border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px;">
                         <h2 style="color: #d4b892; margin: 0; font-weight: 300;">Shulamith Gallery</h2>
-                        <p style="color: #b0a89a; margin: 5px 0 0 0;">${new Date().toLocaleDateString('ar-EG')}</p>
+                        <p style="color: #b0a89a; margin: 5px 0 0 0;">${new Date().toLocaleDateString('en-US')}</p>
                     </div>
                     <div style="background: #252525; padding: 20px; border-radius: 8px; border-right: 3px solid #d4b892;">
-                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">رسالة الى:</strong> ${sanitizeHtml(name)}</p>
-                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">البريد:</strong> ${email}</p>
+                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">Message to:</strong> ${sanitizeHtml(name)}</p>
+                        <p style="color: #d4c8b8; margin: 0 0 10px 0;"><strong style="color: #d4b892;">Email:</strong> ${email}</p>
                         <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
-                            <p style="color: #d4c8b8; margin: 0 0 8px 0;"><strong style="color: #d4b892;">الرسالة:</strong></p>
+                            <p style="color: #d4c8b8; margin: 0 0 8px 0;"><strong style="color: #d4b892;">Message:</strong></p>
                             <p style="color: #e8e0d4; margin: 0; line-height: 1.8; background: #1a1a1a; padding: 12px; border-radius: 6px;">${sanitizeHtml(message)}</p>
                         </div>
                     </div>
                     <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #333; text-align: center;">
                         <p style="color: #999; font-size: 14px; margin: 0;">
-                            © 2026 <strong style="color: #d4b892;">Shulamith Gallery</strong>. All rights reserved.
+                            (c) 2026 <strong style="color: #d4b892;">Shulamith Gallery</strong>. All rights reserved.
                         </p>
                         <p style="color: #666; font-size: 12px; margin: 5px 0 0 0;">
-                            شولميث جاليري — حيث يلتقي الفن بالجمال
+                            Shulamith Gallery - Where Art Meets Beauty
                         </p>
                     </div>
                 </div>
@@ -1382,26 +1341,22 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
         };
 
         await smtpTransporter.sendMail(mailOptions);
-        console.log('✅ Email sent to:', email);
+        console.log('Email sent to:', email);
 
         res.json({ success: true, message: 'Email sent successfully' });
     } catch (error) {
-        console.error('❌ Send email error:', error);
+        console.error('Send email error:', error);
         res.status(500).json({ error: 'Failed to send email: ' + error.message });
     }
 });
 
-// ---------- 🔒 Health Check (SECURE) ----------
 app.get('/api/health', requireAuth, (req, res) => {
-    // ✅ تقييد الوصول للمسؤولين فقط
     res.json({
         status: 'ok',
         timestamp: new Date().toISOString()
-        // ✅ إزالة جميع المعلومات الحساسة
     });
 });
 
-// ============ Error Handling Middleware ============
 app.use((err, req, res, next) => {
     console.error('Server error:', err);
 
@@ -1422,13 +1377,12 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Internal server error' });
 });
 
-// ============ Start Server ============
 if (require.main === module) {
     app.listen(PORT, () => {
-        console.log(`🚀 Shulamith Gallery Server running on port ${PORT}`);
-        console.log(`📊 Dashboard available at http://localhost:${PORT}/dashboard.html`);
-        console.log(`🔐 Login at http://localhost:${PORT}/login.html`);
-        console.log(`🩺 Health check at http://localhost:${PORT}/api/health (admin only)`);
+        console.log('Shulamith Gallery Server running on port ' + PORT);
+        console.log('Dashboard available at http://localhost:' + PORT + '/dashboard.html');
+        console.log('Login at http://localhost:' + PORT + '/login.html');
+        console.log('Health check at http://localhost:' + PORT + '/api/health (admin only)');
     });
 }
 

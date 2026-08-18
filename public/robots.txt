@@ -1,0 +1,43 @@
+# Allow all crawlers to access all content
+User-agent: *
+Allow: /
+
+# Sitemap location - يوجه محركات البحث إلى خريطة الموقع الخاصة بك
+Sitemap: https://shulamith-gallery.vercel.app/sitemap.xml
+
+# Disallow admin and login pages (حماية لوحة التحكم وصفحات الدخول)
+Disallow: /login
+Disallow: /login.html
+Disallow: /dashboard
+Disallow: /dashboard.html
+Disallow: /admin
+Disallow: /admin/*
+
+# Disallow sensitive files and paths (منع فهرسة الملفات الحساسة)
+Disallow: /server.js
+Disallow: /package.json
+Disallow: /package-lock.json
+Disallow: /vercel.json
+Disallow: /README.md
+Disallow: /.env
+Disallow: /config/
+Disallow: /node_modules/
+Disallow: /private/
+Disallow: /secret/
+Disallow: /database/
+
+# Disallow dynamic API endpoints and system paths (منع فهرسة واجهات API والمسارات الداخلية)
+Disallow: /api/
+Disallow: /api/*
+Disallow: /admin-api/
+Disallow: /auth/
+Disallow: /session/
+Disallow: /temp/
+Disallow: /tmp/
+Disallow: /logs/
+Disallow: /error/
+Disallow: /debug/
+Disallow: /test/
+Disallow: /dev/
+Disallow: /staging/
+Disallow: /internal/

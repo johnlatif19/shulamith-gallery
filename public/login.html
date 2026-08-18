@@ -410,7 +410,7 @@
                 
                 <button type="submit" class="login-btn" id="loginBtn">
                     <span>تسجيل الدخول</span>
-                    <span class="btn-loading">⏳ جاري التحقق...</span>
+                    <span class="btn-loading">جاري التحقق...</span>
                 </button>
                 
                 <div class="login-status" id="loginStatus"></div>
@@ -426,7 +426,7 @@
 
     <script>
         // ============================================
-        // ===== 🔒 SECURITY: Anti-Brute Force =====
+        // ===== SECURITY: Anti-Brute Force =====
         // ============================================
         
         // ===== DOM REFS =====
@@ -448,7 +448,7 @@
         let lockoutTimer = null;
 
         // ============================================
-        // ===== 🔒 TOGGLE PASSWORD =====
+        // ===== TOGGLE PASSWORD =====
         // ============================================
         togglePassword.addEventListener('click', function() {
             const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
@@ -458,7 +458,7 @@
         });
 
         // ============================================
-        // ===== 🔒 CHECK AUTH =====
+        // ===== CHECK AUTH =====
         // ============================================
         function checkAuth() {
             const token = localStorage.getItem('shulamith-token');
@@ -479,7 +479,7 @@
         }
 
         // ============================================
-        // ===== 🔒 HANDLE LOGIN =====
+        // ===== HANDLE LOGIN =====
         // ============================================
         async function handleLogin(e) {
             e.preventDefault();
@@ -489,7 +489,7 @@
                 const remaining = Math.ceil((LOCKOUT_TIME - (Date.now() - lockoutTimer)) / 60000);
                 loginStatus.className = 'login-status error';
                 loginStatus.style.display = 'block';
-                loginStatus.textContent = `⛔ تم حظر المحاولات مؤقتاً. الرجاء الانتظار ${remaining} دقيقة.`;
+                loginStatus.textContent = `تم حظر المحاولات مؤقتاً. الرجاء الانتظار ${remaining} دقيقة.`;
                 return;
             }
             
@@ -529,7 +529,7 @@
                 rateLimitWarning.classList.add('visible');
                 loginStatus.className = 'login-status error';
                 loginStatus.style.display = 'block';
-                loginStatus.textContent = `⛔ تم تجاوز عدد المحاولات (${MAX_ATTEMPTS}). تم حظر تسجيل الدخول لمدة 15 دقيقة.`;
+                loginStatus.textContent = `تم تجاوز عدد المحاولات (${MAX_ATTEMPTS}). تم حظر تسجيل الدخول لمدة 15 دقيقة.`;
                 
                 // إعادة تعيين العداد بعد 15 دقيقة
                 setTimeout(() => {
@@ -577,7 +577,7 @@
                     
                     loginStatus.className = 'login-status success';
                     loginStatus.style.display = 'block';
-                    loginStatus.textContent = '✅ تم تسجيل الدخول بنجاح! جاري التحويل...';
+                    loginStatus.textContent = 'تم تسجيل الدخول بنجاح! جاري التحويل...';
                     
                     // ===== REDIRECT =====
                     setTimeout(() => {
@@ -587,7 +587,7 @@
                     // ===== SHOW ERROR =====
                     loginStatus.className = 'login-status error';
                     loginStatus.style.display = 'block';
-                    loginStatus.textContent = data.error || '❌ اسم المستخدم أو كلمة المرور غير صحيحة';
+                    loginStatus.textContent = data.error || 'اسم المستخدم أو كلمة المرور غير صحيحة';
                     
                     // ===== REMINDER OF REMAINING ATTEMPTS =====
                     if (loginAttempts < MAX_ATTEMPTS) {
@@ -598,7 +598,7 @@
             } catch (error) {
                 loginStatus.className = 'login-status error';
                 loginStatus.style.display = 'block';
-                loginStatus.textContent = '❌ حدث خطأ في الاتصال، حاول مرة أخرى';
+                loginStatus.textContent = 'حدث خطأ في الاتصال، حاول مرة أخرى';
                 console.error('Login error:', error);
             } finally {
                 loginBtn.disabled = false;
@@ -608,7 +608,7 @@
         }
 
         // ============================================
-        // ===== 🔒 KEYBOARD SHORTCUTS =====
+        // ===== KEYBOARD SHORTCUTS =====
         // ============================================
         document.addEventListener('keydown', function(e) {
             // Enter = Submit
@@ -626,20 +626,18 @@
         });
 
         // ============================================
-        // ===== 🔒 INPUT SANITIZATION =====
+        // ===== INPUT SANITIZATION =====
         // ============================================
         username.addEventListener('input', function() {
-            // منع الأحرف الخاصة في اسم المستخدم
             this.value = this.value.replace(/[<>&"'/]/g, '');
         });
 
         password.addEventListener('input', function() {
-            // منع الأحرف الخاصة في كلمة المرور
             this.value = this.value.replace(/[<>&"'/]/g, '');
         });
 
         // ============================================
-        // ===== 🔒 RATE LIMIT PERSISTENCE =====
+        // ===== RATE LIMIT PERSISTENCE =====
         // ============================================
         // حفظ حالة القفل في localStorage
         function saveLockState() {
@@ -665,7 +663,7 @@
                     loginStatus.className = 'login-status error';
                     loginStatus.style.display = 'block';
                     const remaining = Math.ceil((LOCKOUT_TIME - elapsed) / 60000);
-                    loginStatus.textContent = `⛔ تم حظر المحاولات مؤقتاً. الرجاء الانتظار ${remaining} دقيقة.`;
+                    loginStatus.textContent = `تم حظر المحاولات مؤقتاً. الرجاء الانتظار ${remaining} دقيقة.`;
                     
                     // إعادة تعيين بعد انتهاء الوقت
                     const remainingTime = LOCKOUT_TIME - elapsed;
@@ -686,7 +684,7 @@
         }
 
         // ============================================
-        // ===== 🔒 SECURE INPUT CLEANUP =====
+        // ===== SECURE INPUT CLEANUP =====
         // ============================================
         // مسح الحقول عند إعادة تحميل الصفحة
         window.addEventListener('beforeunload', function() {
@@ -702,7 +700,7 @@
         });
 
         // ============================================
-        // ===== 🔒 ENTER KEY PROTECTION =====
+        // ===== ENTER KEY PROTECTION =====
         // ============================================
         // منع إرسال النموذج عن طريق الخطأ
         form.addEventListener('keydown', function(e) {
@@ -716,7 +714,7 @@
         });
 
         // ============================================
-        // ===== 🔒 INIT =====
+        // ===== INIT =====
         // ============================================
         document.addEventListener('DOMContentLoaded', function() {
             // ===== CHECK AUTH =====
@@ -744,24 +742,24 @@
         });
 
         // ============================================
-        // ===== 🔒 CONSOLE PROTECTION =====
+        // =====CONSOLE PROTECTION =====
         // ============================================
         // منع عرض معلومات حساسة في الـ Console
-        console.log('%c🔒 Shulamith Gallery - Login Page (Secure)', 
+        console.log('%c Shulamith Gallery - Login Page (Secure)', 
             'color: #d4b892; font-size: 16px; font-weight: bold;');
-        console.log('%c⚠️ Do not share your credentials with anyone.', 
+        console.log('%c Do not share your credentials with anyone.', 
             'color: #e74c3c; font-size: 12px;');
 
         // منع محاولات التلاعب بالـ Console
         Object.defineProperty(window, 'token', {
             get: function() { 
-                console.warn('🔒 Access to token is restricted.');
+                console.warn('Access to token is restricted.');
                 return null; 
             }
         });
 
         // ============================================
-        // ===== 🔒 XSS PROTECTION =====
+        // ===== XSS PROTECTION =====
         // ============================================
         // منع تنفيذ أي سكريبت من خلال حقول الإدخال
         const inputs = document.querySelectorAll('input, textarea');
@@ -779,7 +777,7 @@
             });
         });
 
-        console.log('✅ Login page secured successfully.');
+        console.log(' Login page secured successfully.');
     </script>
 </body>
 </html>

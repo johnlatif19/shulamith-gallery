@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم — Shulamith Gallery</title>
+    <!-- ===== NO SEO ===== -->
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="googlebot" content="noindex, nofollow, noarchive">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
     <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
     
     <style>
@@ -43,7 +48,6 @@
             color: var(--color-text);
             line-height: 1.6;
             overflow-x: hidden;
-            font-size: clamp(14px, 1.2vw, 18px);
         }
 
         body.rtl { direction: rtl; }
@@ -73,7 +77,7 @@
             padding: 20px 0;
             display: flex;
             flex-direction: column;
-            transition: var(--transition);
+            transition: transform 0.3s ease;
             z-index: 1000;
             overflow-y: auto;
         }
@@ -92,6 +96,33 @@
             border-right: none;
         }
 
+        /* ===== SIDEBAR TOGGLE (Mobile) ===== */
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--color-text);
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            line-height: 1;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 999;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+
         .sidebar-header {
             text-align: center;
             padding: 0 20px 20px;
@@ -100,7 +131,7 @@
         }
 
         .sidebar-logo {
-            height: clamp(40px, 5vw, 60px);
+            height: 50px;
             width: auto;
             border-radius: var(--radius-sm);
             margin-bottom: 8px;
@@ -108,7 +139,7 @@
 
         .sidebar-header h2 {
             color: var(--color-primary);
-            font-size: clamp(1rem, 1.4vw, 1.3rem);
+            font-size: 1.1rem;
             font-weight: 300;
             letter-spacing: 1px;
         }
@@ -121,14 +152,14 @@
         .nav-item {
             display: flex;
             align-items: center;
-            gap: clamp(8px, 1vw, 14px);
+            gap: 12px;
             width: 100%;
-            padding: clamp(8px, 0.8vw, 14px) clamp(12px, 1.2vw, 18px);
+            padding: 12px 16px;
             background: none;
             border: none;
             border-radius: var(--radius-sm);
             color: var(--color-text-muted);
-            font-size: clamp(0.8rem, 0.9vw, 1rem);
+            font-size: 0.95rem;
             cursor: pointer;
             transition: var(--transition);
             font-family: inherit;
@@ -163,7 +194,7 @@
         .nav-item .badge {
             background: var(--color-primary);
             color: var(--color-bg);
-            font-size: clamp(0.6rem, 0.7vw, 0.75rem);
+            font-size: 0.7rem;
             padding: 2px 8px;
             border-radius: 12px;
             margin-right: auto;
@@ -174,12 +205,12 @@
 
         .sidebar-logout {
             margin: 12px;
-            padding: clamp(10px, 1vw, 14px) clamp(12px, 1.2vw, 18px);
+            padding: 12px 16px;
             background: rgba(231, 76, 60, 0.1);
             border: 1px solid rgba(231, 76, 60, 0.2);
             border-radius: var(--radius-sm);
             color: var(--color-error);
-            font-size: clamp(0.8rem, 0.9vw, 1rem);
+            font-size: 0.95rem;
             cursor: pointer;
             transition: var(--transition);
             font-family: inherit;
@@ -190,34 +221,12 @@
             background: rgba(231, 76, 60, 0.2);
         }
 
-        /* ===== SIDEBAR TOGGLE (Mobile) ===== */
-        .sidebar-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--color-text);
-            font-size: clamp(1.2rem, 2vw, 1.8rem);
-            cursor: pointer;
-            padding: 4px 8px;
-        }
-
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-        }
-
         /* ===== MAIN CONTENT ===== */
         .main-content {
             flex: 1;
             margin-left: var(--sidebar-width);
             min-height: 100vh;
-            transition: var(--transition);
+            transition: margin 0.3s ease;
         }
 
         body.rtl .main-content {
@@ -233,8 +242,8 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--color-border);
-            padding: 0 clamp(12px, 2vw, 28px);
-            height: clamp(55px, 6vh, 75px);
+            padding: 0 24px;
+            height: var(--header-height);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -244,11 +253,11 @@
         .dashboard-header .header-left {
             display: flex;
             align-items: center;
-            gap: clamp(8px, 1vw, 14px);
+            gap: 12px;
         }
 
         .dashboard-header h1 {
-            font-size: clamp(1rem, 1.4vw, 1.4rem);
+            font-size: 1.2rem;
             font-weight: 300;
             color: var(--color-text);
         }
@@ -256,7 +265,7 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: clamp(8px, 1vw, 14px);
+            gap: 12px;
         }
 
         .lang-switch {
@@ -266,10 +275,10 @@
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
             color: var(--color-text);
-            padding: clamp(4px, 0.5vw, 8px) clamp(10px, 1.2vw, 18px);
+            padding: 6px 14px;
             border-radius: 20px;
             cursor: pointer;
-            font-size: clamp(0.7rem, 0.85vw, 0.95rem);
+            font-size: 0.85rem;
             transition: var(--transition);
         }
 
@@ -280,7 +289,7 @@
 
         /* ===== CONTENT ===== */
         .dashboard-content {
-            padding: clamp(12px, 2vw, 30px);
+            padding: 24px;
         }
 
         .section {
@@ -295,28 +304,27 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: clamp(12px, 1.8vw, 24px);
+            margin-bottom: 20px;
             flex-wrap: wrap;
-            gap: clamp(8px, 1vw, 14px);
+            gap: 12px;
         }
 
         .section-header h2 {
-            font-size: clamp(1.1rem, 1.5vw, 1.6rem);
+            font-size: 1.4rem;
             font-weight: 300;
             color: var(--color-primary);
         }
 
         .add-btn {
-            padding: clamp(6px, 0.6vw, 10px) clamp(14px, 1.5vw, 24px);
+            padding: 8px 20px;
             background: var(--color-primary);
             color: var(--color-bg);
             border: none;
             border-radius: var(--radius-sm);
-            font-size: clamp(0.8rem, 0.85vw, 1rem);
+            font-size: 0.9rem;
             font-weight: 500;
             cursor: pointer;
             transition: var(--transition);
-            white-space: nowrap;
         }
 
         .add-btn:hover {
@@ -328,19 +336,19 @@
         /* ===== STATS ===== */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(clamp(140px, 15vw, 220px), 1fr));
-            gap: clamp(10px, 1.2vw, 20px);
-            margin-bottom: clamp(20px, 2.5vw, 40px);
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
         }
 
         .stat-card {
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
             border-radius: var(--radius);
-            padding: clamp(12px, 1.5vw, 24px);
+            padding: 20px;
             display: flex;
             align-items: center;
-            gap: clamp(10px, 1.2vw, 18px);
+            gap: 16px;
             transition: var(--transition);
         }
 
@@ -350,27 +358,26 @@
         }
 
         .stat-icon {
-            font-size: clamp(1.4rem, 2vw, 2.6rem);
-            width: clamp(36px, 4vw, 56px);
-            height: clamp(36px, 4vw, 56px);
+            font-size: 2rem;
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
             background: rgba(212, 184, 146, 0.08);
             border-radius: var(--radius-sm);
-            flex-shrink: 0;
         }
 
         .stat-info h3 {
             color: var(--color-text-muted);
-            font-size: clamp(0.65rem, 0.75vw, 0.9rem);
+            font-size: 0.8rem;
             font-weight: 400;
             margin-bottom: 2px;
         }
 
         .stat-number {
             color: var(--color-text);
-            font-size: clamp(1.2rem, 1.6vw, 2rem);
+            font-size: 1.6rem;
             font-weight: 300;
         }
 
@@ -384,14 +391,12 @@
 
         .table-responsive {
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: clamp(0.75rem, 0.85vw, 0.95rem);
-            min-width: 600px;
+            font-size: 0.9rem;
         }
 
         thead {
@@ -400,11 +405,11 @@
         }
 
         th {
-            padding: clamp(8px, 1vw, 14px) clamp(10px, 1.2vw, 18px);
+            padding: 12px 16px;
             text-align: right;
             color: var(--color-text-muted);
             font-weight: 400;
-            font-size: clamp(0.65rem, 0.75vw, 0.85rem);
+            font-size: 0.8rem;
             letter-spacing: 0.5px;
             white-space: nowrap;
         }
@@ -412,7 +417,7 @@
         body.ltr th { text-align: left; }
 
         td {
-            padding: clamp(8px, 1vw, 14px) clamp(10px, 1.2vw, 18px);
+            padding: 12px 16px;
             border-bottom: 1px solid var(--color-border);
             color: var(--color-text);
             vertical-align: middle;
@@ -421,15 +426,15 @@
         tr:last-child td { border-bottom: none; }
 
         td .image-thumb {
-            width: clamp(36px, 4vw, 56px);
-            height: clamp(36px, 4vw, 56px);
+            width: 50px;
+            height: 50px;
             object-fit: cover;
             border-radius: var(--radius-sm);
         }
 
         .order-image-thumb {
-            width: clamp(36px, 4vw, 56px);
-            height: clamp(36px, 4vw, 56px);
+            width: 50px;
+            height: 50px;
             object-fit: cover;
             border-radius: var(--radius-sm);
             cursor: pointer;
@@ -444,23 +449,22 @@
 
         .no-image-text {
             color: var(--color-text-dark);
-            font-size: clamp(0.6rem, 0.7vw, 0.8rem);
+            font-size: 0.75rem;
         }
 
         .table-actions {
             display: flex;
-            gap: clamp(4px, 0.5vw, 8px);
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         .btn-edit, .btn-delete, .btn-toggle {
-            padding: clamp(2px, 0.3vw, 6px) clamp(8px, 0.8vw, 14px);
+            padding: 4px 12px;
             border: none;
             border-radius: var(--radius-sm);
             cursor: pointer;
-            font-size: clamp(0.6rem, 0.7vw, 0.85rem);
+            font-size: 0.8rem;
             transition: var(--transition);
-            white-space: nowrap;
         }
 
         .btn-edit {
@@ -492,11 +496,10 @@
         }
 
         .badge-status {
-            padding: 2px clamp(6px, 0.6vw, 12px);
+            padding: 2px 10px;
             border-radius: 12px;
-            font-size: clamp(0.6rem, 0.7vw, 0.8rem);
+            font-size: 0.75rem;
             font-weight: 500;
-            white-space: nowrap;
         }
 
         .badge-status.read {
@@ -544,18 +547,18 @@
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
             border-radius: var(--radius);
-            padding: clamp(14px, 1.8vw, 24px);
+            padding: 20px;
         }
 
         .recent-section h3 {
             color: var(--color-primary);
-            font-size: clamp(1rem, 1.2vw, 1.3rem);
+            font-size: 1.1rem;
             font-weight: 300;
             margin-bottom: 16px;
         }
 
         .recent-list .message-item {
-            padding: clamp(8px, 0.8vw, 14px) 0;
+            padding: 12px 0;
             border-bottom: 1px solid var(--color-border);
             display: flex;
             justify-content: space-between;
@@ -572,31 +575,27 @@
             display: flex;
             flex-direction: column;
             gap: 2px;
-            flex: 1;
-            min-width: 120px;
         }
 
         .message-item .msg-name {
             color: var(--color-text);
             font-weight: 500;
-            font-size: clamp(0.85rem, 0.9vw, 1rem);
         }
 
         .message-item .msg-preview {
             color: var(--color-text-muted);
-            font-size: clamp(0.7rem, 0.8vw, 0.9rem);
+            font-size: 0.85rem;
         }
 
         .message-item .msg-time {
             color: var(--color-text-dark);
-            font-size: clamp(0.6rem, 0.7vw, 0.8rem);
+            font-size: 0.75rem;
         }
 
         .message-item .msg-status {
-            font-size: clamp(0.6rem, 0.7vw, 0.8rem);
-            padding: 2px clamp(8px, 0.6vw, 12px);
+            font-size: 0.75rem;
+            padding: 2px 10px;
             border-radius: 12px;
-            white-space: nowrap;
         }
 
         .message-item .msg-status.read {
@@ -611,20 +610,19 @@
 
         .empty-state {
             text-align: center;
-            padding: clamp(20px, 3vw, 50px) 20px;
+            padding: 40px 20px;
             color: var(--color-text-muted);
-            font-size: clamp(0.9rem, 1vw, 1.1rem);
         }
 
         .loading-spinner {
             text-align: center;
-            padding: clamp(20px, 3vw, 50px) 20px;
+            padding: 40px 20px;
             color: var(--color-text-muted);
         }
 
         .spinner {
-            width: clamp(28px, 3vw, 40px);
-            height: clamp(28px, 3vw, 40px);
+            width: 32px;
+            height: 32px;
             margin: 0 auto 12px;
             border: 3px solid var(--color-border);
             border-top-color: var(--color-primary);
@@ -644,12 +642,12 @@
         }
 
         .filter-select {
-            padding: clamp(4px, 0.5vw, 8px) clamp(8px, 0.8vw, 14px);
+            padding: 6px 12px;
             background: var(--color-bg);
             border: 1px solid var(--color-border);
             border-radius: var(--radius-sm);
             color: var(--color-text);
-            font-size: clamp(0.7rem, 0.8vw, 0.9rem);
+            font-size: 0.85rem;
             cursor: pointer;
         }
 
@@ -672,7 +670,7 @@
             z-index: 2000;
             align-items: center;
             justify-content: center;
-            padding: clamp(12px, 2vw, 24px);
+            padding: 20px;
         }
 
         .modal.active {
@@ -683,16 +681,16 @@
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
             border-radius: var(--radius);
-            max-width: clamp(340px, 60vw, 640px);
+            max-width: 600px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
-            padding: clamp(16px, 2.5vw, 36px);
+            padding: 32px;
             animation: modalIn 0.3s ease;
         }
 
-        .modal-large { max-width: clamp(400px, 80vw, 850px); }
-        .modal-small { max-width: clamp(300px, 40vw, 440px); }
+        .modal-large { max-width: 800px; }
+        .modal-small { max-width: 400px; }
 
         @keyframes modalIn {
             from { opacity: 0; transform: scale(0.95) translateY(10px); }
@@ -703,12 +701,12 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: clamp(16px, 2vw, 28px);
+            margin-bottom: 24px;
         }
 
         .modal-header h3 {
             color: var(--color-primary);
-            font-size: clamp(1.1rem, 1.4vw, 1.5rem);
+            font-size: 1.3rem;
             font-weight: 300;
         }
 
@@ -716,7 +714,7 @@
             background: none;
             border: none;
             color: var(--color-text-muted);
-            font-size: clamp(1.2rem, 1.6vw, 1.8rem);
+            font-size: 1.5rem;
             cursor: pointer;
             transition: var(--transition);
         }
@@ -730,20 +728,20 @@
             display: flex;
             gap: 12px;
             justify-content: flex-end;
-            margin-top: clamp(16px, 2vw, 28px);
+            margin-top: 24px;
             padding-top: 16px;
             border-top: 1px solid var(--color-border);
         }
 
         /* ===== FORM IN MODAL ===== */
         .modal .form-group {
-            margin-bottom: clamp(12px, 1.4vw, 20px);
+            margin-bottom: 16px;
         }
 
         .modal .form-group label {
             display: block;
             color: var(--color-text-muted);
-            font-size: clamp(0.75rem, 0.85vw, 0.95rem);
+            font-size: 0.85rem;
             margin-bottom: 4px;
         }
 
@@ -751,12 +749,12 @@
         .modal .form-group textarea,
         .modal .form-group select {
             width: 100%;
-            padding: clamp(8px, 0.8vw, 12px) clamp(10px, 1vw, 16px);
+            padding: 10px 14px;
             background: var(--color-bg);
             border: 1px solid var(--color-border);
             border-radius: var(--radius-sm);
             color: var(--color-text);
-            font-size: clamp(0.85rem, 0.9vw, 1rem);
+            font-size: 0.95rem;
             transition: var(--transition);
             font-family: inherit;
         }
@@ -776,7 +774,7 @@
 
         .modal .form-group .form-hint {
             color: var(--color-text-dark);
-            font-size: clamp(0.7rem, 0.75vw, 0.85rem);
+            font-size: 0.8rem;
             margin-top: 4px;
             display: block;
         }
@@ -795,7 +793,7 @@
             align-items: center;
             gap: 6px;
             color: var(--color-text);
-            font-size: clamp(0.8rem, 0.85vw, 0.95rem);
+            font-size: 0.9rem;
             cursor: pointer;
         }
 
@@ -807,12 +805,12 @@
 
         .modal .submit-btn {
             width: 100%;
-            padding: clamp(10px, 1vw, 14px);
+            padding: 12px;
             background: var(--color-primary);
             color: var(--color-bg);
             border: none;
             border-radius: var(--radius-sm);
-            font-size: clamp(0.9rem, 1vw, 1.1rem);
+            font-size: 1rem;
             font-weight: 500;
             cursor: pointer;
             transition: var(--transition);
@@ -828,14 +826,13 @@
         }
 
         .modal .btn-secondary {
-            padding: clamp(6px, 0.6vw, 10px) clamp(14px, 1.2vw, 22px);
+            padding: 8px 20px;
             background: var(--color-bg-hover);
             border: 1px solid var(--color-border);
             border-radius: var(--radius-sm);
             color: var(--color-text);
             cursor: pointer;
             transition: var(--transition);
-            font-size: clamp(0.8rem, 0.85vw, 0.95rem);
         }
 
         .modal .btn-secondary:hover {
@@ -843,14 +840,13 @@
         }
 
         .modal .btn-danger {
-            padding: clamp(6px, 0.6vw, 10px) clamp(14px, 1.2vw, 22px);
+            padding: 8px 20px;
             background: rgba(231, 76, 60, 0.15);
             border: 1px solid rgba(231, 76, 60, 0.2);
             border-radius: var(--radius-sm);
             color: var(--color-error);
             cursor: pointer;
             transition: var(--transition);
-            font-size: clamp(0.8rem, 0.85vw, 0.95rem);
         }
 
         .modal .btn-danger:hover {
@@ -872,23 +868,21 @@
             color: var(--color-text-muted);
             cursor: pointer;
             width: 100%;
-            font-size: clamp(0.75rem, 0.8vw, 0.9rem);
         }
 
         .upload-option input[type="file"]::-webkit-file-upload-button {
-            padding: clamp(4px, 0.4vw, 8px) clamp(10px, 1vw, 18px);
+            padding: 6px 16px;
             background: var(--color-primary);
             color: var(--color-bg);
             border: none;
             border-radius: var(--radius-sm);
             cursor: pointer;
-            font-size: clamp(0.7rem, 0.75vw, 0.85rem);
         }
 
         .upload-divider {
             text-align: center;
             color: var(--color-text-dark);
-            font-size: clamp(0.75rem, 0.8vw, 0.9rem);
+            font-size: 0.85rem;
         }
 
         .upload-preview {
@@ -922,7 +916,7 @@
         }
 
         .progress-text {
-            font-size: clamp(0.7rem, 0.75vw, 0.85rem);
+            font-size: 0.8rem;
             color: var(--color-text-muted);
             margin-top: 4px;
             display: block;
@@ -947,14 +941,13 @@
         }
 
         .toast {
-            padding: clamp(10px, 1vw, 16px) clamp(14px, 1.5vw, 22px);
+            padding: 14px 20px;
             border-radius: var(--radius-sm);
             border: 1px solid var(--color-border);
             background: var(--color-bg-card);
             color: var(--color-text);
             animation: toastIn 0.3s ease;
             box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-            font-size: clamp(0.8rem, 0.85vw, 0.95rem);
         }
 
         .toast.success { border-color: var(--color-success); }
@@ -971,30 +964,30 @@
             background: var(--color-bg-card);
             border: 1px solid var(--color-border);
             border-radius: var(--radius);
-            padding: clamp(16px, 2.5vw, 34px);
+            padding: 30px;
             max-width: 600px;
         }
 
         .send-message-wrapper .form-group {
-            margin-bottom: clamp(14px, 1.6vw, 22px);
+            margin-bottom: 20px;
         }
 
         .send-message-wrapper label {
             display: block;
             color: var(--color-text-muted);
-            font-size: clamp(0.8rem, 0.85vw, 0.95rem);
+            font-size: 0.9rem;
             margin-bottom: 6px;
         }
 
         .send-message-wrapper input,
         .send-message-wrapper textarea {
             width: 100%;
-            padding: clamp(10px, 1vw, 14px) clamp(12px, 1.2vw, 18px);
+            padding: 12px 16px;
             background: var(--color-bg);
             border: 1px solid var(--color-border);
             border-radius: var(--radius-sm);
             color: var(--color-text);
-            font-size: clamp(0.85rem, 0.95vw, 1.05rem);
+            font-size: 1rem;
             transition: var(--transition);
             font-family: inherit;
         }
@@ -1013,12 +1006,12 @@
 
         .send-message-wrapper .submit-btn {
             width: 100%;
-            padding: clamp(10px, 1.2vw, 16px);
+            padding: 14px;
             background: var(--color-primary);
             color: var(--color-bg);
             border: none;
             border-radius: var(--radius-sm);
-            font-size: clamp(0.9rem, 1vw, 1.1rem);
+            font-size: 1.05rem;
             font-weight: 500;
             cursor: pointer;
             transition: var(--transition);
@@ -1038,10 +1031,10 @@
 
         .send-message-wrapper .form-status {
             margin-top: 16px;
-            padding: clamp(10px, 1vw, 14px);
+            padding: 12px;
             border-radius: var(--radius-sm);
             display: none;
-            font-size: clamp(0.85rem, 0.9vw, 1rem);
+            font-size: 0.95rem;
             text-align: center;
         }
 
@@ -1065,25 +1058,25 @@
 
         /* ===== SETTINGS FORM ===== */
         .settings-form .form-group {
-            margin-bottom: clamp(12px, 1.4vw, 18px);
+            margin-bottom: 16px;
         }
 
         .settings-form .form-group label {
             display: block;
             color: var(--color-text-muted);
-            font-size: clamp(0.75rem, 0.85vw, 0.95rem);
+            font-size: 0.85rem;
             margin-bottom: 4px;
         }
 
         .settings-form .form-group input,
         .settings-form .form-group textarea {
             width: 100%;
-            padding: clamp(8px, 0.8vw, 12px) clamp(10px, 1vw, 16px);
+            padding: 10px 14px;
             background: var(--color-bg);
             border: 1px solid var(--color-border);
             border-radius: var(--radius-sm);
             color: var(--color-text);
-            font-size: clamp(0.85rem, 0.9vw, 1rem);
+            font-size: 0.95rem;
             transition: var(--transition);
             font-family: inherit;
         }
@@ -1097,254 +1090,6 @@
 
         .settings-form .form-group textarea {
             resize: vertical;
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 992px) {
-            .sidebar {
-                transform: translateX(-100%);
-                width: min(280px, 75vw);
-            }
-
-            body.rtl .sidebar {
-                transform: translateX(100%);
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .sidebar-overlay.active {
-                display: block;
-            }
-
-            .sidebar-toggle {
-                display: block;
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            body.rtl .main-content {
-                margin-right: 0;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(auto-fill, minmax(clamp(120px, 25vw, 180px), 1fr));
-            }
-        }
-
-        @media (max-width: 768px) {
-            .dashboard-content {
-                padding: clamp(10px, 1.5vw, 20px);
-            }
-
-            .dashboard-header {
-                padding: 0 clamp(10px, 1.5vw, 18px);
-                height: clamp(50px, 7vh, 65px);
-            }
-
-            .dashboard-header h1 {
-                font-size: clamp(0.85rem, 2vw, 1.1rem);
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: clamp(8px, 1.2vw, 14px);
-            }
-
-            .stat-card {
-                padding: clamp(8px, 1vw, 14px);
-            }
-
-            .stat-number {
-                font-size: clamp(1rem, 2.5vw, 1.3rem);
-            }
-
-            .modal-content {
-                padding: clamp(14px, 2vw, 24px);
-            }
-
-            .section-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .section-header h2 {
-                font-size: clamp(0.95rem, 2.5vw, 1.2rem);
-            }
-
-            table {
-                font-size: clamp(0.7rem, 1.5vw, 0.85rem);
-                min-width: 500px;
-            }
-
-            th, td {
-                padding: clamp(6px, 0.8vw, 10px) clamp(8px, 1vw, 14px);
-            }
-
-            td .image-thumb {
-                width: clamp(30px, 5vw, 40px);
-                height: clamp(30px, 5vw, 40px);
-            }
-
-            .order-image-thumb {
-                width: clamp(30px, 5vw, 40px);
-                height: clamp(30px, 5vw, 40px);
-            }
-
-            .table-actions {
-                flex-direction: column;
-                gap: 3px;
-            }
-
-            .btn-edit, .btn-delete, .btn-toggle {
-                font-size: clamp(0.6rem, 1.2vw, 0.75rem);
-                padding: 2px 6px;
-            }
-
-            .send-message-wrapper {
-                padding: clamp(14px, 2vw, 22px);
-            }
-
-            .modal-large {
-                max-width: 100%;
-                margin: clamp(8px, 1.5vw, 14px);
-            }
-
-            .toast-container {
-                max-width: 90%;
-                bottom: 12px;
-                right: 12px;
-            }
-
-            body.ltr .toast-container {
-                right: auto;
-                left: 12px;
-            }
-
-            .settings-form .form-group {
-                margin-bottom: 10px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 6px;
-            }
-
-            .stat-card {
-                padding: clamp(6px, 1.2vw, 10px);
-                gap: clamp(6px, 1vw, 10px);
-            }
-
-            .stat-icon {
-                font-size: clamp(1rem, 3vw, 1.4rem);
-                width: clamp(28px, 7vw, 38px);
-                height: clamp(28px, 7vw, 38px);
-            }
-
-            .stat-number {
-                font-size: clamp(0.85rem, 3vw, 1.1rem);
-            }
-
-            .stat-info h3 {
-                font-size: clamp(0.55rem, 1.5vw, 0.7rem);
-            }
-
-            .modal-content {
-                padding: clamp(12px, 2vw, 18px);
-            }
-
-            .dashboard-header h1 {
-                font-size: clamp(0.75rem, 2.5vw, 0.95rem);
-            }
-
-            .lang-switch {
-                padding: clamp(3px, 0.8vw, 6px) clamp(6px, 1.5vw, 12px);
-                font-size: clamp(0.65rem, 1.5vw, 0.8rem);
-            }
-
-            .send-message-wrapper {
-                padding: clamp(12px, 2vw, 18px);
-            }
-
-            table {
-                font-size: clamp(0.6rem, 1.2vw, 0.75rem);
-                min-width: 400px;
-            }
-
-            th, td {
-                padding: clamp(4px, 0.6vw, 8px) clamp(6px, 0.8vw, 10px);
-            }
-
-            .badge-status {
-                font-size: clamp(0.5rem, 1vw, 0.65rem);
-                padding: 1px 4px;
-            }
-
-            .filter-select {
-                font-size: clamp(0.6rem, 1.2vw, 0.75rem);
-                padding: 3px 6px;
-            }
-
-            .add-btn {
-                font-size: clamp(0.7rem, 1.5vw, 0.85rem);
-                padding: 4px 10px;
-            }
-
-            .sidebar {
-                width: min(260px, 80vw);
-            }
-
-            .nav-item {
-                padding: clamp(6px, 1.2vw, 10px) clamp(10px, 2vw, 14px);
-                font-size: clamp(0.7rem, 1.5vw, 0.85rem);
-                gap: clamp(6px, 1vw, 10px);
-            }
-
-            .sidebar-header h2 {
-                font-size: clamp(0.85rem, 2vw, 1rem);
-            }
-
-            .sidebar-logo {
-                height: clamp(32px, 6vw, 42px);
-            }
-
-            .modal-header h3 {
-                font-size: clamp(0.95rem, 2.5vw, 1.15rem);
-            }
-
-            .modal .form-group label {
-                font-size: clamp(0.7rem, 1.5vw, 0.85rem);
-            }
-
-            .modal .form-group input,
-            .modal .form-group textarea,
-            .modal .form-group select {
-                font-size: clamp(0.75rem, 1.5vw, 0.9rem);
-                padding: 6px 10px;
-            }
-
-            .modal .submit-btn {
-                font-size: clamp(0.8rem, 1.8vw, 0.95rem);
-                padding: 8px;
-            }
-
-            .message-item .msg-name {
-                font-size: clamp(0.75rem, 1.8vw, 0.9rem);
-            }
-
-            .message-item .msg-preview {
-                font-size: clamp(0.6rem, 1.3vw, 0.75rem);
-            }
-
-            .toast {
-                font-size: clamp(0.7rem, 1.5vw, 0.85rem);
-                padding: 8px 14px;
-            }
         }
 
         /* ===== STAR RATING ===== */
@@ -1364,7 +1109,7 @@
         }
 
         .star-rating label {
-            font-size: clamp(1.6rem, 2.5vw, 2.8rem);
+            font-size: 2.2rem;
             color: var(--color-border);
             cursor: pointer;
             transition: var(--transition);
@@ -1379,6 +1124,170 @@
 
         body.ltr .star-rating label:hover ~ label {
             color: #f1c40f;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            body.rtl .sidebar {
+                transform: translateX(100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-content {
+                padding: 16px;
+            }
+
+            .dashboard-header {
+                padding: 0 16px;
+                height: 60px;
+            }
+
+            .dashboard-header h1 {
+                font-size: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            .stat-card {
+                padding: 14px;
+            }
+
+            .stat-number {
+                font-size: 1.2rem;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .section-header h2 {
+                font-size: 1.1rem;
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th, td {
+                padding: 8px 12px;
+            }
+
+            td .image-thumb {
+                width: 36px;
+                height: 36px;
+            }
+
+            .order-image-thumb {
+                width: 36px;
+                height: 36px;
+            }
+
+            .table-actions {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .btn-edit, .btn-delete, .btn-toggle {
+                font-size: 0.7rem;
+                padding: 2px 8px;
+            }
+
+            .send-message-wrapper {
+                padding: 20px;
+            }
+
+            .modal-large {
+                max-width: 100%;
+                margin: 10px;
+            }
+
+            .toast-container {
+                max-width: 90%;
+                bottom: 12px;
+                right: 12px;
+            }
+
+            body.ltr .toast-container {
+                right: auto;
+                left: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .stat-card {
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .stat-icon {
+                font-size: 1.4rem;
+                width: 36px;
+                height: 36px;
+            }
+
+            .stat-number {
+                font-size: 1rem;
+            }
+
+            .stat-info h3 {
+                font-size: 0.7rem;
+            }
+
+            .modal-content {
+                padding: 16px;
+            }
+
+            .dashboard-header h1 {
+                font-size: 0.85rem;
+            }
+
+            .lang-switch {
+                padding: 4px 10px;
+                font-size: 0.75rem;
+            }
+
+            .send-message-wrapper {
+                padding: 16px;
+            }
         }
     </style>
 </head>
@@ -1862,7 +1771,7 @@
             <div style="text-align:center; padding:10px;">
                 <img id="previewOrderImage" src="" alt="صورة الطلب" style="max-width:100%; max-height:70vh; border-radius:8px; border:1px solid var(--color-border);">
             </div>
-            <div style="text-align:center; color:var(--color-text-muted); font-size:clamp(0.75rem, 0.85vw, 0.95rem); margin-top:8px;">
+            <div style="text-align:center; color:var(--color-text-muted); font-size:0.85rem; margin-top:8px;">
                 <span id="previewOrderName"></span>
             </div>
         </div>
@@ -2658,7 +2567,7 @@
                             <td>
                                 <div class="table-actions">
                                     <button class="btn-edit" onclick="window.editOrder('${escapeHtml(order.id)}')">تعديل</button>
-                                    <select class="filter-select" onchange="window.updateOrderStatus('${escapeHtml(order.id)}', this.value)" style="padding:2px 8px; font-size:clamp(0.6rem, 0.7vw, 0.8rem);">
+                                    <select class="filter-select" onchange="window.updateOrderStatus('${escapeHtml(order.id)}', this.value)" style="padding:2px 8px; font-size:0.75rem;">
                                         <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>قيد الانتظار</option>
                                         <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>قيد التنفيذ</option>
                                         <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>مكتمل</option>
@@ -2708,7 +2617,7 @@
             if (order.imageUrl) {
                 preview.innerHTML = `<img src="${escapeHtml(order.imageUrl)}" alt="الصورة المرفقة" style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--color-border);">`;
             } else {
-                preview.innerHTML = '<span style="color:var(--color-text-dark); font-size:clamp(0.7rem, 0.8vw, 0.9rem);">لا توجد صورة مرفقة</span>';
+                preview.innerHTML = '<span style="color:var(--color-text-dark); font-size:0.85rem;">لا توجد صورة مرفقة</span>';
             }
             
             document.getElementById('editOrderModal').classList.add('active');
@@ -2990,6 +2899,61 @@
         });
 
         // ============================================
+        // ===== ARTWORK IMAGE UPLOAD =====
+        // ============================================
+        document.getElementById('artworkImageFile').addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (!file) return;
+            
+            const progress = document.getElementById('uploadProgress');
+            const fill = document.getElementById('progressFill');
+            const text = document.getElementById('progressText');
+            progress.style.display = 'block';
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/api/upload');
+                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                
+                xhr.upload.onprogress = function(e) {
+                    if (e.lengthComputable) {
+                        const pct = Math.round((e.loaded / e.total) * 100);
+                        fill.style.width = pct + '%';
+                        text.textContent = pct + '%';
+                    }
+                };
+                
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        const data = JSON.parse(xhr.response);
+                        document.getElementById('artworkImageUrl').value = data.url;
+                        document.getElementById('uploadPreview').innerHTML = `<img src="${escapeHtml(data.url)}" alt="Uploaded">`;
+                        showToast('تم رفع الصورة بنجاح');
+                    } else if (xhr.status === 401) {
+                        localStorage.removeItem('shulamith-token');
+                        window.location.href = '/login';
+                    } else {
+                        showToast('فشل رفع الصورة', 'error');
+                    }
+                    progress.style.display = 'none';
+                };
+                
+                xhr.onerror = function() {
+                    showToast('حدث خطأ في الرفع', 'error');
+                    progress.style.display = 'none';
+                };
+                
+                xhr.send(formData);
+            } catch (error) {
+                showToast('حدث خطأ', 'error');
+                progress.style.display = 'none';
+            }
+        });
+
+        // ============================================
         // ===== INITIALIZATION =====
         // ============================================
         document.addEventListener('DOMContentLoaded', async function() {
@@ -3131,59 +3095,6 @@
             
             document.getElementById('addArtworkBtn').addEventListener('click', function() {
                 openArtworkModal();
-            });
-            
-            // Image upload for artwork
-            document.getElementById('artworkImageFile').addEventListener('change', function(e) {
-                const file = this.files[0];
-                if (!file) return;
-                
-                const progress = document.getElementById('uploadProgress');
-                const fill = document.getElementById('progressFill');
-                const text = document.getElementById('progressText');
-                progress.style.display = 'block';
-                
-                const formData = new FormData();
-                formData.append('image', file);
-                
-                try {
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('POST', '/api/upload');
-                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-                    
-                    xhr.upload.onprogress = function(e) {
-                        if (e.lengthComputable) {
-                            const pct = Math.round((e.loaded / e.total) * 100);
-                            fill.style.width = pct + '%';
-                            text.textContent = pct + '%';
-                        }
-                    };
-                    
-                    xhr.onload = function() {
-                        if (xhr.status === 200) {
-                            const data = JSON.parse(xhr.response);
-                            document.getElementById('artworkImageUrl').value = data.url;
-                            document.getElementById('uploadPreview').innerHTML = `<img src="${escapeHtml(data.url)}" alt="Uploaded">`;
-                            showToast('تم رفع الصورة بنجاح');
-                        } else if (xhr.status === 401) {
-                            localStorage.removeItem('shulamith-token');
-                            window.location.href = '/login.html';
-                        } else {
-                            showToast('فشل رفع الصورة', 'error');
-                        }
-                        progress.style.display = 'none';
-                    };
-                    
-                    xhr.onerror = function() {
-                        showToast('حدث خطأ في الرفع', 'error');
-                        progress.style.display = 'none';
-                    };
-                    
-                    xhr.send(formData);
-                } catch (error) {
-                    showToast('حدث خطأ', 'error');
-                    progress.style.display = 'none';
-                }
             });
             
             // Message filter

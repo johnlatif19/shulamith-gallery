@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const session = require('express-session'); // 👈 جديد
 const admin = require('firebase-admin');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
@@ -10,12 +11,16 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const csrf = require('csrf'); // 👈 جديد
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.set('trust proxy', true);
 
+// ============================================
+// ===== TIMEOUT =====
+// ============================================
 const timeoutMiddleware = (req, res, next) => {
     req.setTimeout(30000, () => {
         res.status(504).json({ error: 'Request timeout' });
@@ -23,6 +28,9 @@ const timeoutMiddleware = (req, res, next) => {
     next();
 };
 
+// ============================================
+// ===== HELMET =====
+// ============================================
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -48,6 +56,84 @@ app.use(helmet({
     xssFilter: true
 }));
 
+// ============================================
+// ===== SESSION (للـ CSRF) =====
+// ============================================
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'default-session-secret-change-me',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000 // 24 ساعة
+    },
+    name: 'shulamith.sid'
+}));
+
+// ============================================
+// ===== CSRF TOKENS =====
+// ============================================
+const csrfTokens = new csrf();
+
+// Middleware لتوليد CSRF Token
+const generateCsrfToken = (req, res, next) => {
+    if (!req.session.csrfSecret) {
+        req.session.csrfSecret = csrfTokens.secretSync();
+    }
+    req.csrfToken = csrfTokens.create(req.session.csrfSecret);
+    next();
+};
+
+// Middleware للتحقق من CSRF Token
+const verifyCsrf = (req, res, next) => {
+    //跳过 GET, HEAD, OPTIONS
+    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+        return next();
+    }
+
+    const token = req.headers['x-csrf-token'] || req.body._csrf || req.query._csrf;
+    
+    if (!token) {
+        return res.status(403).json({ 
+            error: 'CSRF token missing. Please refresh the page.' 
+        });
+    }
+
+    if (!req.session.csrfSecret) {
+        return res.status(403).json({ 
+            error: 'CSRF session expired. Please refresh the page.' 
+        });
+    }
+
+    try {
+        const isValid = csrfTokens.verify(req.session.csrfSecret, token);
+        if (!isValid) {
+            return res.status(403).json({ 
+                error: 'Invalid CSRF token. Please refresh the page.' 
+            });
+        }
+        next();
+    } catch (error) {
+        console.error('CSRF verification error:', error);
+        return res.status(403).json({ 
+            error: 'CSRF verification failed.' 
+        });
+    }
+};
+
+// API لتوليد CSRF Token للـ Frontend
+app.get('/api/csrf-token', generateCsrfToken, (req, res) => {
+    res.json({ 
+        token: req.csrfToken,
+        expiresIn: 3600 // ساعة
+    });
+});
+
+// ============================================
+// ===== CORS =====
+// ============================================
 const allowedOrigins = [
     'https://shulamith-gallery.vercel.app',
     'https://shulamith-gallery.com',
@@ -68,7 +154,7 @@ app.use(cors({
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token']
 }));
 
 app.use(express.json({ limit: '10mb' }));
@@ -77,6 +163,9 @@ app.use(express.static('public'));
 
 app.use(timeoutMiddleware);
 
+// ============================================
+// ===== RATE LIMITING =====
+// ============================================
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -110,12 +199,31 @@ const contactLimiter = rateLimit({
     }
 });
 
+// ===== RATE LIMITER للتقييمات (جديد) =====
+const rateLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // ساعة واحدة
+    max: 5, // 5 تقييمات بس في الساعة
+    message: { 
+        error: 'تم إرسال عدد كبير من التقييمات. الرجاء الانتظار ساعة قبل المحاولة مرة أخرى.' 
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+        return req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    },
+    skipSuccessfulRequests: false // يحسب حتى الطلبات الناجحة
+});
+
+// تطبيق الـ Rate Limiters
 app.use('/api/login', authLimiter);
 app.use('/api/contact', contactLimiter);
 app.use('/api/upload', limiter);
 app.use('/api/stats', limiter);
 app.use('/api/send-email', limiter);
 
+// ============================================
+// ===== FIREBASE =====
+// ============================================
 const revokedTokens = new Set();
 
 let firebaseConfig;
@@ -142,12 +250,18 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
+// ============================================
+// ===== CLOUDINARY =====
+// ============================================
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// ============================================
+// ===== EMAIL =====
+// ============================================
 let transporter = null;
 let emailConfigured = false;
 let initializationPromise = null;
@@ -244,6 +358,9 @@ function isEmailConfigured() {
     return transporter !== null && emailConfigured === true;
 }
 
+// ============================================
+// ===== JWT =====
+// ============================================
 const generateToken = (username) => {
     return jwt.sign(
         { 
@@ -288,6 +405,9 @@ const requireAuth = (req, res, next) => {
     next();
 };
 
+// ============================================
+// ===== VALIDATION =====
+// ============================================
 const validateEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
@@ -322,6 +442,34 @@ function sanitizeInput(text) {
         .trim();
 }
 
+// ===== إخفاء الإيميل (جديد) =====
+function maskEmail(email) {
+    if (!email) return '';
+    const [local, domain] = email.split('@');
+    if (!domain) return email;
+    
+    // لو الإيميل قصير جداً
+    if (local.length <= 3) {
+        return '***@' + domain;
+    }
+    
+    // خفي أول 3 حروف بس
+    return local.slice(0, 3) + '***@' + domain;
+}
+
+// ============================================
+// ===== API ROUTES =====
+// ============================================
+
+// ===== CSRF TOKEN =====
+app.get('/api/csrf-token', generateCsrfToken, (req, res) => {
+    res.json({ 
+        token: req.csrfToken,
+        expiresIn: 3600
+    });
+});
+
+// ===== LOGIN =====
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -356,6 +504,7 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+// ===== LOGOUT =====
 app.post('/api/logout', requireAuth, (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     try {
@@ -367,10 +516,12 @@ app.post('/api/logout', requireAuth, (req, res) => {
     res.json({ success: true });
 });
 
+// ===== VERIFY =====
 app.post('/api/verify', requireAuth, (req, res) => {
     res.json({ valid: true, user: req.user });
 });
 
+// ===== GALLERIES =====
 app.get('/api/galleries', async (req, res) => {
     try {
         const snapshot = await db.collection('galleries').limit(100).get();
@@ -389,7 +540,7 @@ app.get('/api/galleries', async (req, res) => {
     }
 });
 
-app.post('/api/galleries', requireAuth, async (req, res) => {
+app.post('/api/galleries', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { name, description, coverImage, visible, order } = req.body;
 
@@ -415,7 +566,7 @@ app.post('/api/galleries', requireAuth, async (req, res) => {
     }
 });
 
-app.put('/api/galleries/:id', requireAuth, async (req, res) => {
+app.put('/api/galleries/:id', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, coverImage, visible, order } = req.body;
@@ -451,7 +602,7 @@ app.put('/api/galleries/:id', requireAuth, async (req, res) => {
     }
 });
 
-app.delete('/api/galleries/:id', requireAuth, async (req, res) => {
+app.delete('/api/galleries/:id', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -484,6 +635,7 @@ app.delete('/api/galleries/:id', requireAuth, async (req, res) => {
     }
 });
 
+// ===== ARTWORKS =====
 app.get('/api/artworks', async (req, res) => {
     try {
         const { galleryId, featured } = req.query;
@@ -521,7 +673,7 @@ app.get('/api/artworks', async (req, res) => {
     }
 });
 
-app.post('/api/artworks', requireAuth, async (req, res) => {
+app.post('/api/artworks', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const {
             galleryId, title, description, imageUrl, cloudinaryPublicId,
@@ -564,7 +716,7 @@ app.post('/api/artworks', requireAuth, async (req, res) => {
     }
 });
 
-app.put('/api/artworks/:id', requireAuth, async (req, res) => {
+app.put('/api/artworks/:id', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { id } = req.params;
         const {
@@ -617,7 +769,7 @@ app.put('/api/artworks/:id', requireAuth, async (req, res) => {
     }
 });
 
-app.delete('/api/artworks/:id', requireAuth, async (req, res) => {
+app.delete('/api/artworks/:id', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -648,6 +800,7 @@ app.delete('/api/artworks/:id', requireAuth, async (req, res) => {
     }
 });
 
+// ===== UPLOAD =====
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -663,7 +816,6 @@ const upload = multer({
     }
 });
 
-// رفع الصور - بدون توثيق للسماح للعملاء برفع الصور
 app.post('/api/upload', upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
@@ -699,6 +851,7 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
     }
 });
 
+// ===== CONTACT =====
 app.post('/api/contact', async (req, res) => {
     try {
         const { name, email, phone, message } = req.body;
@@ -772,6 +925,7 @@ app.post('/api/contact', async (req, res) => {
     }
 });
 
+// ===== MESSAGES =====
 app.get('/api/messages', requireAuth, async (req, res) => {
     try {
         const { unread } = req.query;
@@ -805,7 +959,7 @@ app.get('/api/messages', requireAuth, async (req, res) => {
     }
 });
 
-app.put('/api/messages/:id/read', requireAuth, async (req, res) => {
+app.put('/api/messages/:id/read', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { id } = req.params;
         const { read } = req.body;
@@ -832,7 +986,7 @@ app.put('/api/messages/:id/read', requireAuth, async (req, res) => {
     }
 });
 
-app.delete('/api/messages/:id', requireAuth, async (req, res) => {
+app.delete('/api/messages/:id', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -854,7 +1008,12 @@ app.delete('/api/messages/:id', requireAuth, async (req, res) => {
     }
 });
 
-app.post('/api/rates', async (req, res) => {
+// ============================================
+// ===== RATES (مع التعديلات) =====
+// ============================================
+
+// POST - مع Rate Limiting و CSRF
+app.post('/api/rates', rateLimiter, verifyCsrf, async (req, res) => {
     try {
         const { name, email, rating, opinion } = req.body;
 
@@ -879,13 +1038,22 @@ app.post('/api/rates', async (req, res) => {
         };
 
         const docRef = await db.collection('rates').add(rateData);
-        res.status(201).json({ id: docRef.id, ...rateData });
+        
+        // Log security event
+        console.log(`✅ New rating submitted: ${name} (${email}) - Rating: ${rating}`);
+        
+        res.status(201).json({ 
+            id: docRef.id, 
+            ...rateData,
+            email: maskEmail(email) // إخفاء الإيميل في الرد
+        });
     } catch (error) {
         console.error('Error creating rate:', error);
         res.status(500).json({ error: 'Failed to submit rate' });
     }
 });
 
+// GET - مع إخفاء الإيميلات
 app.get('/api/rates', async (req, res) => {
     try {
         const { rating } = req.query;
@@ -905,6 +1073,8 @@ app.get('/api/rates', async (req, res) => {
             rates.push({
                 id: doc.id,
                 ...data,
+                // إخفاء الإيميل 🔒
+                email: maskEmail(data.email),
                 createdAt: data.createdAt?.toDate?.()?.toISOString() || null
             });
         });
@@ -922,7 +1092,8 @@ app.get('/api/rates', async (req, res) => {
     }
 });
 
-app.put('/api/rates/:id', requireAuth, async (req, res) => {
+// PUT - مع CSRF
+app.put('/api/rates/:id', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { id } = req.params;
         const { name, email, rating, opinion } = req.body;
@@ -965,7 +1136,8 @@ app.put('/api/rates/:id', requireAuth, async (req, res) => {
     }
 });
 
-app.delete('/api/rates/:id', requireAuth, async (req, res) => {
+// DELETE - مع CSRF
+app.delete('/api/rates/:id', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -987,6 +1159,9 @@ app.delete('/api/rates/:id', requireAuth, async (req, res) => {
     }
 });
 
+// ============================================
+// ===== ORDERS =====
+// ============================================
 app.post('/api/orders', async (req, res) => {
     try {
         const { name, phone, email, orderText, imageUrl } = req.body;
@@ -1058,7 +1233,7 @@ app.get('/api/orders', requireAuth, async (req, res) => {
     }
 });
 
-app.put('/api/orders/:id', requireAuth, async (req, res) => {
+app.put('/api/orders/:id', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { id } = req.params;
         const { name, phone, email, orderText, status, imageUrl } = req.body;
@@ -1108,7 +1283,7 @@ app.put('/api/orders/:id', requireAuth, async (req, res) => {
     }
 });
 
-app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
+app.put('/api/orders/:id/status', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
@@ -1179,7 +1354,7 @@ app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
     }
 });
 
-app.delete('/api/orders/:id', requireAuth, async (req, res) => {
+app.delete('/api/orders/:id', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -1201,6 +1376,9 @@ app.delete('/api/orders/:id', requireAuth, async (req, res) => {
     }
 });
 
+// ============================================
+// ===== SETTINGS =====
+// ============================================
 app.get('/api/settings', async (req, res) => {
     try {
         const doc = await db.collection('settings').doc('site').get();
@@ -1227,7 +1405,7 @@ app.get('/api/settings', async (req, res) => {
     }
 });
 
-app.put('/api/settings', requireAuth, async (req, res) => {
+app.put('/api/settings', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const settings = req.body;
 
@@ -1248,6 +1426,9 @@ app.put('/api/settings', requireAuth, async (req, res) => {
     }
 });
 
+// ============================================
+// ===== STATS =====
+// ============================================
 app.get('/api/stats', requireAuth, async (req, res) => {
     try {
         const statsPromise = Promise.all([
@@ -1286,7 +1467,10 @@ app.get('/api/stats', requireAuth, async (req, res) => {
     }
 });
 
-app.post('/api/send-email', requireAuth, async (req, res) => {
+// ============================================
+// ===== SEND EMAIL =====
+// ============================================
+app.post('/api/send-email', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { name, email, message } = req.body;
 
@@ -1350,6 +1534,9 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
     }
 });
 
+// ============================================
+// ===== HEALTH =====
+// ============================================
 app.get('/api/health', requireAuth, (req, res) => {
     res.json({
         status: 'ok',
@@ -1357,6 +1544,9 @@ app.get('/api/health', requireAuth, (req, res) => {
     });
 });
 
+// ============================================
+// ===== ERROR HANDLING =====
+// ============================================
 app.use((err, req, res, next) => {
     console.error('Server error:', err);
 
@@ -1377,12 +1567,18 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Internal server error' });
 });
 
+// ============================================
+// ===== START SERVER =====
+// ============================================
 if (require.main === module) {
     app.listen(PORT, () => {
-        console.log('Shulamith Gallery Server running on port ' + PORT);
-        console.log('Dashboard available at http://localhost:' + PORT + '/dashboard.html');
-        console.log('Login at http://localhost:' + PORT + '/login.html');
-        console.log('Health check at http://localhost:' + PORT + '/api/health (admin only)');
+        console.log('🚀 Shulamith Gallery Server running on port ' + PORT);
+        console.log('📊 Dashboard available at http://localhost:' + PORT + '/dashboard.html');
+        console.log('🔑 Login at http://localhost:' + PORT + '/login.html');
+        console.log('❤️ Health check at http://localhost:' + PORT + '/api/health (admin only)');
+        console.log('🛡️ CSRF Protection: ✅ ENABLED');
+        console.log('🔒 Rate Limiting: ✅ ENABLED');
+        console.log('📧 Email Privacy: ✅ ENABLED (email masking)');
     });
 }
 

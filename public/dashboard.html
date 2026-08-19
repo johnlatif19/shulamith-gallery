@@ -46,6 +46,7 @@
         }
 
         body.rtl { direction: rtl; }
+        body.ltr { direction: ltr; }
 
         /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar { width: 6px; }
@@ -63,22 +64,31 @@
         .sidebar {
             position: fixed;
             top: 0;
-            right: 0;
+            left: 0;
             width: var(--sidebar-width);
             height: 100vh;
             background: var(--color-bg-secondary);
-            border-left: 1px solid var(--color-border);
+            border-right: 1px solid var(--color-border);
             padding: 20px 0;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease;
+            transition: var(--transition);
             z-index: 1000;
             overflow-y: auto;
-            transform: translateX(100%);
         }
 
-        .sidebar.open {
-            transform: translateX(0);
+        body.ltr .sidebar {
+            left: 0;
+            right: auto;
+            border-right: 1px solid var(--color-border);
+            border-left: none;
+        }
+
+        body.rtl .sidebar {
+            right: 0;
+            left: auto;
+            border-left: 1px solid var(--color-border);
+            border-right: none;
         }
 
         .sidebar-header {
@@ -125,6 +135,8 @@
             position: relative;
         }
 
+        body.ltr .nav-item { text-align: left; }
+
         .nav-item:hover {
             background: var(--color-bg-hover);
             color: var(--color-text);
@@ -140,10 +152,12 @@
             position: absolute;
             top: 8px;
             bottom: 8px;
-            right: 0;
             width: 2px;
             background: var(--color-primary);
         }
+
+        body.rtl .nav-item.active::before { right: 0; }
+        body.ltr .nav-item.active::before { left: 0; }
 
         .nav-item .badge {
             background: var(--color-primary);
@@ -154,6 +168,8 @@
             margin-right: auto;
             font-weight: 500;
         }
+
+        body.ltr .nav-item .badge { margin-right: 0; margin-left: auto; }
 
         .sidebar-logout {
             margin: 12px;
@@ -179,14 +195,9 @@
             background: none;
             border: none;
             color: var(--color-text);
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             cursor: pointer;
             padding: 4px 8px;
-            line-height: 1;
-        }
-
-        .sidebar-toggle:hover {
-            color: var(--color-primary);
         }
 
         .sidebar-overlay {
@@ -196,22 +207,21 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.5);
             z-index: 999;
-            backdrop-filter: blur(4px);
-        }
-
-        .sidebar-overlay.active {
-            display: block;
         }
 
         /* ===== MAIN CONTENT ===== */
         .main-content {
             flex: 1;
+            margin-left: var(--sidebar-width);
             min-height: 100vh;
             transition: var(--transition);
-            margin-right: 0;
-            width: 100%;
+        }
+
+        body.rtl .main-content {
+            margin-left: 0;
+            margin-right: var(--sidebar-width);
         }
 
         /* ===== HEADER ===== */
@@ -242,6 +252,31 @@
             color: var(--color-text);
         }
 
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lang-switch {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .lang-switch:hover {
+            background: var(--color-bg-hover);
+            border-color: var(--color-primary-dark);
+        }
+
         /* ===== CONTENT ===== */
         .dashboard-content {
             padding: 24px;
@@ -253,12 +288,6 @@
 
         .section.active {
             display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .section-header {
@@ -286,7 +315,6 @@
             font-weight: 500;
             cursor: pointer;
             transition: var(--transition);
-            white-space: nowrap;
         }
 
         .add-btn:hover {
@@ -376,6 +404,8 @@
             white-space: nowrap;
         }
 
+        body.ltr th { text-align: left; }
+
         td {
             padding: 12px 16px;
             border-bottom: 1px solid var(--color-border);
@@ -425,7 +455,6 @@
             cursor: pointer;
             font-size: 0.8rem;
             transition: var(--transition);
-            white-space: nowrap;
         }
 
         .btn-edit {
@@ -461,7 +490,6 @@
             border-radius: 12px;
             font-size: 0.75rem;
             font-weight: 500;
-            white-space: nowrap;
         }
 
         .badge-status.read {
@@ -537,7 +565,6 @@
             display: flex;
             flex-direction: column;
             gap: 2px;
-            flex: 1;
         }
 
         .message-item .msg-name {
@@ -559,7 +586,6 @@
             font-size: 0.75rem;
             padding: 2px 10px;
             border-radius: 12px;
-            white-space: nowrap;
         }
 
         .message-item .msg-status.read {
@@ -890,13 +916,18 @@
         .toast-container {
             position: fixed;
             bottom: 24px;
-            left: 24px;
+            right: 24px;
             z-index: 3000;
             display: flex;
             flex-direction: column;
             gap: 8px;
             max-width: 400px;
             width: 100%;
+        }
+
+        body.ltr .toast-container {
+            right: auto;
+            left: 24px;
         }
 
         .toast {
@@ -914,7 +945,7 @@
         .toast.warning { border-color: var(--color-warning); }
 
         @keyframes toastIn {
-            from { opacity: 0; transform: translateX(-20px); }
+            from { opacity: 0; transform: translateX(20px); }
             to { opacity: 1; transform: translateX(0); }
         }
 
@@ -1052,29 +1083,41 @@
         }
 
         /* ===== RESPONSIVE ===== */
-        @media (min-width: 769px) {
+        @media (max-width: 992px) {
             .sidebar {
-                transform: translateX(0) !important;
+                transform: translateX(-100%);
             }
-            
-            .main-content {
-                margin-right: var(--sidebar-width);
+
+            body.rtl .sidebar {
+                transform: translateX(100%);
             }
-            
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
             .sidebar-toggle {
-                display: none !important;
+                display: block;
             }
-            
-            .sidebar-overlay {
-                display: none !important;
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            body.rtl .main-content {
+                margin-right: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             }
         }
 
         @media (max-width: 768px) {
-            .sidebar-toggle {
-                display: block;
-            }
-            
             .dashboard-content {
                 padding: 16px;
             }
@@ -1154,6 +1197,11 @@
             .toast-container {
                 max-width: 90%;
                 bottom: 12px;
+                right: 12px;
+            }
+
+            body.ltr .toast-container {
+                right: auto;
                 left: 12px;
             }
         }
@@ -1191,6 +1239,11 @@
                 font-size: 0.85rem;
             }
 
+            .lang-switch {
+                padding: 4px 10px;
+                font-size: 0.75rem;
+            }
+
             .send-message-wrapper {
                 padding: 16px;
             }
@@ -1202,6 +1255,10 @@
             flex-direction: row-reverse;
             gap: 8px;
             justify-content: flex-end;
+        }
+
+        body.ltr .star-rating {
+            flex-direction: row;
         }
 
         .star-rating input {
@@ -1219,6 +1276,10 @@
         .star-rating label:hover,
         .star-rating label:hover ~ label,
         .star-rating input:checked ~ label {
+            color: #f1c40f;
+        }
+
+        body.ltr .star-rating label:hover ~ label {
             color: #f1c40f;
         }
     </style>
@@ -1264,6 +1325,11 @@
                 <div class="header-left">
                     <button class="sidebar-toggle" id="sidebarToggle">☰</button>
                     <h1 id="pageTitle">نظرة عامة</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="lang-switch" id="langSwitch">
+                        <span class="lang-text">AR</span>
+                    </button>
                 </div>
             </header>
             
@@ -1688,7 +1754,7 @@
         </div>
     </div>
 
-    <!-- Image Preview Modal -->
+    <!-- Image Preview Modal للعرض بالحجم الكامل -->
     <div class="modal" id="imagePreviewModal">
         <div class="modal-content modal-small">
             <div class="modal-header">
@@ -1780,51 +1846,41 @@
         }
 
         // ============================================
-        // ===== CSRF TOKEN =====
+        // ===== STATE & VARIABLES =====
         // ============================================
-        let csrfTokenCache = null;
-        let csrfTokenExpiry = 0;
+        let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
+        let token = localStorage.getItem('shulamith-token');
+        let galleries = [];
+        let artworks = [];
+        let messages = [];
+        let orders = [];
+        let rates = [];
+        let deleteTarget = { type: '', id: '' };
 
-        async function getCsrfToken() {
-            if (csrfTokenCache && Date.now() < csrfTokenExpiry) {
-                return csrfTokenCache;
-            }
-            
-            try {
-                const res = await fetch('/api/csrf-token', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }
-                });
-                
-                if (!res.ok) throw new Error('Failed to get CSRF token');
-                
-                const data = await res.json();
-                csrfTokenCache = data.token;
-                csrfTokenExpiry = Date.now() + (data.expiresIn || 3600) * 1000;
-                return csrfTokenCache;
-            } catch (error) {
-                console.error('Error fetching CSRF token:', error);
-                return null;
-            }
+        // ============================================
+        // ===== TOAST NOTIFICATION =====
+        // ============================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
         // ============================================
-        // ===== AUTHENTICATION & HEADERS =====
+        // ===== AUTHENTICATION =====
         // ============================================
-        let token = localStorage.getItem('shulamith-token');
-
-        function getHeaders(csrfToken = null) {
-            const headers = {
+        function getHeaders() {
+            return {
                 'Authorization': 'Bearer ' + token,
                 'Content-Type': 'application/json'
             };
-            
-            if (csrfToken) {
-                headers['X-CSRF-Token'] = csrfToken;
-            }
-            
-            return headers;
         }
 
         async function checkAuth() {
@@ -1899,19 +1955,19 @@
         }
 
         // ============================================
-        // ===== TOAST NOTIFICATION =====
+        // ===== LANGUAGE =====
         // ============================================
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.textContent = message;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(-20px)';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('shulamith-lang', lang);
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            document.body.className = lang === 'ar' ? 'rtl' : 'ltr';
+            const langText = document.querySelector('.lang-text');
+            if (langText) langText.textContent = lang.toUpperCase();
+        }
+
+        function toggleLanguage() {
+            setLanguage(currentLang === 'ar' ? 'en' : 'ar');
         }
 
         // ============================================
@@ -1926,16 +1982,6 @@
             document.getElementById('sidebar').classList.remove('open');
             document.getElementById('sidebarOverlay').classList.remove('active');
         }
-
-        // ============================================
-        // ===== STATE & VARIABLES =====
-        // ============================================
-        let galleries = [];
-        let artworks = [];
-        let messages = [];
-        let orders = [];
-        let rates = [];
-        let deleteTarget = { type: '', id: '' };
 
         // ============================================
         // ===== NAVIGATION =====
@@ -2454,63 +2500,6 @@
         };
 
         // ============================================
-        // ===== EDIT RATE SUBMIT (مع CSRF) =====
-        // ============================================
-        document.getElementById('editRateForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const id = document.getElementById('editRateId').value;
-            const rating = document.querySelector('input[name="editRating"]:checked');
-            
-            const data = {
-                name: document.getElementById('editRateName').value.trim(),
-                email: document.getElementById('editRateEmail').value.trim(),
-                rating: rating ? parseInt(rating.value) : 1,
-                opinion: document.getElementById('editRateOpinion').value.trim()
-            };
-            
-            const submitBtn = document.getElementById('editRateSubmit');
-            submitBtn.disabled = true;
-            submitBtn.querySelector('span:first-child').style.display = 'none';
-            submitBtn.querySelector('.btn-loading').style.display = 'inline';
-            
-            try {
-                const csrfToken = await getCsrfToken();
-                if (!csrfToken) {
-                    showToast('فشل في الحصول على توكن الأمان. حاول تحديث الصفحة.', 'error');
-                    return;
-                }
-                
-                const res = await fetch(`/api/rates/${id}`, {
-                    method: 'PUT',
-                    headers: getHeaders(csrfToken),
-                    body: JSON.stringify(data)
-                });
-                
-                if (res.status === 403) {
-                    showToast('توكن الأمان منتهي. يرجى تحديث الصفحة.', 'error');
-                    return;
-                }
-                
-                if (res.ok) {
-                    showToast('تم تحديث التقييم بنجاح');
-                    document.getElementById('editRateModal').classList.remove('active');
-                    loadRates(document.getElementById('ratesFilter').value);
-                    loadStats();
-                } else {
-                    const result = await res.json();
-                    showToast(result.error || 'حدث خطأ', 'error');
-                }
-            } catch (error) {
-                showToast('حدث خطأ في الاتصال', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.querySelector('span:first-child').style.display = 'inline';
-                submitBtn.querySelector('.btn-loading').style.display = 'none';
-            }
-        });
-
-        // ============================================
         // ===== LOAD ORDERS =====
         // ============================================
         async function loadOrders(filter = 'all') {
@@ -2696,6 +2685,52 @@
         });
 
         // ============================================
+        // ===== EDIT RATE SUBMIT =====
+        // ============================================
+        document.getElementById('editRateForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('editRateId').value;
+            const rating = document.querySelector('input[name="editRating"]:checked');
+            
+            const data = {
+                name: document.getElementById('editRateName').value.trim(),
+                email: document.getElementById('editRateEmail').value.trim(),
+                rating: rating ? parseInt(rating.value) : 1,
+                opinion: document.getElementById('editRateOpinion').value.trim()
+            };
+            
+            const submitBtn = document.getElementById('editRateSubmit');
+            submitBtn.disabled = true;
+            submitBtn.querySelector('span:first-child').style.display = 'none';
+            submitBtn.querySelector('.btn-loading').style.display = 'inline';
+            
+            try {
+                const res = await fetch(`/api/rates/${id}`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify(data)
+                });
+                
+                if (res.ok) {
+                    showToast('تم تحديث التقييم بنجاح');
+                    document.getElementById('editRateModal').classList.remove('active');
+                    loadRates(document.getElementById('ratesFilter').value);
+                    loadStats();
+                } else {
+                    const result = await res.json();
+                    showToast(result.error || 'حدث خطأ', 'error');
+                }
+            } catch (error) {
+                showToast('حدث خطأ في الاتصال', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.querySelector('span:first-child').style.display = 'inline';
+                submitBtn.querySelector('.btn-loading').style.display = 'none';
+            }
+        });
+
+        // ============================================
         // ===== LOAD SETTINGS =====
         // ============================================
         async function loadSettings() {
@@ -2786,7 +2821,7 @@
         });
 
         // ============================================
-        // ===== CONFIRM DELETE (مع CSRF للتقييمات) =====
+        // ===== CONFIRM DELETE =====
         // ============================================
         window.confirmDelete = function(type, id) {
             deleteTarget = { type, id };
@@ -2800,73 +2835,6 @@
             document.getElementById('confirmMessage').textContent = messages[type] || 'هل أنت متأكد من حذف هذا العنصر؟';
             document.getElementById('confirmModal').classList.add('active');
         };
-
-        document.getElementById('confirmDelete').addEventListener('click', async function() {
-            const { type, id } = deleteTarget;
-            const modal = document.getElementById('confirmModal');
-            
-            // لو نوع الحذف مش rate، استخدم الطريقة العادية
-            if (type !== 'rate') {
-                try {
-                    let url = '';
-                    if (type === 'gallery') url = `/api/galleries/${id}`;
-                    else if (type === 'artwork') url = `/api/artworks/${id}`;
-                    else if (type === 'message') url = `/api/messages/${id}`;
-                    else if (type === 'order') url = `/api/orders/${id}`;
-                    
-                    const res = await fetch(url, {
-                        method: 'DELETE',
-                        headers: getHeaders()
-                    });
-                    
-                    if (res.ok) {
-                        showToast('تم الحذف بنجاح');
-                        modal.classList.remove('active');
-                        if (type === 'gallery') { loadGalleries(); loadStats(); }
-                        else if (type === 'artwork') { loadArtworks(); loadStats(); }
-                        else if (type === 'message') { loadMessages(document.getElementById('messageFilter').value); loadStats(); }
-                        else if (type === 'order') { loadOrders(document.getElementById('ordersFilter').value); loadStats(); }
-                    } else {
-                        const data = await res.json();
-                        showToast(data.error || 'حدث خطأ', 'error');
-                    }
-                } catch (error) {
-                    showToast('حدث خطأ في الاتصال', 'error');
-                }
-                return;
-            }
-            
-            // ===== حذف التقييم (يحتاج CSRF) =====
-            try {
-                const csrfToken = await getCsrfToken();
-                if (!csrfToken) {
-                    showToast('فشل في الحصول على توكن الأمان. حاول تحديث الصفحة.', 'error');
-                    return;
-                }
-                
-                const res = await fetch(`/api/rates/${id}`, {
-                    method: 'DELETE',
-                    headers: getHeaders(csrfToken)
-                });
-                
-                if (res.status === 403) {
-                    showToast('توكن الأمان منتهي. يرجى تحديث الصفحة.', 'error');
-                    return;
-                }
-                
-                if (res.ok) {
-                    showToast('تم حذف التقييم بنجاح');
-                    modal.classList.remove('active');
-                    loadRates(document.getElementById('ratesFilter').value);
-                    loadStats();
-                } else {
-                    const data = await res.json();
-                    showToast(data.error || 'حدث خطأ', 'error');
-                }
-            } catch (error) {
-                showToast('حدث خطأ في الاتصال', 'error');
-            }
-        });
 
         // ============================================
         // ===== GALLERY IMAGE UPLOAD =====
@@ -2924,68 +2892,17 @@
         });
 
         // ============================================
-        // ===== ARTWORK IMAGE UPLOAD =====
-        // ============================================
-        document.getElementById('artworkImageFile').addEventListener('change', function(e) {
-            const file = this.files[0];
-            if (!file) return;
-            
-            const progress = document.getElementById('uploadProgress');
-            const fill = document.getElementById('progressFill');
-            const text = document.getElementById('progressText');
-            progress.style.display = 'block';
-            
-            const formData = new FormData();
-            formData.append('image', file);
-            
-            try {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', '/api/upload');
-                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-                
-                xhr.upload.onprogress = function(e) {
-                    if (e.lengthComputable) {
-                        const pct = Math.round((e.loaded / e.total) * 100);
-                        fill.style.width = pct + '%';
-                        text.textContent = pct + '%';
-                    }
-                };
-                
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        const data = JSON.parse(xhr.response);
-                        document.getElementById('artworkImageUrl').value = data.url;
-                        document.getElementById('uploadPreview').innerHTML = `<img src="${escapeHtml(data.url)}" alt="Uploaded">`;
-                        showToast('تم رفع الصورة بنجاح');
-                    } else if (xhr.status === 401) {
-                        localStorage.removeItem('shulamith-token');
-                        window.location.href = '/login';
-                    } else {
-                        showToast('فشل رفع الصورة', 'error');
-                    }
-                    progress.style.display = 'none';
-                };
-                
-                xhr.onerror = function() {
-                    showToast('حدث خطأ في الرفع', 'error');
-                    progress.style.display = 'none';
-                };
-                
-                xhr.send(formData);
-            } catch (error) {
-                showToast('حدث خطأ', 'error');
-                progress.style.display = 'none';
-            }
-        });
-
-        // ============================================
         // ===== INITIALIZATION =====
         // ============================================
         document.addEventListener('DOMContentLoaded', async function() {
             const isValid = await checkAuth();
             if (!isValid) return;
             
+            setLanguage(currentLang);
+            
             // ===== EVENT LISTENERS =====
+            
+            document.getElementById('langSwitch').addEventListener('click', toggleLanguage);
             
             document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
             document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
@@ -3016,12 +2933,6 @@
                     if (modalId) {
                         document.getElementById(modalId).classList.remove('active');
                     }
-                });
-            });
-            
-            document.querySelectorAll('[data-modal="confirmModal"]').forEach(function(el) {
-                el.addEventListener('click', function() {
-                    document.getElementById('confirmModal').classList.remove('active');
                 });
             });
             
@@ -3124,6 +3035,59 @@
                 openArtworkModal();
             });
             
+            // Image upload for artwork
+            document.getElementById('artworkImageFile').addEventListener('change', function(e) {
+                const file = this.files[0];
+                if (!file) return;
+                
+                const progress = document.getElementById('uploadProgress');
+                const fill = document.getElementById('progressFill');
+                const text = document.getElementById('progressText');
+                progress.style.display = 'block';
+                
+                const formData = new FormData();
+                formData.append('image', file);
+                
+                try {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/api/upload');
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                    
+                    xhr.upload.onprogress = function(e) {
+                        if (e.lengthComputable) {
+                            const pct = Math.round((e.loaded / e.total) * 100);
+                            fill.style.width = pct + '%';
+                            text.textContent = pct + '%';
+                        }
+                    };
+                    
+                    xhr.onload = function() {
+                        if (xhr.status === 200) {
+                            const data = JSON.parse(xhr.response);
+                            document.getElementById('artworkImageUrl').value = data.url;
+                            document.getElementById('uploadPreview').innerHTML = `<img src="${escapeHtml(data.url)}" alt="Uploaded">`;
+                            showToast('تم رفع الصورة بنجاح');
+                        } else if (xhr.status === 401) {
+                            localStorage.removeItem('shulamith-token');
+                            window.location.href = '/login.html';
+                        } else {
+                            showToast('فشل رفع الصورة', 'error');
+                        }
+                        progress.style.display = 'none';
+                    };
+                    
+                    xhr.onerror = function() {
+                        showToast('حدث خطأ في الرفع', 'error');
+                        progress.style.display = 'none';
+                    };
+                    
+                    xhr.send(formData);
+                } catch (error) {
+                    showToast('حدث خطأ', 'error');
+                    progress.style.display = 'none';
+                }
+            });
+            
             // Message filter
             document.getElementById('messageFilter').addEventListener('change', function() {
                 loadMessages(this.value);
@@ -3198,6 +3162,47 @@
                     submitBtn.querySelector('span:first-child').style.display = 'inline';
                     submitBtn.querySelector('.btn-loading').style.display = 'none';
                 }
+            });
+            
+            // Confirm delete
+            document.getElementById('confirmDelete').addEventListener('click', async function() {
+                const { type, id } = deleteTarget;
+                const modal = document.getElementById('confirmModal');
+                
+                try {
+                    let url = '';
+                    if (type === 'gallery') url = `/api/galleries/${id}`;
+                    else if (type === 'artwork') url = `/api/artworks/${id}`;
+                    else if (type === 'message') url = `/api/messages/${id}`;
+                    else if (type === 'rate') url = `/api/rates/${id}`;
+                    else if (type === 'order') url = `/api/orders/${id}`;
+                    
+                    const res = await fetch(url, {
+                        method: 'DELETE',
+                        headers: getHeaders()
+                    });
+                    
+                    if (res.ok) {
+                        showToast('تم الحذف بنجاح');
+                        modal.classList.remove('active');
+                        if (type === 'gallery') { loadGalleries(); loadStats(); }
+                        else if (type === 'artwork') { loadArtworks(); loadStats(); }
+                        else if (type === 'message') { loadMessages(document.getElementById('messageFilter').value); loadStats(); }
+                        else if (type === 'rate') { loadRates(document.getElementById('ratesFilter').value); loadStats(); }
+                        else if (type === 'order') { loadOrders(document.getElementById('ordersFilter').value); loadStats(); }
+                    } else {
+                        const data = await res.json();
+                        showToast(data.error || 'حدث خطأ', 'error');
+                    }
+                } catch (error) {
+                    showToast('حدث خطأ في الاتصال', 'error');
+                }
+            });
+            
+            document.querySelectorAll('[data-modal="confirmModal"]').forEach(function(el) {
+                el.addEventListener('click', function() {
+                    document.getElementById('confirmModal').classList.remove('active');
+                });
             });
             
             loadStats();

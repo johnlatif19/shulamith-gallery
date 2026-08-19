@@ -826,21 +826,6 @@
         }
 
         // ============================================
-        // ===== CSRF TOKEN (جديد) =====
-        // ============================================
-        async function fetchCsrfToken() {
-            try {
-                const response = await fetch('/api/csrf-token');
-                if (!response.ok) throw new Error('Failed to fetch CSRF token');
-                const data = await response.json();
-                return data.token;
-            } catch (error) {
-                console.error('CSRF fetch error:', error);
-                return null;
-            }
-        }
-
-        // ============================================
         // ===== LANGUAGE =====
         // ============================================
         let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
@@ -874,24 +859,20 @@
                 }
             });
 
+            // Update rating text if already selected
             const selected = document.querySelector('input[name="rating"]:checked');
             if (selected) {
                 updateRatingText(parseInt(selected.value));
             }
         }
 
-        document.addEventListener('DOMContentLoaded', async function() {
+        document.addEventListener('DOMContentLoaded', function() {
             const savedLang = localStorage.getItem('shulamith-lang') || 'ar';
             setLanguage(savedLang);
             
-            // ===== جلب CSRF Token من الـ Backend (جديد) =====
-            const csrfToken = await fetchCsrfToken();
-            const csrfInput = document.getElementById('csrfToken');
-            if (csrfToken && csrfInput) {
-                csrfInput.value = csrfToken;
-                console.log('✅ CSRF Token loaded successfully');
-            } else {
-                console.warn('⚠️ Failed to load CSRF token');
+            const csrfToken = document.getElementById('csrfToken');
+            if (csrfToken) {
+                csrfToken.value = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
             }
             
             loadRates();
@@ -1049,7 +1030,7 @@
         }
 
         // ============================================
-        // ===== SUBMIT RATE (مع CSRF) =====
+        // ===== SUBMIT RATE =====
         // ============================================
         document.getElementById('rateForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -1114,17 +1095,7 @@
             submitBtn.querySelector('span:first-child').style.display = 'none';
             submitBtn.querySelector('.btn-loading').style.display = 'inline';
 
-            // ===== جلب CSRF Token جديد قبل الإرسال =====
-            let csrfToken = document.getElementById('csrfToken').value;
-            
-            // لو الـ Token قديم أو مش موجود، جيب واحد جديد
-            if (!csrfToken || csrfToken === 'default' || csrfToken.startsWith('csrf-')) {
-                const newToken = await fetchCsrfToken();
-                if (newToken) {
-                    csrfToken = newToken;
-                    document.getElementById('csrfToken').value = newToken;
-                }
-            }
+            const csrfToken = document.getElementById('csrfToken').value || 'default';
 
             try {
                 const res = await fetch('/api/rates', {
@@ -1177,7 +1148,7 @@
         });
 
         // ============================================
-        // ===== RATE LIMITING (Frontend فقط) =====
+        // ===== RATE LIMITING =====
         // ============================================
         let submitAttempts = 0;
         const MAX_SUBMIT_ATTEMPTS = 3;
@@ -1232,8 +1203,6 @@
         console.log('⭐ Shulamith Gallery - Rate Page (Secure)');
         console.log('🔒 Secured against XSS, CSRF, and spam attacks.');
         console.log('📱 Fully responsive for all devices.');
-        console.log('✅ CSRF Protection: ENABLED (tokens from backend)');
-        console.log('✅ Email Privacy: ENABLED (masked emails)');
 
         window.addEventListener('beforeunload', function() {
             if (refreshInterval) {

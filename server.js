@@ -201,7 +201,7 @@ const contactLimiter = rateLimit({
 
 // ===== RATE LIMITER للتقييمات (جديد) =====
 const rateLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // ساعة واحدة
+    windowMs: 5 * 60 * 1000, // ساعة واحدة
     max: 5, // 5 تقييمات بس في الساعة
     message: { 
         error: 'تم إرسال عدد كبير من التقييمات. الرجاء الانتظار ساعة قبل المحاولة مرة أخرى.' 

@@ -127,7 +127,7 @@ const verifyCsrf = (req, res, next) => {
 app.get('/api/csrf-token', generateCsrfToken, (req, res) => {
     res.json({ 
         token: req.csrfToken,
-        expiresIn: 3600 // ساعة
+        expiresIn: 300 // ساعة
     });
 });
 

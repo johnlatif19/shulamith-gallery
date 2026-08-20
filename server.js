@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const session = require('express-session'); // 👈 جديد
+const session = require('express-session');
 const admin = require('firebase-admin');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
@@ -11,7 +11,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-const csrf = require('csrf'); // 👈 جديد
+const csrf = require('csrf');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -67,7 +67,7 @@ app.use(session({
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000 // 24 ساعة
+        maxAge: 24 * 60 * 60 * 1000
     },
     name: 'shulamith.sid'
 }));
@@ -77,7 +77,6 @@ app.use(session({
 // ============================================
 const csrfTokens = new csrf();
 
-// Middleware لتوليد CSRF Token
 const generateCsrfToken = (req, res, next) => {
     if (!req.session.csrfSecret) {
         req.session.csrfSecret = csrfTokens.secretSync();
@@ -86,9 +85,7 @@ const generateCsrfToken = (req, res, next) => {
     next();
 };
 
-// Middleware للتحقق من CSRF Token
 const verifyCsrf = (req, res, next) => {
-    //跳过 GET, HEAD, OPTIONS
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
         return next();
     }
@@ -123,11 +120,10 @@ const verifyCsrf = (req, res, next) => {
     }
 };
 
-// API لتوليد CSRF Token للـ Frontend
 app.get('/api/csrf-token', generateCsrfToken, (req, res) => {
     res.json({ 
         token: req.csrfToken,
-        expiresIn: 3600 // ساعة
+        expiresIn: 3600
     });
 });
 
@@ -199,10 +195,9 @@ const contactLimiter = rateLimit({
     }
 });
 
-// ===== RATE LIMITER للتقييمات (جديد) =====
 const rateLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // ساعة واحدة
-    max: 5, // 5 تقييمات بس في الساعة
+    windowMs: 60 * 60 * 1000,
+    max: 5,
     message: { 
         error: 'تم إرسال عدد كبير من التقييمات. الرجاء الانتظار ساعة قبل المحاولة مرة أخرى.' 
     },
@@ -211,10 +206,9 @@ const rateLimiter = rateLimit({
     keyGenerator: (req) => {
         return req.ip || req.headers['x-forwarded-for'] || 'unknown';
     },
-    skipSuccessfulRequests: false // يحسب حتى الطلبات الناجحة
+    skipSuccessfulRequests: false
 });
 
-// تطبيق الـ Rate Limiters
 app.use('/api/login', authLimiter);
 app.use('/api/contact', contactLimiter);
 app.use('/api/upload', limiter);
@@ -371,7 +365,7 @@ const generateToken = (username) => {
         },
         process.env.JWT_SECRET,
         { 
-            expiresIn: '1h',
+            expiresIn: '24h',
             algorithm: 'HS256'
         }
     );
@@ -404,6 +398,22 @@ const requireAuth = (req, res, next) => {
     req.user = decoded;
     next();
 };
+
+// ============================================
+// ===== REFRESH TOKEN (جديد) =====
+// ============================================
+app.post('/api/refresh-token', requireAuth, (req, res) => {
+    try {
+        const newToken = generateToken(req.user.username);
+        res.json({
+            token: newToken,
+            expiresIn: 86400 // 24 ساعة بالثواني
+        });
+    } catch (error) {
+        console.error('Refresh token error:', error);
+        res.status(500).json({ error: 'Failed to refresh token' });
+    }
+});
 
 // ============================================
 // ===== VALIDATION =====
@@ -442,18 +452,15 @@ function sanitizeInput(text) {
         .trim();
 }
 
-// ===== إخفاء الإيميل (جديد) =====
 function maskEmail(email) {
     if (!email) return '';
     const [local, domain] = email.split('@');
     if (!domain) return email;
     
-    // لو الإيميل قصير جداً
     if (local.length <= 3) {
         return '***@' + domain;
     }
     
-    // خفي أول 3 حروف بس
     return local.slice(0, 3) + '***@' + domain;
 }
 
@@ -461,7 +468,6 @@ function maskEmail(email) {
 // ===== API ROUTES =====
 // ============================================
 
-// ===== CSRF TOKEN =====
 app.get('/api/csrf-token', generateCsrfToken, (req, res) => {
     res.json({ 
         token: req.csrfToken,
@@ -469,7 +475,6 @@ app.get('/api/csrf-token', generateCsrfToken, (req, res) => {
     });
 });
 
-// ===== LOGIN =====
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -496,7 +501,7 @@ app.post('/api/login', async (req, res) => {
         res.json({
             token,
             user: { username },
-            expiresIn: 3600
+            expiresIn: 86400 // 24 ساعة
         });
     } catch (error) {
         console.error('Login error:', error);
@@ -504,7 +509,6 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// ===== LOGOUT =====
 app.post('/api/logout', requireAuth, (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     try {
@@ -516,12 +520,10 @@ app.post('/api/logout', requireAuth, (req, res) => {
     res.json({ success: true });
 });
 
-// ===== VERIFY =====
 app.post('/api/verify', requireAuth, (req, res) => {
     res.json({ valid: true, user: req.user });
 });
 
-// ===== GALLERIES =====
 app.get('/api/galleries', async (req, res) => {
     try {
         const snapshot = await db.collection('galleries').limit(100).get();
@@ -635,7 +637,6 @@ app.delete('/api/galleries/:id', requireAuth, verifyCsrf, async (req, res) => {
     }
 });
 
-// ===== ARTWORKS =====
 app.get('/api/artworks', async (req, res) => {
     try {
         const { galleryId, featured } = req.query;
@@ -800,7 +801,6 @@ app.delete('/api/artworks/:id', requireAuth, verifyCsrf, async (req, res) => {
     }
 });
 
-// ===== UPLOAD =====
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -851,7 +851,6 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
     }
 });
 
-// ===== CONTACT =====
 app.post('/api/contact', async (req, res) => {
     try {
         const { name, email, phone, message } = req.body;
@@ -925,7 +924,6 @@ app.post('/api/contact', async (req, res) => {
     }
 });
 
-// ===== MESSAGES =====
 app.get('/api/messages', requireAuth, async (req, res) => {
     try {
         const { unread } = req.query;
@@ -1009,10 +1007,9 @@ app.delete('/api/messages/:id', requireAuth, verifyCsrf, async (req, res) => {
 });
 
 // ============================================
-// ===== RATES (مع التعديلات) =====
+// ===== RATES =====
 // ============================================
 
-// POST - مع Rate Limiting و CSRF
 app.post('/api/rates', rateLimiter, verifyCsrf, async (req, res) => {
     try {
         const { name, email, rating, opinion } = req.body;
@@ -1039,13 +1036,12 @@ app.post('/api/rates', rateLimiter, verifyCsrf, async (req, res) => {
 
         const docRef = await db.collection('rates').add(rateData);
         
-        // Log security event
         console.log(`✅ New rating submitted: ${name} (${email}) - Rating: ${rating}`);
         
         res.status(201).json({ 
             id: docRef.id, 
             ...rateData,
-            email: maskEmail(email) // إخفاء الإيميل في الرد
+            email: maskEmail(email)
         });
     } catch (error) {
         console.error('Error creating rate:', error);
@@ -1053,7 +1049,6 @@ app.post('/api/rates', rateLimiter, verifyCsrf, async (req, res) => {
     }
 });
 
-// GET - مع إخفاء الإيميلات
 app.get('/api/rates', async (req, res) => {
     try {
         const { rating } = req.query;
@@ -1073,7 +1068,6 @@ app.get('/api/rates', async (req, res) => {
             rates.push({
                 id: doc.id,
                 ...data,
-                // إخفاء الإيميل 🔒
                 email: maskEmail(data.email),
                 createdAt: data.createdAt?.toDate?.()?.toISOString() || null
             });
@@ -1092,7 +1086,6 @@ app.get('/api/rates', async (req, res) => {
     }
 });
 
-// PUT - مع CSRF
 app.put('/api/rates/:id', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { id } = req.params;
@@ -1136,7 +1129,6 @@ app.put('/api/rates/:id', requireAuth, verifyCsrf, async (req, res) => {
     }
 });
 
-// DELETE - مع CSRF
 app.delete('/api/rates/:id', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { id } = req.params;
@@ -1376,9 +1368,6 @@ app.delete('/api/orders/:id', requireAuth, verifyCsrf, async (req, res) => {
     }
 });
 
-// ============================================
-// ===== SETTINGS =====
-// ============================================
 app.get('/api/settings', async (req, res) => {
     try {
         const doc = await db.collection('settings').doc('site').get();
@@ -1426,9 +1415,6 @@ app.put('/api/settings', requireAuth, verifyCsrf, async (req, res) => {
     }
 });
 
-// ============================================
-// ===== STATS =====
-// ============================================
 app.get('/api/stats', requireAuth, async (req, res) => {
     try {
         const statsPromise = Promise.all([
@@ -1467,9 +1453,6 @@ app.get('/api/stats', requireAuth, async (req, res) => {
     }
 });
 
-// ============================================
-// ===== SEND EMAIL =====
-// ============================================
 app.post('/api/send-email', requireAuth, verifyCsrf, async (req, res) => {
     try {
         const { name, email, message } = req.body;
@@ -1534,9 +1517,6 @@ app.post('/api/send-email', requireAuth, verifyCsrf, async (req, res) => {
     }
 });
 
-// ============================================
-// ===== HEALTH =====
-// ============================================
 app.get('/api/health', requireAuth, (req, res) => {
     res.json({
         status: 'ok',
@@ -1544,9 +1524,6 @@ app.get('/api/health', requireAuth, (req, res) => {
     });
 });
 
-// ============================================
-// ===== ERROR HANDLING =====
-// ============================================
 app.use((err, req, res, next) => {
     console.error('Server error:', err);
 
@@ -1567,9 +1544,6 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Internal server error' });
 });
 
-// ============================================
-// ===== START SERVER =====
-// ============================================
 if (require.main === module) {
     app.listen(PORT, () => {
         console.log('🚀 Shulamith Gallery Server running on port ' + PORT);
@@ -1579,6 +1553,7 @@ if (require.main === module) {
         console.log('🛡️ CSRF Protection: ✅ ENABLED');
         console.log('🔒 Rate Limiting: ✅ ENABLED');
         console.log('📧 Email Privacy: ✅ ENABLED (email masking)');
+        console.log('🔄 Token Refresh: ✅ ENABLED (24h expiry)');
     });
 }
 

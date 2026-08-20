@@ -160,18 +160,18 @@
             min-height: 18px;
         }
 
-        /* ===== PASSWORD TOGGLE ===== */
+        /* ===== PASSWORD TOGGLE - LEFT SIDE (RTL) ===== */
         .password-wrapper {
             position: relative;
         }
 
         .password-wrapper input {
-            padding-right: 48px;
+            padding-left: 48px;  /* مساحة للزر على اليسار */
         }
 
         .toggle-password {
             position: absolute;
-            right: 12px;
+            left: 12px;  /* الزر على اليسار */
             top: 50%;
             transform: translateY(-50%);
             background: none;
@@ -303,13 +303,13 @@
 
         /* ===== LTR ===== */
         body.ltr .password-wrapper input {
-            padding-right: 16px;
-            padding-left: 48px;
+            padding-left: 16px;
+            padding-right: 48px;
         }
 
         body.ltr .toggle-password {
-            right: auto;
-            left: 12px;
+            left: auto;
+            right: 12px;
         }
 
         body.ltr .login-footer a {

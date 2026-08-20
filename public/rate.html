@@ -826,7 +826,7 @@
         }
 
         // ============================================
-        // ===== CSRF TOKEN (جديد) =====
+        // ===== CSRF TOKEN =====
         // ============================================
         async function fetchCsrfToken() {
             try {
@@ -841,10 +841,48 @@
         }
 
         // ============================================
+        // ===== TOKEN REFRESH (جديد) =====
+        // ============================================
+        let refreshInterval = null;
+
+        async function refreshToken() {
+            try {
+                const token = localStorage.getItem('shulamith-token');
+                if (!token) return;
+
+                const res = await fetch('/api/refresh-token', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    localStorage.setItem('shulamith-token', data.token);
+                    console.log('✅ Token refreshed automatically');
+                } else {
+                    console.warn('⚠️ Token refresh failed, will retry later');
+                }
+            } catch (error) {
+                console.error('Token refresh error:', error);
+            }
+        }
+
+        function startTokenRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            // يجدد الـ Token كل 23 ساعة (قبل ما يخلص بـ ساعة)
+            refreshInterval = setInterval(refreshToken, 23 * 60 * 60 * 1000);
+            console.log('🔄 Token refresh scheduled (every 23 hours)');
+        }
+
+        // ============================================
         // ===== LANGUAGE =====
         // ============================================
         let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
-        let refreshInterval = null;
+        let refreshIntervalRates = null;
         let isLoading = false;
 
         function setLanguage(lang) {
@@ -884,7 +922,7 @@
             const savedLang = localStorage.getItem('shulamith-lang') || 'ar';
             setLanguage(savedLang);
             
-            // ===== جلب CSRF Token من الـ Backend (جديد) =====
+            // ===== جلب CSRF Token من الـ Backend =====
             const csrfToken = await fetchCsrfToken();
             const csrfInput = document.getElementById('csrfToken');
             if (csrfToken && csrfInput) {
@@ -893,6 +931,9 @@
             } else {
                 console.warn('⚠️ Failed to load CSRF token');
             }
+            
+            // ===== بدء تشغيل Refresh Token =====
+            startTokenRefresh();
             
             loadRates();
             startAutoRefresh();
@@ -1117,7 +1158,6 @@
             // ===== جلب CSRF Token جديد قبل الإرسال =====
             let csrfToken = document.getElementById('csrfToken').value;
             
-            // لو الـ Token قديم أو مش موجود، جيب واحد جديد
             if (!csrfToken || csrfToken === 'default' || csrfToken.startsWith('csrf-')) {
                 const newToken = await fetchCsrfToken();
                 if (newToken) {
@@ -1159,6 +1199,30 @@
                     
                     status.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     
+                } else if (res.status === 401) {
+                    // لو انتهت الصلاحية، حاول تجدد الـ Token
+                    status.className = 'form-status info';
+                    status.style.display = 'block';
+                    status.textContent = '⏳ جاري تحديث الجلسة...';
+                    
+                    const refreshRes = await fetch('/api/refresh-token', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + localStorage.getItem('shulamith-token')
+                        }
+                    });
+                    
+                    if (refreshRes.ok) {
+                        const refreshData = await refreshRes.json();
+                        localStorage.setItem('shulamith-token', refreshData.token);
+                        // أعد المحاولة تلقائياً
+                        submitBtn.click();
+                        return;
+                    } else {
+                        status.className = 'form-status error';
+                        status.style.display = 'block';
+                        status.textContent = '❌ انتهت صلاحية الجلسة، يرجى تحديث الصفحة';
+                    }
                 } else {
                     status.className = 'form-status error';
                     status.style.display = 'block';
@@ -1177,7 +1241,7 @@
         });
 
         // ============================================
-        // ===== RATE LIMITING (Frontend فقط) =====
+        // ===== RATE LIMITING (Frontend) =====
         // ============================================
         let submitAttempts = 0;
         const MAX_SUBMIT_ATTEMPTS = 3;
@@ -1216,10 +1280,10 @@
         // ===== AUTO REFRESH =====
         // ============================================
         function startAutoRefresh() {
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
+            if (refreshIntervalRates) {
+                clearInterval(refreshIntervalRates);
             }
-            refreshInterval = setInterval(() => {
+            refreshIntervalRates = setInterval(() => {
                 if (!isLoading) {
                     loadRates();
                 }
@@ -1234,8 +1298,12 @@
         console.log('📱 Fully responsive for all devices.');
         console.log('✅ CSRF Protection: ENABLED (tokens from backend)');
         console.log('✅ Email Privacy: ENABLED (masked emails)');
+        console.log('🔄 Token Refresh: ENABLED (auto-refresh every 23h)');
 
         window.addEventListener('beforeunload', function() {
+            if (refreshIntervalRates) {
+                clearInterval(refreshIntervalRates);
+            }
             if (refreshInterval) {
                 clearInterval(refreshInterval);
             }

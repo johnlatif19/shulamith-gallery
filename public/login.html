@@ -1,18 +1,11 @@
-```html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>تسجيل الدخول — Shulamith Gallery</title>
-
-    <link
-        rel="icon"
-        type="image/jpeg"
-        href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg"
-    >
-
+    <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
+    
     <style>
         /* ===== ROOT VARIABLES ===== */
         :root {
@@ -20,1978 +13,786 @@
             --color-bg-secondary: #161210;
             --color-bg-card: #1e1a18;
             --color-bg-hover: #2a2421;
-
             --color-primary: #d4b892;
             --color-primary-light: #e8d4bc;
             --color-primary-dark: #b89a72;
-
             --color-text: #e8e0d4;
             --color-text-muted: #b0a89a;
             --color-text-dark: #8a8272;
-
             --color-border: #2a2421;
-
             --color-error: #e74c3c;
             --color-success: #2ecc71;
-
             --radius: 12px;
             --radius-sm: 8px;
-
-            --transition:
-                all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-
         /* ===== RESET ===== */
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-
         body {
-            font-family:
-                'Segoe UI',
-                'Tahoma',
-                Arial,
-                sans-serif;
-
+            font-family: 'Segoe UI', 'Tahoma', Arial, sans-serif;
             background: var(--color-bg);
-
             min-height: 100vh;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             padding: 20px;
-
             overflow: hidden;
         }
 
-
         /* ===== BACKGROUND ===== */
-
         body::before {
             content: '';
-
             position: fixed;
-
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-
-            background:
-                url('https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg')
-                center center / cover no-repeat;
-
+            background: 
+                url('https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg') center center / cover no-repeat;
             opacity: 0.15;
-
             z-index: 0;
-
-            animation:
-                bgZoom 30s ease-in-out infinite alternate;
+            animation: bgZoom 30s ease-in-out infinite alternate;
         }
-
 
         @keyframes bgZoom {
-
-            0% {
-                transform: scale(1);
-            }
-
-            100% {
-                transform: scale(1.1);
-            }
-
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
         }
 
-
         /* ===== LOGIN CONTAINER ===== */
-
         .login-container {
             position: relative;
-
             z-index: 1;
-
             width: 100%;
-
             max-width: 420px;
         }
 
-
         .login-card {
-            background:
-                rgba(22, 18, 16, 0.92);
-
+            background: rgba(22, 18, 16, 0.92);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-
-            border:
-                1px solid var(--color-border);
-
-            border-radius:
-                var(--radius);
-
-            padding:
-                48px 40px 40px;
-
-            box-shadow:
-                0 30px 80px rgba(0, 0, 0, 0.6);
-
-            transition:
-                var(--transition);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: 48px 40px 40px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+            transition: var(--transition);
         }
-
 
         .login-card:hover {
-            border-color:
-                rgba(212, 184, 146, 0.2);
+            border-color: rgba(212, 184, 146, 0.2);
         }
 
-
         /* ===== HEADER ===== */
-
         .login-header {
             text-align: center;
-
             margin-bottom: 36px;
         }
 
-
         .login-logo {
             height: 70px;
-
             width: auto;
-
-            border-radius:
-                var(--radius-sm);
-
+            border-radius: var(--radius-sm);
             margin-bottom: 16px;
-
             display: inline-block;
         }
 
-
         .login-header h1 {
-            color:
-                var(--color-primary);
-
-            font-size:
-                1.8rem;
-
+            color: var(--color-primary);
+            font-size: 1.8rem;
             font-weight: 300;
-
             letter-spacing: 2px;
-
             margin-bottom: 4px;
         }
 
-
         .login-header p {
-            color:
-                var(--color-text-muted);
-
-            font-size:
-                0.9rem;
-
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
             font-weight: 300;
         }
 
-
         /* ===== FORM ===== */
-
         .login-form .form-group {
             margin-bottom: 20px;
         }
 
-
         .login-form label {
             display: block;
-
-            color:
-                var(--color-text-muted);
-
-            font-size:
-                0.85rem;
-
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
             font-weight: 400;
-
             margin-bottom: 6px;
-
             letter-spacing: 0.5px;
         }
 
-
         .login-form input {
             width: 100%;
-
-            padding:
-                12px 16px;
-
-            background:
-                var(--color-bg);
-
-            border:
-                1px solid var(--color-border);
-
-            border-radius:
-                var(--radius-sm);
-
-            color:
-                var(--color-text);
-
-            font-size:
-                1rem;
-
-            transition:
-                var(--transition);
-
-            font-family:
-                inherit;
+            padding: 12px 16px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            color: var(--color-text);
+            font-size: 1rem;
+            transition: var(--transition);
+            font-family: inherit;
         }
-
 
         .login-form input:focus {
             outline: none;
-
-            border-color:
-                var(--color-primary-dark);
-
-            box-shadow:
-                0 0 0 3px
-                rgba(212, 184, 146, 0.08);
+            border-color: var(--color-primary-dark);
+            box-shadow: 0 0 0 3px rgba(212, 184, 146, 0.08);
         }
-
 
         .login-form input::placeholder {
-            color:
-                var(--color-text-dark);
+            color: var(--color-text-dark);
         }
 
-
         .form-error {
-            color:
-                var(--color-error);
-
-            font-size:
-                0.8rem;
-
+            color: var(--color-error);
+            font-size: 0.8rem;
             display: block;
-
             margin-top: 4px;
-
             min-height: 18px;
         }
 
-
-        /* ===== PASSWORD ===== */
-
+        /* ===== PASSWORD TOGGLE - LEFT SIDE (RTL) ===== */
         .password-wrapper {
             position: relative;
         }
 
-
         .password-wrapper input {
-            padding-left: 48px;
+            padding-left: 48px;  /* مساحة للزر على اليسار */
         }
-
 
         .toggle-password {
             position: absolute;
-
-            left: 12px;
-
+            left: 12px;  /* الزر على اليسار */
             top: 50%;
-
-            transform:
-                translateY(-50%);
-
+            transform: translateY(-50%);
             background: none;
-
             border: none;
-
-            color:
-                var(--color-text-dark);
-
+            color: var(--color-text-dark);
             cursor: pointer;
-
             font-size: 1.1rem;
-
             padding: 4px;
-
-            transition:
-                var(--transition);
+            transition: var(--transition);
         }
-
 
         .toggle-password:hover {
-            color:
-                var(--color-text);
+            color: var(--color-text);
         }
 
-
         /* ===== SUBMIT BUTTON ===== */
-
         .login-btn {
             width: 100%;
-
             padding: 14px;
-
-            background:
-                var(--color-primary);
-
-            color:
-                var(--color-bg);
-
+            background: var(--color-primary);
+            color: var(--color-bg);
             border: none;
-
-            border-radius:
-                var(--radius-sm);
-
-            font-size:
-                1.05rem;
-
+            border-radius: var(--radius-sm);
+            font-size: 1.05rem;
             font-weight: 500;
-
             cursor: pointer;
-
-            transition:
-                var(--transition);
-
+            transition: var(--transition);
             letter-spacing: 1px;
-
             margin-top: 4px;
         }
 
-
         .login-btn:hover {
-            background:
-                var(--color-primary-light);
-
-            transform:
-                translateY(-2px);
-
-            box-shadow:
-                0 8px 30px
-                rgba(212, 184, 146, 0.2);
+            background: var(--color-primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(212, 184, 146, 0.2);
         }
-
 
         .login-btn:disabled {
             opacity: 0.6;
-
             cursor: not-allowed;
-
             transform: none;
         }
-
 
         .btn-loading {
             display: none;
         }
 
-
         /* ===== STATUS ===== */
-
         .login-status {
             margin-top: 16px;
-
-            padding:
-                12px 16px;
-
-            border-radius:
-                var(--radius-sm);
-
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
             display: none;
-
-            font-size:
-                0.9rem;
-
+            font-size: 0.9rem;
             text-align: center;
         }
-
 
         .login-status.success {
             display: block;
-
-            background:
-                rgba(46, 204, 113, 0.12);
-
-            color:
-                var(--color-success);
-
-            border:
-                1px solid
-                rgba(46, 204, 113, 0.2);
+            background: rgba(46, 204, 113, 0.12);
+            color: var(--color-success);
+            border: 1px solid rgba(46, 204, 113, 0.2);
         }
-
 
         .login-status.error {
             display: block;
-
-            background:
-                rgba(231, 76, 60, 0.12);
-
-            color:
-                var(--color-error);
-
-            border:
-                1px solid
-                rgba(231, 76, 60, 0.2);
+            background: rgba(231, 76, 60, 0.12);
+            color: var(--color-error);
+            border: 1px solid rgba(231, 76, 60, 0.2);
         }
-
 
         /* ===== FOOTER ===== */
-
         .login-footer {
             text-align: center;
-
             margin-top: 24px;
-
             padding-top: 20px;
-
-            border-top:
-                1px solid var(--color-border);
+            border-top: 1px solid var(--color-border);
         }
 
-
         .login-footer a {
-            color:
-                var(--color-text-muted);
-
-            font-size:
-                0.9rem;
-
-            transition:
-                var(--transition);
-
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+            transition: var(--transition);
             text-decoration: none;
         }
 
-
         .login-footer a:hover {
-            color:
-                var(--color-primary);
+            color: var(--color-primary);
         }
 
-
         /* ===== RESPONSIVE ===== */
-
         @media (max-width: 480px) {
-
             .login-card {
-                padding:
-                    32px 24px 28px;
+                padding: 32px 24px 28px;
             }
-
 
             .login-logo {
                 height: 55px;
             }
 
-
             .login-header h1 {
-                font-size:
-                    1.5rem;
+                font-size: 1.5rem;
             }
-
 
             .login-form input {
-                padding:
-                    10px 14px;
-
-                font-size:
-                    0.95rem;
+                padding: 10px 14px;
+                font-size: 0.95rem;
             }
-
 
             .login-btn {
-                padding:
-                    12px;
-
-                font-size:
-                    0.95rem;
+                padding: 12px;
+                font-size: 0.95rem;
             }
-
         }
 
-
         @media (max-width: 360px) {
-
             .login-card {
-                padding:
-                    24px 16px 20px;
+                padding: 24px 16px 20px;
             }
-
 
             .login-logo {
                 height: 45px;
             }
 
-
             .login-header h1 {
-                font-size:
-                    1.2rem;
+                font-size: 1.2rem;
             }
-
         }
 
-
         /* ===== LTR ===== */
-
         body.ltr .password-wrapper input {
             padding-left: 16px;
-
             padding-right: 48px;
         }
 
-
         body.ltr .toggle-password {
             left: auto;
-
             right: 12px;
         }
-
 
         body.ltr .login-footer a {
             display: inline-block;
         }
 
-
         /* ===== SECURITY NOTICE ===== */
-
         .security-notice {
             margin-top: 12px;
-
-            padding:
-                8px 12px;
-
-            background:
-                rgba(212, 184, 146, 0.05);
-
-            border-radius:
-                var(--radius-sm);
-
-            border:
-                1px solid
-                rgba(212, 184, 146, 0.1);
-
-            font-size:
-                0.75rem;
-
-            color:
-                var(--color-text-dark);
-
+            padding: 8px 12px;
+            background: rgba(212, 184, 146, 0.05);
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(212, 184, 146, 0.1);
+            font-size: 0.75rem;
+            color: var(--color-text-dark);
             text-align: center;
         }
-
 
         .security-notice span {
-            color:
-                var(--color-primary-dark);
+            color: var(--color-primary-dark);
         }
-
 
         /* ===== RATE LIMIT WARNING ===== */
-
         .rate-limit-warning {
             display: none;
-
             margin-top: 12px;
-
-            padding:
-                10px 14px;
-
-            background:
-                rgba(231, 76, 60, 0.08);
-
-            border:
-                1px solid
-                rgba(231, 76, 60, 0.15);
-
-            border-radius:
-                var(--radius-sm);
-
-            color:
-                var(--color-error);
-
-            font-size:
-                0.85rem;
-
+            padding: 10px 14px;
+            background: rgba(231, 76, 60, 0.08);
+            border: 1px solid rgba(231, 76, 60, 0.15);
+            border-radius: var(--radius-sm);
+            color: var(--color-error);
+            font-size: 0.85rem;
             text-align: center;
         }
-
 
         .rate-limit-warning.visible {
             display: block;
         }
-
     </style>
 </head>
-
-
 <body>
-
     <div class="login-container">
-
         <div class="login-card">
-
-            <!-- ===== HEADER ===== -->
-
             <div class="login-header">
-
-                <img
-                    src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg"
-                    alt="Shulamith Gallery"
-                    class="login-logo"
-                    loading="lazy"
-                >
-
-                <h1>
-                    Shulamith Gallery
-                </h1>
-
+                <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="login-logo" loading="lazy">
+                <h1>Shulamith Gallery</h1>
             </div>
-
-
-            <!-- ===== LOGIN FORM ===== -->
-
-            <form
-                id="loginForm"
-                class="login-form"
-                autocomplete="off"
-            >
-
-                <!-- =====================================
-                     CSRF TOKEN
-                     يتم تعبئته من السيرفر
-                     /api/csrf-token
-                     ===================================== -->
-
-                <input
-                    type="hidden"
-                    id="csrfToken"
-                    name="_csrf"
-                    value=""
-                >
-
-
-                <!-- ===== USERNAME ===== -->
-
+            
+            <form id="loginForm" class="login-form" autocomplete="off">
+                <!-- ===== CSRF TOKEN ===== -->
+                <input type="hidden" id="csrfToken" name="_csrf" value="">
+                
                 <div class="form-group">
-
-                    <label for="username">
-                        اسم المستخدم
-                    </label>
-
-
-                    <input
-                        type="text"
-                        id="username"
-                        name="username"
-                        required
-                        placeholder="أدخل اسم المستخدم"
+                    <label for="username">اسم المستخدم</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        required 
+                        placeholder="أدخل اسم المستخدم" 
                         autocomplete="username"
                         maxlength="50"
                         aria-describedby="usernameError"
                     >
-
-
-                    <span
-                        class="form-error"
-                        id="usernameError"
-                    ></span>
-
+                    <span class="form-error" id="usernameError"></span>
                 </div>
-
-
-                <!-- ===== PASSWORD ===== -->
-
+                
                 <div class="form-group">
-
-                    <label for="password">
-                        كلمة المرور
-                    </label>
-
-
+                    <label for="password">كلمة المرور</label>
                     <div class="password-wrapper">
-
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            required
-                            placeholder="أدخل كلمة المرور"
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required 
+                            placeholder="أدخل كلمة المرور" 
                             autocomplete="current-password"
                             maxlength="100"
                             aria-describedby="passwordError"
                         >
-
-
-                        <button
-                            type="button"
-                            class="toggle-password"
-                            id="togglePassword"
+                        <button 
+                            type="button" 
+                            class="toggle-password" 
+                            id="togglePassword" 
                             aria-label="إظهار/إخفاء كلمة المرور"
                             title="إظهار/إخفاء كلمة المرور"
                         >
                             🐵
                         </button>
-
                     </div>
-
-
-                    <span
-                        class="form-error"
-                        id="passwordError"
-                    ></span>
-
+                    <span class="form-error" id="passwordError"></span>
                 </div>
-
-
-                <!-- ===== RATE LIMIT ===== -->
-
-                <div
-                    class="rate-limit-warning"
-                    id="rateLimitWarning"
-                >
-                    تم تجاوز عدد محاولات تسجيل الدخول.
-                    الرجاء الانتظار 15 دقيقة.
+                
+                <!-- ===== RATE LIMIT WARNING ===== -->
+                <div class="rate-limit-warning" id="rateLimitWarning">
+                    تم تجاوز عدد محاولات تسجيل الدخول. الرجاء الانتظار 15 دقيقة.
                 </div>
-
-
-                <!-- ===== LOGIN BUTTON ===== -->
-
-                <button
-                    type="submit"
-                    class="login-btn"
-                    id="loginBtn"
-                >
-
-                    <span>
-                        تسجيل الدخول
-                    </span>
-
-                    <span class="btn-loading">
-                        جاري التحقق...
-                    </span>
-
+                
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <span>تسجيل الدخول</span>
+                    <span class="btn-loading">جاري التحقق...</span>
                 </button>
-
-
-                <!-- ===== STATUS ===== -->
-
-                <div
-                    class="login-status"
-                    id="loginStatus"
-                ></div>
+                
+                <div class="login-status" id="loginStatus"></div>
+                
 
             </form>
-
-
-            <!-- ===== FOOTER ===== -->
-
+            
             <div class="login-footer">
-
-                <a href="/">
-                    العودة الى الموقع الرئيسي
-                </a>
-
+                <a href="/">العودة الى الموقع الرئيسي</a>
             </div>
-
         </div>
-
     </div>
 
-
     <script>
+        // ============================================
+        // ===== SECURITY: Anti-Brute Force =====
+        // ============================================
+        
+        // ===== DOM REFS =====
+        const form = document.getElementById('loginForm');
+        const username = document.getElementById('username');
+        const password = document.getElementById('password');
+        const usernameError = document.getElementById('usernameError');
+        const passwordError = document.getElementById('passwordError');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginStatus = document.getElementById('loginStatus');
+        const togglePassword = document.getElementById('togglePassword');
+        const rateLimitWarning = document.getElementById('rateLimitWarning');
 
-        // =====================================================
-        // DOM REFERENCES
-        // =====================================================
+        // ============================================
+        // ===== CSRF TOKEN =====
+        // ============================================
+        let csrfToken = null;
 
-        const form =
-            document.getElementById('loginForm');
+        async function getCsrfToken() {
+            try {
+                const res = await fetch('/api/csrf-token');
+                if (!res.ok) throw new Error('Failed to get CSRF token');
+                const data = await res.json();
+                csrfToken = data.token;
+                document.getElementById('csrfToken').value = csrfToken;
+                return csrfToken;
+            } catch (error) {
+                console.error('CSRF token error:', error);
+                return null;
+            }
+        }
 
-        const username =
-            document.getElementById('username');
-
-        const password =
-            document.getElementById('password');
-
-        const usernameError =
-            document.getElementById('usernameError');
-
-        const passwordError =
-            document.getElementById('passwordError');
-
-        const loginBtn =
-            document.getElementById('loginBtn');
-
-        const loginStatus =
-            document.getElementById('loginStatus');
-
-        const togglePassword =
-            document.getElementById('togglePassword');
-
-        const rateLimitWarning =
-            document.getElementById('rateLimitWarning');
-
-        const csrfTokenInput =
-            document.getElementById('csrfToken');
-
-
-        // =====================================================
-        // STATE
-        // =====================================================
-
+        // ============================================
+        // ===== STATE =====
+        // ============================================
         let loginAttempts = 0;
-
         const MAX_ATTEMPTS = 5;
-
-        const LOCKOUT_TIME =
-            15 * 60 * 1000;
-
+        const LOCKOUT_TIME = 15 * 60 * 1000; // 15 دقيقة
         let isLocked = false;
-
         let lockoutTimer = null;
 
+        // ============================================
+        // ===== TOGGLE PASSWORD =====
+        // ============================================
+        togglePassword.addEventListener('click', function() {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            this.textContent = type === 'password' ? '🐵' : '🙈';
+            this.setAttribute('aria-label', type === 'password' ? 'إظهار كلمة المرور' : 'إخفاء كلمة المرور');
+        });
 
-        // =====================================================
-        // CSRF TOKEN
-        // =====================================================
-
-        async function initLogin() {
-
-            try {
-
-                const res = await fetch(
-                    '/api/csrf-token',
-                    {
-                        method: 'GET',
-
-                        credentials: 'same-origin',
-
-                        headers: {
-                            'Accept':
-                                'application/json'
-                        },
-
-                        cache: 'no-store'
+        // ============================================
+        // ===== CHECK AUTH =====
+        // ============================================
+        function checkAuth() {
+            const token = sessionStorage.getItem('shulamith-token');
+            if (token) {
+                fetch('/api/verify', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
                     }
-                );
-
-
-                if (!res.ok) {
-
-                    throw new Error(
-                        'CSRF request failed: HTTP ' +
-                        res.status
-                    );
-                }
-
-
-                const data =
-                    await res.json();
-
-
-                if (
-                    !data ||
-                    !data.token ||
-                    typeof data.token !== 'string'
-                ) {
-
-                    throw new Error(
-                        'Invalid CSRF token response'
-                    );
-                }
-
-
-                csrfTokenInput.value =
-                    data.token;
-
-
-                console.log(
-                    'CSRF token initialized.'
-                );
-
-
-            } catch (error) {
-
-                console.error(
-                    'CSRF init error:',
-                    error
-                );
-
-
-                csrfTokenInput.value = '';
-
-
-                loginStatus.className =
-                    'login-status error';
-
-                loginStatus.style.display =
-                    'block';
-
-                loginStatus.textContent =
-                    'تعذر تهيئة الحماية الأمنية. يرجى إعادة تحميل الصفحة.';
-
-
-                loginBtn.disabled = true;
-
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.valid) {
+                        window.location.href = '/dashboard';
+                    }
+                })
+                .catch(() => {});
             }
-
         }
 
-
-        // =====================================================
-        // TOGGLE PASSWORD
-        // =====================================================
-
-        togglePassword.addEventListener(
-            'click',
-            function() {
-
-                const type =
-                    password.getAttribute('type') === 'password'
-                        ? 'text'
-                        : 'password';
-
-
-                password.setAttribute(
-                    'type',
-                    type
-                );
-
-
-                this.textContent =
-                    type === 'password'
-                        ? '🐵'
-                        : '🙈';
-
-
-                this.setAttribute(
-                    'aria-label',
-                    type === 'password'
-                        ? 'إظهار كلمة المرور'
-                        : 'إخفاء كلمة المرور'
-                );
-
-            }
-        );
-
-
-        // =====================================================
-        // CHECK AUTH
-        // =====================================================
-
-        async function checkAuth() {
-
-            const token =
-                sessionStorage.getItem(
-                    'shulamith-token'
-                );
-
-
-            if (!token) {
-                return;
-            }
-
-
-            try {
-
-                const res =
-                    await fetch(
-                        '/api/verify',
-                        {
-                            method: 'GET',
-
-                            credentials:
-                                'same-origin',
-
-                            headers: {
-                                'Authorization':
-                                    'Bearer ' + token,
-
-                                'Accept':
-                                    'application/json'
-                            },
-
-                            cache:
-                                'no-store'
-                        }
-                    );
-
-
-                const data =
-                    await res.json();
-
-
-                if (
-                    res.ok &&
-                    data.valid
-                ) {
-
-                    window.location.href =
-                        '/dashboard';
-
-                    return;
-                }
-
-
-                // التوكن غير صالح
-
-                sessionStorage.removeItem(
-                    'shulamith-token'
-                );
-
-
-            } catch (error) {
-
-                console.error(
-                    'Auth verification error:',
-                    error
-                );
-
-            }
-
-        }
-
-
-        // =====================================================
-        // HANDLE LOGIN
-        // =====================================================
-
+        // ============================================
+        // ===== HANDLE LOGIN =====
+        // ============================================
         async function handleLogin(e) {
-
             e.preventDefault();
-
-
-            // =================================================
-            // CHECK LOCKOUT
-            // =================================================
-
+            
+            // ===== CHECK LOCKOUT =====
             if (isLocked) {
-
-                const elapsed =
-                    Date.now() -
-                    lockoutTimer;
-
-
-                const remaining =
-                    Math.max(
-                        1,
-                        Math.ceil(
-                            (
-                                LOCKOUT_TIME -
-                                elapsed
-                            ) / 60000
-                        )
-                    );
-
-
-                loginStatus.className =
-                    'login-status error';
-
-                loginStatus.style.display =
-                    'block';
-
-                loginStatus.textContent =
-                    `تم حظر المحاولات مؤقتاً. الرجاء الانتظار ${remaining} دقيقة.`;
-
-
+                const remaining = Math.ceil((LOCKOUT_TIME - (Date.now() - lockoutTimer)) / 60000);
+                loginStatus.className = 'login-status error';
+                loginStatus.style.display = 'block';
+                loginStatus.textContent = `تم حظر المحاولات مؤقتاً. الرجاء الانتظار ${remaining} دقيقة.`;
                 return;
             }
-
-
-            // =================================================
-            // CHECK CSRF
-            // =================================================
-
-            const csrfToken =
-                csrfTokenInput.value.trim();
-
-
-            if (!csrfToken) {
-
-                loginStatus.className =
-                    'login-status error';
-
-                loginStatus.style.display =
-                    'block';
-
-                loginStatus.textContent =
-                    'رمز الحماية غير متوفر. يرجى إعادة تحميل الصفحة.';
-
-
-                return;
-            }
-
-
-            // =================================================
-            // RESET ERRORS
-            // =================================================
-
+            
+            // ===== RESET ERRORS =====
             usernameError.textContent = '';
-
             passwordError.textContent = '';
-
-            loginStatus.className =
-                'login-status';
-
-            loginStatus.style.display =
-                'none';
-
-            rateLimitWarning.classList.remove(
-                'visible'
-            );
-
-
-            // =================================================
-            // VALIDATION
-            // =================================================
-
+            loginStatus.className = 'login-status';
+            loginStatus.style.display = 'none';
+            rateLimitWarning.classList.remove('visible');
+            
+            // ===== VALIDATE =====
             let isValid = true;
-
-
-            const usernameVal =
-                username.value.trim();
-
-
-            const passwordVal =
-                password.value.trim();
-
-
-            if (
-                !usernameVal ||
-                usernameVal.length < 2 ||
-                usernameVal.length > 50
-            ) {
-
-                usernameError.textContent =
-                    'اسم المستخدم يجب أن يكون بين 2 و 50 حرف';
-
+            
+            const usernameVal = username.value.trim();
+            const passwordVal = password.value.trim();
+            
+            if (!usernameVal || usernameVal.length < 2 || usernameVal.length > 50) {
+                usernameError.textContent = 'اسم المستخدم يجب أن يكون بين 2 و 50 حرف';
                 isValid = false;
             }
-
-
-            if (
-                !passwordVal ||
-                passwordVal.length < 4
-            ) {
-
-                passwordError.textContent =
-                    'كلمة المرور يجب أن تكون 4 أحرف على الأقل';
-
+            
+            if (!passwordVal || passwordVal.length < 4) {
+                passwordError.textContent = 'كلمة المرور يجب أن تكون 4 أحرف على الأقل';
                 isValid = false;
             }
-
-
-            if (!isValid) {
-                return;
-            }
-
-
-            // =================================================
-            // INCREMENT ATTEMPTS
-            // =================================================
-
+            
+            if (!isValid) return;
+            
+            // ===== INCREMENT ATTEMPTS =====
             loginAttempts++;
-
-
-            // =================================================
-            // MAX ATTEMPTS
-            // =================================================
-
-            if (
-                loginAttempts >=
-                MAX_ATTEMPTS
-            ) {
-
+            
+            // ===== CHECK MAX ATTEMPTS =====
+            if (loginAttempts >= MAX_ATTEMPTS) {
                 isLocked = true;
-
-                lockoutTimer =
-                    Date.now();
-
-
-                rateLimitWarning.classList.add(
-                    'visible'
-                );
-
-
-                loginStatus.className =
-                    'login-status error';
-
-                loginStatus.style.display =
-                    'block';
-
-
-                loginStatus.textContent =
-                    `تم تجاوز عدد المحاولات (${MAX_ATTEMPTS}). تم حظر تسجيل الدخول لمدة 15 دقيقة.`;
-
-
-                saveLockState();
-
-
-                setTimeout(
-                    () => {
-
-                        loginAttempts = 0;
-
-                        isLocked = false;
-
-                        lockoutTimer = null;
-
-
-                        rateLimitWarning.classList.remove(
-                            'visible'
-                        );
-
-
-                        loginStatus.className =
-                            'login-status';
-
-                        loginStatus.style.display =
-                            'none';
-
-
-                        localStorage.removeItem(
-                            'login-locked'
-                        );
-
-                        localStorage.removeItem(
-                            'login-lock-time'
-                        );
-
-                    },
-                    LOCKOUT_TIME
-                );
-
-
+                lockoutTimer = Date.now();
+                rateLimitWarning.classList.add('visible');
+                loginStatus.className = 'login-status error';
+                loginStatus.style.display = 'block';
+                loginStatus.textContent = `تم تجاوز عدد المحاولات (${MAX_ATTEMPTS}). تم حظر تسجيل الدخول لمدة 15 دقيقة.`;
+                
+                // إعادة تعيين العداد بعد 15 دقيقة
+                setTimeout(() => {
+                    loginAttempts = 0;
+                    isLocked = false;
+                    rateLimitWarning.classList.remove('visible');
+                    loginStatus.className = 'login-status';
+                    loginStatus.style.display = 'none';
+                }, LOCKOUT_TIME);
+                
                 return;
             }
-
-
-            // =================================================
-            // LOADING STATE
-            // =================================================
-
+            
+            // ===== SUBMIT =====
             loginBtn.disabled = true;
-
-
-            const originalText =
-                loginBtn.querySelector(
-                    'span:first-child'
-                );
-
-
-            const loadingText =
-                loginBtn.querySelector(
-                    '.btn-loading'
-                );
-
-
-            originalText.style.display =
-                'none';
-
-
-            loadingText.style.display =
-                'inline';
-
-
-            // =================================================
-            // LOGIN REQUEST
-            // =================================================
-
+            const originalText = loginBtn.querySelector('span:first-child');
+            const loadingText = loginBtn.querySelector('.btn-loading');
+            originalText.style.display = 'none';
+            loadingText.style.display = 'inline';
+            
             try {
-
-                const res =
-                    await fetch(
-                        '/api/login',
-                        {
-                            method: 'POST',
-
-                            credentials:
-                                'same-origin',
-
-                            headers: {
-
-                                'Content-Type':
-                                    'application/json',
-
-                                'Accept':
-                                    'application/json',
-
-                                'X-CSRF-Token':
-                                    csrfToken
-                            },
-
-
-                            body:
-                                JSON.stringify({
-                                    username:
-                                        usernameVal,
-
-                                    password:
-                                        passwordVal
-                                })
-                        }
-                    );
-
-
-                let data = {};
-
-
-                try {
-
-                    data =
-                        await res.json();
-
-                } catch (jsonError) {
-
-                    data = {};
-
-                }
-
-
-                // =================================================
-                // SUCCESS
-                // =================================================
-
+                // ===== CSRF PROTECTION =====
+                const csrfTokenValue = document.getElementById('csrfToken').value || await getCsrfToken();
+                
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfTokenValue
+                    },
+                    body: JSON.stringify({
+                        username: usernameVal,
+                        password: passwordVal
+                    })
+                });
+                
+                const data = await res.json();
+                
                 if (res.ok) {
-
-                    if (
-                        !data.token
-                    ) {
-
-                        throw new Error(
-                            'Authentication token missing'
-                        );
-                    }
-
-
-                    // Reset attempts
-
+                    // ===== RESET ATTEMPTS ON SUCCESS =====
                     loginAttempts = 0;
-
-
-                    // إزالة حالة الحظر
-
-                    localStorage.removeItem(
-                        'login-locked'
-                    );
-
-                    localStorage.removeItem(
-                        'login-lock-time'
-                    );
-
-
-                    // =================================================
-                    // SESSION STORAGE
-                    // =================================================
-
-                    sessionStorage.setItem(
-                        'shulamith-token',
-                        data.token
-                    );
-
-
-                    // =================================================
-                    // SUCCESS MESSAGE
-                    // =================================================
-
-                    loginStatus.className =
-                        'login-status success';
-
-                    loginStatus.style.display =
-                        'block';
-
-                    loginStatus.textContent =
-                        'تم تسجيل الدخول بنجاح! جاري التحويل...';
-
-
-                    // =================================================
-                    // REDIRECT
-                    // =================================================
-
-                    setTimeout(
-                        () => {
-
-                            window.location.href =
-                                '/dashboard';
-
-                        },
-                        800
-                    );
-
-
+                    
+                    // ===== SECURE TOKEN STORAGE (sessionStorage) =====
+                    sessionStorage.setItem('shulamith-token', data.token);
+                    
+                    loginStatus.className = 'login-status success';
+                    loginStatus.style.display = 'block';
+                    loginStatus.textContent = 'تم تسجيل الدخول بنجاح! جاري التحويل...';
+                    
+                    // ===== REDIRECT =====
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 800);
                 } else {
-
-                    // =================================================
-                    // LOGIN FAILED
-                    // =================================================
-
-                    loginStatus.className =
-                        'login-status error';
-
-                    loginStatus.style.display =
-                        'block';
-
-
-                    loginStatus.textContent =
-                        data.error ||
-                        'اسم المستخدم أو كلمة المرور غير صحيحة';
-
-
-                    if (
-                        loginAttempts <
-                        MAX_ATTEMPTS
-                    ) {
-
-                        const remaining =
-                            MAX_ATTEMPTS -
-                            loginAttempts;
-
-
-                        loginStatus.textContent +=
-                            ` (${remaining} محاولة متبقية)`;
+                    // ===== SHOW ERROR =====
+                    loginStatus.className = 'login-status error';
+                    loginStatus.style.display = 'block';
+                    loginStatus.textContent = data.error || 'اسم المستخدم أو كلمة المرور غير صحيحة';
+                    
+                    // ===== REMINDER OF REMAINING ATTEMPTS =====
+                    if (loginAttempts < MAX_ATTEMPTS) {
+                        const remaining = MAX_ATTEMPTS - loginAttempts;
+                        loginStatus.textContent += ` (${remaining} محاولة متبقية)`;
                     }
-
                 }
-
-
             } catch (error) {
-
-                console.error(
-                    'Login error:',
-                    error
-                );
-
-
-                loginStatus.className =
-                    'login-status error';
-
-                loginStatus.style.display =
-                    'block';
-
-                loginStatus.textContent =
-                    'حدث خطأ في الاتصال، حاول مرة أخرى';
-
-
+                loginStatus.className = 'login-status error';
+                loginStatus.style.display = 'block';
+                loginStatus.textContent = 'حدث خطأ في الاتصال، حاول مرة أخرى';
+                console.error('Login error:', error);
             } finally {
-
                 loginBtn.disabled = false;
-
-                originalText.style.display =
-                    'inline';
-
-                loadingText.style.display =
-                    'none';
+                originalText.style.display = 'inline';
+                loadingText.style.display = 'none';
             }
-
         }
 
-
-        // =====================================================
-        // KEYBOARD SHORTCUTS
-        // =====================================================
-
-        document.addEventListener(
-            'keydown',
-            function(e) {
-
-                // Enter
-
-                if (
-                    e.key === 'Enter'
-                ) {
-
-                    const active =
-                        document.activeElement;
-
-
-                    if (
-                        active === username ||
-                        active === password
-                    ) {
-
-                        e.preventDefault();
-
-
-                        form.dispatchEvent(
-                            new Event(
-                                'submit',
-                                {
-                                    bubbles:
-                                        true,
-
-                                    cancelable:
-                                        true
-                                }
-                            )
-                        );
-                    }
+        // ============================================
+        // ===== KEYBOARD SHORTCUTS =====
+        // ============================================
+        document.addEventListener('keydown', function(e) {
+            // Enter = Submit
+            if (e.key === 'Enter') {
+                const active = document.activeElement;
+                if (active === username || active === password) {
+                    e.preventDefault();
+                    form.dispatchEvent(new Event('submit'));
                 }
-
-
-                // Escape
-
-                if (
-                    e.key === 'Escape'
-                ) {
-
-                    window.location.href =
-                        '/';
-                }
-
             }
-        );
-
-
-        // =====================================================
-        // USERNAME INPUT SANITIZATION
-        // =====================================================
-
-        username.addEventListener(
-            'input',
-            function() {
-
-                this.value =
-                    this.value.replace(
-                        /[<>&"'/]/g,
-                        ''
-                    );
+            // Escape = Go Home
+            if (e.key === 'Escape') {
+                window.location.href = '/';
             }
-        );
+        });
 
+        // ============================================
+        // ===== INPUT SANITIZATION =====
+        // ============================================
+        username.addEventListener('input', function() {
+            this.value = this.value.replace(/[<>&"'/]/g, '');
+        });
 
-        /*
-         * لا نقوم بتعديل password
-         * لأن كلمات المرور قد تحتوي على
-         * رموز خاصة بشكل شرعي.
-         */
+        password.addEventListener('input', function() {
+            this.value = this.value.replace(/[<>&"'/]/g, '');
+        });
 
-
-        // =====================================================
-        // RATE LIMIT PERSISTENCE
-        // =====================================================
-
+        // ============================================
+        // ===== RATE LIMIT PERSISTENCE =====
+        // ============================================
         function saveLockState() {
-
-            if (
-                isLocked &&
-                lockoutTimer
-            ) {
-
-                localStorage.setItem(
-                    'login-locked',
-                    'true'
-                );
-
-
-                localStorage.setItem(
-                    'login-lock-time',
-                    lockoutTimer.toString()
-                );
-
-
+            if (isLocked) {
+                localStorage.setItem('login-locked', 'true');
+                localStorage.setItem('login-lock-time', lockoutTimer.toString());
             } else {
-
-                localStorage.removeItem(
-                    'login-locked'
-                );
-
-
-                localStorage.removeItem(
-                    'login-lock-time'
-                );
-
+                localStorage.removeItem('login-locked');
+                localStorage.removeItem('login-lock-time');
             }
-
         }
-
 
         function restoreLockState() {
-
-            const locked =
-                localStorage.getItem(
-                    'login-locked'
-                );
-
-
-            const lockTime =
-                parseInt(
-                    localStorage.getItem(
-                        'login-lock-time'
-                    ) || '0',
-                    10
-                );
-
-
-            if (
-                locked !== 'true' ||
-                !lockTime
-            ) {
-
-                return;
-            }
-
-
-            const elapsed =
-                Date.now() -
-                lockTime;
-
-
-            // =================================================
-            // LOCK STILL ACTIVE
-            // =================================================
-
-            if (
-                elapsed <
-                LOCKOUT_TIME
-            ) {
-
-                isLocked = true;
-
-                lockoutTimer =
-                    lockTime;
-
-
-                rateLimitWarning.classList.add(
-                    'visible'
-                );
-
-
-                loginStatus.className =
-                    'login-status error';
-
-                loginStatus.style.display =
-                    'block';
-
-
-                const remaining =
-                    Math.max(
-                        1,
-                        Math.ceil(
-                            (
-                                LOCKOUT_TIME -
-                                elapsed
-                            ) / 60000
-                        )
-                    );
-
-
-                loginStatus.textContent =
-                    `تم حظر المحاولات مؤقتاً. الرجاء الانتظار ${remaining} دقيقة.`;
-
-
-                const remainingTime =
-                    LOCKOUT_TIME -
-                    elapsed;
-
-
-                setTimeout(
-                    () => {
-
+            const locked = localStorage.getItem('login-locked');
+            const lockTime = parseInt(localStorage.getItem('login-lock-time') || '0');
+            
+            if (locked === 'true' && lockTime > 0) {
+                const elapsed = Date.now() - lockTime;
+                if (elapsed < LOCKOUT_TIME) {
+                    isLocked = true;
+                    lockoutTimer = lockTime;
+                    rateLimitWarning.classList.add('visible');
+                    loginStatus.className = 'login-status error';
+                    loginStatus.style.display = 'block';
+                    const remaining = Math.ceil((LOCKOUT_TIME - elapsed) / 60000);
+                    loginStatus.textContent = `تم حظر المحاولات مؤقتاً. الرجاء الانتظار ${remaining} دقيقة.`;
+                    
+                    // إعادة تعيين بعد انتهاء الوقت
+                    const remainingTime = LOCKOUT_TIME - elapsed;
+                    setTimeout(() => {
                         loginAttempts = 0;
-
                         isLocked = false;
-
-                        lockoutTimer = null;
-
-
-                        rateLimitWarning.classList.remove(
-                            'visible'
-                        );
-
-
-                        loginStatus.className =
-                            'login-status';
-
-                        loginStatus.style.display =
-                            'none';
-
-
-                        localStorage.removeItem(
-                            'login-locked'
-                        );
-
-                        localStorage.removeItem(
-                            'login-lock-time'
-                        );
-
-                    },
-                    remainingTime
-                );
-
-
-            } else {
-
-                // =================================================
-                // LOCK EXPIRED
-                // =================================================
-
-                localStorage.removeItem(
-                    'login-locked'
-                );
-
-                localStorage.removeItem(
-                    'login-lock-time'
-                );
+                        rateLimitWarning.classList.remove('visible');
+                        loginStatus.className = 'login-status';
+                        loginStatus.style.display = 'none';
+                        localStorage.removeItem('login-locked');
+                        localStorage.removeItem('login-lock-time');
+                    }, remainingTime);
+                } else {
+                    localStorage.removeItem('login-locked');
+                    localStorage.removeItem('login-lock-time');
+                }
             }
-
         }
 
+        // ============================================
+        // ===== SECURE INPUT CLEANUP =====
+        // ============================================
+        // مسح الحقول عند إعادة تحميل الصفحة
+        window.addEventListener('beforeunload', function() {
+            if (username) username.value = '';
+            if (password) password.value = '';
+        });
 
-        // =====================================================
-        // CLEANUP
-        // =====================================================
-
-        window.addEventListener(
-            'beforeunload',
-            function() {
-
-                if (username) {
-                    username.value = '';
-                }
-
-
-                if (password) {
-                    password.value = '';
-                }
-
+        // منع حفظ كلمة المرور في المتصفح
+        document.addEventListener('DOMContentLoaded', function() {
+            if (password) {
+                password.setAttribute('autocomplete', 'off');
             }
-        );
+        });
 
-
-        // =====================================================
-        // FORM ENTER PROTECTION
-        // =====================================================
-
-        form.addEventListener(
-            'keydown',
-            function(e) {
-
-                if (
-                    e.key !== 'Enter'
-                ) {
-                    return;
-                }
-
-
-                const target =
-                    e.target;
-
-
-                if (
-                    target.tagName === 'INPUT' &&
-                    target.type !== 'submit'
-                ) {
-
+        // ============================================
+        // ===== ENTER KEY PROTECTION =====
+        // ============================================
+        // منع إرسال النموذج عن طريق الخطأ
+        form.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const target = e.target;
+                if (target.tagName === 'INPUT' && target.type !== 'submit') {
                     e.preventDefault();
-
-
-                    form.dispatchEvent(
-                        new Event(
-                            'submit',
-                            {
-                                bubbles:
-                                    true,
-
-                                cancelable:
-                                    true
-                            }
-                        )
-                    );
+                    form.dispatchEvent(new Event('submit'));
                 }
-
             }
-        );
+        });
 
-
-        // =====================================================
-        // PASTE XSS CHECK
-        // =====================================================
-
-        const inputs =
-            document.querySelectorAll(
-                'input, textarea'
-            );
-
-
-        inputs.forEach(
-            input => {
-
-                input.addEventListener(
-                    'paste',
-                    function(e) {
-
-                        const pasted =
-                            (
-                                e.clipboardData ||
-                                window.clipboardData
-                            ).getData('text');
-
-
-                        if (
-                            pasted &&
-                            /<script|<iframe|onerror|onload|javascript:/i
-                                .test(pasted)
-                        ) {
-
-                            e.preventDefault();
-
-
-                            this.value =
-                                pasted.replace(
-                                    /<script|<iframe|onerror|onload|javascript:/gi,
-                                    ''
-                                );
-
-
-                            this.style.borderColor =
-                                'var(--color-error)';
-
-
-                            setTimeout(
-                                () => {
-
-                                    this.style.borderColor =
-                                        '';
-
-                                },
-                                1000
-                            );
-                        }
-
-                    }
-                );
-
-            }
-        );
-
-
-        // =====================================================
-        // INITIALIZATION
-        // =====================================================
-
-        document.addEventListener(
-            'DOMContentLoaded',
-            async function() {
-
-                // ---------------------------------------------
-                // 1. Check existing authentication
-                // ---------------------------------------------
-
-                await checkAuth();
-
-
-                // ---------------------------------------------
-                // 2. Restore lock state
-                // ---------------------------------------------
-
-                restoreLockState();
-
-
-                // ---------------------------------------------
-                // 3. Get CSRF token from backend
-                // ---------------------------------------------
-
-                await initLogin();
-
-
-                // ---------------------------------------------
-                // 4. Submit listener
-                // ---------------------------------------------
-
-                form.addEventListener(
-                    'submit',
-                    handleLogin
-                );
-
-
-                // ---------------------------------------------
-                // 5. Focus username
-                // ---------------------------------------------
-
-                if (username) {
-
-                    setTimeout(
-                        () => {
-                            username.focus();
-                        },
-                        100
-                    );
-
+        // ============================================
+        // ===== XSS PROTECTION =====
+        // ============================================
+        // منع تنفيذ أي سكريبت من خلال حقول الإدخال
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('paste', function(e) {
+                const pasted = (e.clipboardData || window.clipboardData).getData('text');
+                if (pasted && /<script|<iframe|onerror|onload|javascript:/i.test(pasted)) {
+                    e.preventDefault();
+                    this.value = pasted.replace(/<script|<iframe|onerror|onload|javascript:/gi, '');
+                    this.style.borderColor = 'var(--color-error)';
+                    setTimeout(() => {
+                        this.style.borderColor = '';
+                    }, 1000);
                 }
+            });
+        });
 
-
-                // ---------------------------------------------
-                // 6. Save lock state
-                // ---------------------------------------------
-
-                setInterval(
-                    saveLockState,
-                    5000
-                );
-
+        // ============================================
+        // ===== INIT =====
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // ===== CSRF TOKEN =====
+            getCsrfToken();
+            
+            // ===== CHECK AUTH =====
+            checkAuth();
+            
+            // ===== RESTORE LOCK STATE =====
+            restoreLockState();
+            
+            // ===== SETUP FORM =====
+            form.addEventListener('submit', handleLogin);
+            
+            // ===== FOCUS FIRST INPUT =====
+            if (username) {
+                setTimeout(() => username.focus(), 100);
             }
-        );
+            
+            // ===== SAVE LOCK STATE =====
+            setInterval(saveLockState, 5000);
+        });
 
+        // ============================================
+        // ===== CONSOLE PROTECTION =====
+        // ============================================
+        console.log('%c Shulamith Gallery - Login Page (Secure)', 
+            'color: #d4b892; font-size: 16px; font-weight: bold;');
+        console.log('%c Do not share your credentials with anyone.', 
+            'color: #e74c3c; font-size: 12px;');
 
-        // =====================================================
-        // CONSOLE NOTICE
-        // =====================================================
-
-        console.log(
-            '%c Shulamith Gallery - Login Page ',
-            'color: #d4b892; font-size: 16px; font-weight: bold;'
-        );
-
-
-        console.log(
-            '%c Do not share your credentials with anyone.',
-            'color: #e74c3c; font-size: 12px;'
-        );
-
-
-        // =====================================================
-        // TOKEN PROPERTY PROTECTION
-        // =====================================================
-
-        Object.defineProperty(
-            window,
-            'token',
-            {
-
-                configurable:
-                    false,
-
-
-                get:
-                    function() {
-
-                        console.warn(
-                            'Access to token is restricted.'
-                        );
-
-                        return null;
-                    }
-
+        // منع محاولات التلاعب بالـ Console
+        Object.defineProperty(window, 'token', {
+            get: function() { 
+                console.warn('Access to token is restricted.');
+                return null; 
             }
-        );
+        });
 
-
-        console.log(
-            'Login page initialized.'
-        );
-
+        console.log('✅ Login page secured successfully.');
     </script>
-
 </body>
 </html>
-```

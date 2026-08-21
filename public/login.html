@@ -358,7 +358,8 @@
                 <h1>Shulamith Gallery</h1>
             </div>
             
-            <form id="loginForm" class="login-form" autocomplete="off">
+            <form id="loginForm">
+                <input type="hidden" id="csrfToken" name="_csrf" value="">
                 <!-- ===== CSRF TOKEN ===== -->
                 <input type="hidden" id="csrfToken" value="">
                 
@@ -460,152 +461,68 @@
         // ============================================
         // ===== CHECK AUTH =====
         // ============================================
-        function checkAuth() {
-            const token = localStorage.getItem('shulamith-token');
-            if (token) {
-                fetch('/api/verify', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.valid) {
-                        window.location.href = '/dashboard';
-                    }
-                })
-                .catch(() => {});
-            }
-        }
+// 1. جلب CSRF Token
+async function initLogin() {
+    try {
+        const res = await fetch('/api/csrf-token');
+        const data = await res.json();
+        document.getElementById('csrfToken').value = data.token;
+    } catch (error) {
+        console.error('CSRF init error:', error);
+    }
+}
 
-        // ============================================
-        // ===== HANDLE LOGIN =====
-        // ============================================
-        async function handleLogin(e) {
-            e.preventDefault();
-            
-            // ===== CHECK LOCKOUT =====
-            if (isLocked) {
-                const remaining = Math.ceil((LOCKOUT_TIME - (Date.now() - lockoutTimer)) / 60000);
-                loginStatus.className = 'login-status error';
-                loginStatus.style.display = 'block';
-                loginStatus.textContent = `تم حظر المحاولات مؤقتاً. الرجاء الانتظار ${remaining} دقيقة.`;
-                return;
-            }
-            
-            // ===== RESET ERRORS =====
-            usernameError.textContent = '';
-            passwordError.textContent = '';
-            loginStatus.className = 'login-status';
-            loginStatus.style.display = 'none';
-            rateLimitWarning.classList.remove('visible');
-            
-            // ===== VALIDATE =====
-            let isValid = true;
-            
-            const usernameVal = username.value.trim();
-            const passwordVal = password.value.trim();
-            
-            // منع حقن XSS في حقول الدخول
-            if (!usernameVal || usernameVal.length < 2 || usernameVal.length > 50) {
-                usernameError.textContent = 'اسم المستخدم يجب أن يكون بين 2 و 50 حرف';
-                isValid = false;
-            }
-            
-            if (!passwordVal || passwordVal.length < 4) {
-                passwordError.textContent = 'كلمة المرور يجب أن تكون 4 أحرف على الأقل';
-                isValid = false;
-            }
-            
-            if (!isValid) return;
-            
-            // ===== INCREMENT ATTEMPTS =====
-            loginAttempts++;
-            
-            // ===== CHECK MAX ATTEMPTS =====
-            if (loginAttempts >= MAX_ATTEMPTS) {
-                isLocked = true;
-                lockoutTimer = Date.now();
-                rateLimitWarning.classList.add('visible');
-                loginStatus.className = 'login-status error';
-                loginStatus.style.display = 'block';
-                loginStatus.textContent = `تم تجاوز عدد المحاولات (${MAX_ATTEMPTS}). تم حظر تسجيل الدخول لمدة 15 دقيقة.`;
-                
-                // إعادة تعيين العداد بعد 15 دقيقة
-                setTimeout(() => {
-                    loginAttempts = 0;
-                    isLocked = false;
-                    rateLimitWarning.classList.remove('visible');
-                    loginStatus.className = 'login-status';
-                    loginStatus.style.display = 'none';
-                }, LOCKOUT_TIME);
-                
-                return;
-            }
-            
-            // ===== SUBMIT =====
-            loginBtn.disabled = true;
-            const originalText = loginBtn.querySelector('span:first-child');
-            const loadingText = loginBtn.querySelector('.btn-loading');
-            originalText.style.display = 'none';
-            loadingText.style.display = 'inline';
-            
-            try {
-                // ===== CSRF PROTECTION =====
-                const csrfToken = document.getElementById('csrfToken').value || 'default';
-                
-                const res = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-CSRF-Token': csrfToken
-                    },
-                    body: JSON.stringify({
-                        username: usernameVal,
-                        password: passwordVal
-                    })
-                });
-                
-                const data = await res.json();
-                
-                if (res.ok) {
-                    // ===== RESET ATTEMPTS ON SUCCESS =====
-                    loginAttempts = 0;
-                    
-                    // ===== SECURE TOKEN STORAGE =====
-                    localStorage.setItem('shulamith-token', data.token);
-                    
-                    loginStatus.className = 'login-status success';
-                    loginStatus.style.display = 'block';
-                    loginStatus.textContent = 'تم تسجيل الدخول بنجاح! جاري التحويل...';
-                    
-                    // ===== REDIRECT =====
-                    setTimeout(() => {
-                        window.location.href = '/dashboard';
-                    }, 800);
-                } else {
-                    // ===== SHOW ERROR =====
-                    loginStatus.className = 'login-status error';
-                    loginStatus.style.display = 'block';
-                    loginStatus.textContent = data.error || 'اسم المستخدم أو كلمة المرور غير صحيحة';
-                    
-                    // ===== REMINDER OF REMAINING ATTEMPTS =====
-                    if (loginAttempts < MAX_ATTEMPTS) {
-                        const remaining = MAX_ATTEMPTS - loginAttempts;
-                        loginStatus.textContent += ` (${remaining} محاولة متبقية)`;
-                    }
-                }
-            } catch (error) {
-                loginStatus.className = 'login-status error';
-                loginStatus.style.display = 'block';
-                loginStatus.textContent = 'حدث خطأ في الاتصال، حاول مرة أخرى';
-                console.error('Login error:', error);
-            } finally {
-                loginBtn.disabled = false;
-                originalText.style.display = 'inline';
-                loadingText.style.display = 'none';
-            }
+// 2. تعديل دالة تسجيل الدخول
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const csrfToken = document.getElementById('csrfToken').value;
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    
+    try {
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfToken
+            },
+            body: JSON.stringify({ username, password })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            // ✅ استخدام sessionStorage بدلاً من localStorage
+            sessionStorage.setItem('shulamith-token', data.token);
+            window.location.href = '/dashboard';
+        } else {
+            showError(data.error || 'فشل تسجيل الدخول');
         }
+    } catch (error) {
+        showError('حدث خطأ في الاتصال');
+    }
+}
+
+// 3. عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    initLogin();
+    
+    // التحقق من توكن موجود
+    const token = sessionStorage.getItem('shulamith-token');
+    if (token) {
+        fetch('/api/verify', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.valid) {
+                window.location.href = '/dashboard';
+            }
+        })
+        .catch(() => {});
+    }
+});
 
         // ============================================
         // ===== KEYBOARD SHORTCUTS =====

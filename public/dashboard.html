@@ -43,10 +43,8 @@
             color: var(--color-text);
             line-height: 1.6;
             overflow-x: hidden;
+            direction: rtl;
         }
-
-        body.rtl { direction: rtl; }
-        body.ltr { direction: ltr; }
 
         /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar { width: 6px; }
@@ -64,31 +62,17 @@
         .sidebar {
             position: fixed;
             top: 0;
-            left: 0;
+            right: 0;
             width: var(--sidebar-width);
             height: 100vh;
             background: var(--color-bg-secondary);
-            border-right: 1px solid var(--color-border);
+            border-left: 1px solid var(--color-border);
             padding: 20px 0;
             display: flex;
             flex-direction: column;
             transition: var(--transition);
             z-index: 1000;
             overflow-y: auto;
-        }
-
-        body.ltr .sidebar {
-            left: 0;
-            right: auto;
-            border-right: 1px solid var(--color-border);
-            border-left: none;
-        }
-
-        body.rtl .sidebar {
-            right: 0;
-            left: auto;
-            border-left: 1px solid var(--color-border);
-            border-right: none;
         }
 
         .sidebar-header {
@@ -135,8 +119,6 @@
             position: relative;
         }
 
-        body.ltr .nav-item { text-align: left; }
-
         .nav-item:hover {
             background: var(--color-bg-hover);
             color: var(--color-text);
@@ -152,12 +134,10 @@
             position: absolute;
             top: 8px;
             bottom: 8px;
+            right: 0;
             width: 2px;
             background: var(--color-primary);
         }
-
-        body.rtl .nav-item.active::before { right: 0; }
-        body.ltr .nav-item.active::before { left: 0; }
 
         .nav-item .badge {
             background: var(--color-primary);
@@ -167,26 +147,6 @@
             border-radius: 12px;
             margin-right: auto;
             font-weight: 500;
-        }
-
-        body.ltr .nav-item .badge { margin-right: 0; margin-left: auto; }
-
-        .sidebar-logout {
-            margin: 12px;
-            padding: 12px 16px;
-            background: rgba(231, 76, 60, 0.1);
-            border: 1px solid rgba(231, 76, 60, 0.2);
-            border-radius: var(--radius-sm);
-            color: var(--color-error);
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: var(--transition);
-            font-family: inherit;
-            text-align: center;
-        }
-
-        .sidebar-logout:hover {
-            background: rgba(231, 76, 60, 0.2);
         }
 
         /* ===== SIDEBAR TOGGLE (Mobile) ===== */
@@ -214,14 +174,9 @@
         /* ===== MAIN CONTENT ===== */
         .main-content {
             flex: 1;
-            margin-left: var(--sidebar-width);
+            margin-right: var(--sidebar-width);
             min-height: 100vh;
             transition: var(--transition);
-        }
-
-        body.rtl .main-content {
-            margin-left: 0;
-            margin-right: var(--sidebar-width);
         }
 
         /* ===== HEADER ===== */
@@ -258,23 +213,28 @@
             gap: 12px;
         }
 
-        .lang-switch {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--color-bg-card);
-            border: 1px solid var(--color-border);
-            color: var(--color-text);
-            padding: 6px 14px;
-            border-radius: 20px;
-            cursor: pointer;
+        /* ===== LOGOUT BUTTON IN HEADER (Desktop) ===== */
+        .logout-header-btn {
+            padding: 8px 20px;
+            background: rgba(231, 76, 60, 0.15);
+            border: 1px solid rgba(231, 76, 60, 0.2);
+            border-radius: var(--radius-sm);
+            color: var(--color-error);
             font-size: 0.85rem;
+            cursor: pointer;
             transition: var(--transition);
+            font-family: inherit;
+            display: none;
         }
 
-        .lang-switch:hover {
-            background: var(--color-bg-hover);
-            border-color: var(--color-primary-dark);
+        .logout-header-btn:hover {
+            background: rgba(231, 76, 60, 0.25);
+        }
+
+        @media (min-width: 993px) {
+            .logout-header-btn {
+                display: block;
+            }
         }
 
         /* ===== CONTENT ===== */
@@ -401,8 +361,6 @@
             letter-spacing: 0.5px;
             white-space: nowrap;
         }
-
-        body.ltr th { text-align: left; }
 
         td {
             padding: 12px 16px;
@@ -923,11 +881,6 @@
             width: 100%;
         }
 
-        body.ltr .toast-container {
-            right: auto;
-            left: 24px;
-        }
-
         .toast {
             padding: 14px 20px;
             border-radius: var(--radius-sm);
@@ -1088,10 +1041,6 @@
             justify-content: flex-end;
         }
 
-        body.ltr .star-rating {
-            flex-direction: row;
-        }
-
         .star-rating input {
             display: none;
         }
@@ -1110,18 +1059,14 @@
             color: #f1c40f;
         }
 
-        body.ltr .star-rating label:hover ~ label {
-            color: #f1c40f;
-        }
-
         /* ===== RESPONSIVE ===== */
         @media (max-width: 992px) {
             .sidebar {
-                transform: translateX(-100%);
-            }
-
-            body.rtl .sidebar {
                 transform: translateX(100%);
+                right: 0;
+                left: auto;
+                border-left: 1px solid var(--color-border);
+                border-right: none;
             }
 
             .sidebar.open {
@@ -1137,15 +1082,21 @@
             }
 
             .main-content {
-                margin-left: 0;
-            }
-
-            body.rtl .main-content {
                 margin-right: 0;
             }
 
             .stats-grid {
                 grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .logout-header-btn {
+                display: none !important;
+            }
+        }
+
+        @media (min-width: 993px) {
+            .sidebar-logout {
+                display: none !important;
             }
         }
 
@@ -1232,11 +1183,6 @@
                 bottom: 12px;
                 right: 12px;
             }
-
-            body.ltr .toast-container {
-                right: auto;
-                left: 12px;
-            }
         }
 
         @media (max-width: 480px) {
@@ -1270,11 +1216,6 @@
 
             .dashboard-header h1 {
                 font-size: 0.85rem;
-            }
-
-            .lang-switch {
-                padding: 4px 10px;
-                font-size: 0.75rem;
             }
 
             .send-message-wrapper {
@@ -1315,6 +1256,7 @@
                 <button class="nav-item" data-section="settings">الإعدادات</button>
             </nav>
             
+            <!-- ===== LOGOUT BUTTON IN SIDEBAR (Mobile only) ===== -->
             <button class="sidebar-logout" id="logoutBtn">تسجيل الخروج</button>
         </aside>
         
@@ -1326,9 +1268,8 @@
                     <h1 id="pageTitle">نظرة عامة</h1>
                 </div>
                 <div class="header-actions">
-                    <button class="lang-switch" id="langSwitch">
-                        <span class="lang-text">AR</span>
-                    </button>
+                    <!-- ===== LOGOUT BUTTON IN HEADER (Desktop only) ===== -->
+                    <button class="logout-header-btn" id="logoutHeaderBtn">تسجيل الخروج</button>
                 </div>
             </header>
             
@@ -1894,7 +1835,6 @@
         // ============================================
         // ===== STATE & VARIABLES =====
         // ============================================
-        let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
         let token = sessionStorage.getItem('shulamith-token');
         let galleries = [];
         let artworks = [];
@@ -1992,7 +1932,6 @@
                 }
                 
                 if (res.status === 403) {
-                    // CSRF token expired - refresh
                     await getCsrfToken();
                     const newHeaders = getHeaders();
                     const retryRes = await fetch(url, {
@@ -2018,22 +1957,6 @@
                 console.error('API fetch error:', error);
                 throw error;
             }
-        }
-
-        // ============================================
-        // ===== LANGUAGE =====
-        // ============================================
-        function setLanguage(lang) {
-            currentLang = lang;
-            localStorage.setItem('shulamith-lang', lang);
-            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-            document.body.className = lang === 'ar' ? 'rtl' : 'ltr';
-            const langText = document.querySelector('.lang-text');
-            if (langText) langText.textContent = lang.toUpperCase();
-        }
-
-        function toggleLanguage() {
-            setLanguage(currentLang === 'ar' ? 'en' : 'ar');
         }
 
         // ============================================
@@ -3091,16 +3014,14 @@
             const isValid = await checkAuth();
             if (!isValid) return;
             
-            setLanguage(currentLang);
+            // ===== LOGOUT BUTTONS =====
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            document.getElementById('logoutHeaderBtn').addEventListener('click', logout);
             
             // ===== EVENT LISTENERS =====
             
-            document.getElementById('langSwitch').addEventListener('click', toggleLanguage);
-            
             document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
             document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
-            
-            document.getElementById('logoutBtn').addEventListener('click', logout);
             
             document.querySelectorAll('.nav-item').forEach(function(btn) {
                 btn.addEventListener('click', function(e) {

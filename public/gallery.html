@@ -831,6 +831,33 @@
         }
 
         // ============================================
+        // ===== SAFE ELEMENT CREATION =====
+        // ============================================
+        function createElementSafe(tag, content, attributes = {}) {
+            const el = document.createElement(tag);
+            el.textContent = content;
+            Object.entries(attributes).forEach(([key, value]) => {
+                el.setAttribute(key, value);
+            });
+            return el;
+        }
+
+        function createImageSafe(src, alt, className = '', attributes = {}) {
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = alt || '';
+            if (className) img.className = className;
+            img.loading = 'lazy';
+            img.onerror = function() {
+                this.src = 'https://via.placeholder.com/400x220/1e1a18/d4b892?text=Shulamith';
+            };
+            Object.entries(attributes).forEach(([key, value]) => {
+                img.setAttribute(key, value);
+            });
+            return img;
+        }
+
+        // ============================================
         // ===== LANGUAGE =====
         // ============================================
         let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
@@ -864,34 +891,17 @@
 
         function updateGalleryCardCounts(lang) {
             const t = translations[lang];
-            const counts = document.querySelectorAll('.artwork-count');
-            counts.forEach(el => {
+            document.querySelectorAll('.artwork-count').forEach(el => {
                 const text = el.textContent.trim();
                 const match = text.match(/^(\d+)/);
                 if (match) {
                     const count = parseInt(match[1]);
-                    if (count === 1) {
-                        el.textContent = count + ' ' + t['artwork.count'];
-                    } else {
-                        el.textContent = count + ' ' + t['artwork.countPlural'];
-                    }
+                    el.textContent = count === 1 ? 
+                        `${count} ${t['artwork.count']}` : 
+                        `${count} ${t['artwork.countPlural']}`;
                 }
             });
         }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedLang = localStorage.getItem('shulamith-lang') || 'ar';
-            setLanguage(savedLang);
-        });
-
-        document.getElementById('langSwitch').addEventListener('click', function(e) {
-            e.preventDefault();
-            if (isLoading) return;
-            
-            const newLang = currentLang === 'ar' ? 'en' : 'ar';
-            setLanguage(newLang);
-            loadGalleries();
-        });
 
         // ============================================
         // ===== NAV =====
@@ -914,13 +924,13 @@
         const lightboxClose = document.getElementById('lightboxClose');
 
         function openLightbox(imageUrl, title, description, material, dimensions, galleryName) {
-            lightboxImage.src = sanitizeInput(imageUrl);
-            lightboxImage.alt = escapeHtml(title || '');
-            lightboxTitle.textContent = escapeHtml(title || '');
-            lightboxDescription.textContent = escapeHtml(description || '');
-            lightboxMaterial.textContent = material ? escapeHtml(material) : '';
-            lightboxDimensions.textContent = dimensions ? escapeHtml(dimensions) : '';
-            lightboxGallery.textContent = galleryName ? escapeHtml(galleryName) : '';
+            lightboxImage.src = imageUrl;
+            lightboxImage.alt = title || '';
+            lightboxTitle.textContent = title || '';
+            lightboxDescription.textContent = description || '';
+            lightboxMaterial.textContent = material || '';
+            lightboxDimensions.textContent = dimensions || '';
+            lightboxGallery.textContent = galleryName || '';
             
             lightbox.classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -939,6 +949,125 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeLightbox();
         });
+
+        // ============================================
+        // ===== SAFE RENDER FUNCTIONS =====
+        // ============================================
+        function renderGalleries(galleries) {
+            const grid = document.getElementById('galleriesGrid');
+            const t = translations[currentLang];
+            
+            if (!galleries || galleries.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        ${t['gallery.empty']}
+                        <br>
+                        <span style="font-size: 0.85rem; color: var(--color-text-dark);">${t['gallery.emptySub']}</span>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = '';
+            
+            galleries.forEach((gallery) => {
+                const card = document.createElement('div');
+                card.className = 'gallery-card';
+                card.dataset.id = gallery.id;
+                
+                const img = createImageSafe(
+                    gallery.coverImage || 'https://via.placeholder.com/400x220/1e1a18/d4b892?text=Shulamith',
+                    gallery.name,
+                    'gallery-card-image'
+                );
+                
+                const content = document.createElement('div');
+                content.className = 'gallery-card-content';
+                
+                const title = createElementSafe('h3', gallery.name);
+                
+                const desc = createElementSafe('p', gallery.description || '');
+                
+                const count = document.createElement('span');
+                count.className = 'artwork-count';
+                const artworkCount = allArtworks[gallery.id]?.length || 0;
+                const countText = artworkCount === 1 ? t['artwork.count'] : t['artwork.countPlural'];
+                count.textContent = `${artworkCount} ${countText}`;
+                
+                content.appendChild(title);
+                content.appendChild(desc);
+                content.appendChild(count);
+                card.appendChild(img);
+                card.appendChild(content);
+                grid.appendChild(card);
+                
+                // Click handler
+                card.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    if (id) openGalleryModal(id);
+                });
+            });
+        }
+
+        function renderArtworksInModal(artworks, galleryName) {
+            const grid = document.getElementById('modalArtworksGrid');
+            const t = translations[currentLang];
+            
+            grid.innerHTML = '';
+            
+            if (!artworks || artworks.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'empty-artworks';
+                empty.textContent = t['modal.empty'];
+                grid.appendChild(empty);
+                return;
+            }
+            
+            artworks.forEach((artwork, index) => {
+                const item = document.createElement('div');
+                item.className = 'modal-artwork-item';
+                item.style.animationDelay = `${(index % 6) * 0.05}s`;
+                
+                const img = createImageSafe(
+                    artwork.imageUrl || 'https://via.placeholder.com/200x180/1e1a18/d4b892?text=Art',
+                    artwork.title || t['artwork.untitled'],
+                    '',
+                    { loading: 'lazy' }
+                );
+                
+                const info = document.createElement('div');
+                info.className = 'info';
+                
+                const title = createElementSafe('h4', artwork.title || t['artwork.untitled']);
+                info.appendChild(title);
+                
+                if (artwork.material) {
+                    const material = createElementSafe('p', artwork.material);
+                    info.appendChild(material);
+                }
+                
+                if (artwork.dimensions) {
+                    const dimensions = createElementSafe('p', artwork.dimensions);
+                    info.appendChild(dimensions);
+                }
+                
+                item.appendChild(img);
+                item.appendChild(info);
+                grid.appendChild(item);
+                
+                // Click to open lightbox
+                item.addEventListener('click', function() {
+                    openLightbox(
+                        artwork.imageUrl,
+                        artwork.title || t['artwork.untitled'],
+                        artwork.description || '',
+                        artwork.material || '',
+                        artwork.dimensions || '',
+                        galleryName || ''
+                    );
+                });
+            });
+        }
 
         // ============================================
         // ===== LOAD GALLERIES =====
@@ -971,7 +1100,7 @@
                     return;
                 }
 
-                let html = '';
+                // Fetch artworks for each gallery
                 for (const gallery of visible) {
                     try {
                         const artworksRes = await fetch(`/api/artworks?galleryId=${encodeURIComponent(gallery.id)}`);
@@ -980,52 +1109,14 @@
                         }
                         const artworks = await artworksRes.json();
                         const visibleArtworks = Array.isArray(artworks) ? artworks.filter(a => a.visible !== false) : [];
-                        const count = visibleArtworks.length;
-
                         allArtworks[gallery.id] = visibleArtworks;
-
-                        const countText = count === 1 ? t['artwork.count'] : t['artwork.countPlural'];
-
-                        html += `
-                            <div class="gallery-card" data-id="${escapeHtml(gallery.id)}">
-                                <img src="${escapeHtml(gallery.coverImage || 'https://via.placeholder.com/400x220/1e1a18/d4b892?text=Shulamith')}" 
-                                     alt="${escapeHtml(gallery.name)}" 
-                                     class="gallery-card-image"
-                                     loading="lazy"
-                                     onerror="this.src='https://via.placeholder.com/400x220/1e1a18/d4b892?text=Shulamith'">
-                                <div class="gallery-card-content">
-                                    <h3>${escapeHtml(gallery.name)}</h3>
-                                    <p>${escapeHtml(gallery.description || '')}</p>
-                                    <span class="artwork-count">${count} ${countText}</span>
-                                </div>
-                            </div>
-                        `;
                     } catch (err) {
                         console.error('Error counting artworks for gallery:', err);
-                        html += `
-                            <div class="gallery-card" data-id="${escapeHtml(gallery.id)}">
-                                <img src="${escapeHtml(gallery.coverImage || 'https://via.placeholder.com/400x220/1e1a18/d4b892?text=Shulamith')}" 
-                                     alt="${escapeHtml(gallery.name)}" 
-                                     class="gallery-card-image"
-                                     loading="lazy"
-                                     onerror="this.src='https://via.placeholder.com/400x220/1e1a18/d4b892?text=Shulamith'">
-                                <div class="gallery-card-content">
-                                    <h3>${escapeHtml(gallery.name)}</h3>
-                                    <p>${escapeHtml(gallery.description || '')}</p>
-                                    <span class="artwork-count">0 ${t['artwork.countPlural']}</span>
-                                </div>
-                            </div>
-                        `;
+                        allArtworks[gallery.id] = [];
                     }
                 }
-                grid.innerHTML = html;
 
-                document.querySelectorAll('.gallery-card').forEach(card => {
-                    card.addEventListener('click', function() {
-                        const id = this.dataset.id;
-                        if (id) openGalleryModal(id);
-                    });
-                });
+                renderGalleries(visible);
 
             } catch (error) {
                 console.error('Error loading galleries:', error);
@@ -1053,6 +1144,8 @@
 
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
+            
+            // Show loading
             grid.innerHTML = `
                 <div class="empty-artworks">
                     <div class="spinner" style="width:30px;height:30px;margin:0 auto 12px;"></div>
@@ -1063,8 +1156,8 @@
             try {
                 const gallery = allGalleries.find(g => g.id === galleryId);
                 if (gallery) {
-                    title.textContent = escapeHtml(gallery.name);
-                    desc.textContent = escapeHtml(gallery.description || '');
+                    title.textContent = gallery.name || '';
+                    desc.textContent = gallery.description || '';
                 }
 
                 let artworks = allArtworks[galleryId];
@@ -1074,44 +1167,11 @@
                         throw new Error(`HTTP error! status: ${artworksRes.status}`);
                     }
                     artworks = await artworksRes.json();
-                    allArtworks[galleryId] = artworks;
+                    allArtworks[galleryId] = artworks.filter(a => a.visible !== false);
                 }
 
                 const visible = Array.isArray(artworks) ? artworks.filter(a => a.visible !== false) : [];
-
-                if (visible.length === 0) {
-                    grid.innerHTML = `
-                        <div class="empty-artworks">
-                            ${t['modal.empty']}
-                            <br>
-                            <span style="font-size: 0.85rem; color: var(--color-text-dark);">${t['modal.emptySub']}</span>
-                        </div>
-                    `;
-                    return;
-                }
-
-                let html = '';
-                visible.forEach((a, index) => {
-                    const imgSrc = a.imageUrl || 'https://via.placeholder.com/200x180/1e1a18/d4b892?text=Art';
-                    const delay = (index % 6) * 0.05;
-                    const titleText = a.title || t['artwork.untitled'];
-                    const galleryName = gallery ? gallery.name : '';
-                    html += `
-                        <div class="modal-artwork-item" style="animation-delay: ${delay}s;" 
-                             onclick="openLightbox('${escapeHtml(imgSrc)}', '${escapeHtml(titleText)}', '${escapeHtml(a.description || '')}', '${escapeHtml(a.material || '')}', '${escapeHtml(a.dimensions || '')}', '${escapeHtml(galleryName)}')">
-                            <img src="${escapeHtml(imgSrc)}" 
-                                 alt="${escapeHtml(titleText)}" 
-                                 loading="lazy"
-                                 onerror="this.src='https://via.placeholder.com/200x180/1e1a18/d4b892?text=Art'">
-                            <div class="info">
-                                <h4>${escapeHtml(titleText)}</h4>
-                                ${a.material ? `<p>${escapeHtml(a.material)}</p>` : ''}
-                                ${a.dimensions ? `<p>${escapeHtml(a.dimensions)}</p>` : ''}
-                            </div>
-                        </div>
-                    `;
-                });
-                grid.innerHTML = html;
+                renderArtworksInModal(visible, gallery?.name || '');
 
             } catch (error) {
                 console.error('Error loading gallery artworks:', error);
@@ -1157,11 +1217,22 @@
             refreshInterval = setInterval(() => {
                 const modal = document.getElementById('artworksModal');
                 if (!modal.classList.contains('active') && !isLoading) {
-                    console.log('Auto-refresh galleries...');
                     loadGalleries();
                 }
             }, 30000);
         }
+
+        // ============================================
+        // ===== LANGUAGE SWITCH =====
+        // ============================================
+        document.getElementById('langSwitch').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (isLoading) return;
+            
+            const newLang = currentLang === 'ar' ? 'en' : 'ar';
+            setLanguage(newLang);
+            loadGalleries();
+        });
 
         // ============================================
         // ===== CONSOLE PROTECTION =====
@@ -1172,8 +1243,12 @@
         // ============================================
         // ===== INIT =====
         // ============================================
-        loadGalleries();
-        startAutoRefresh();
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLang = localStorage.getItem('shulamith-lang') || 'ar';
+            setLanguage(savedLang);
+            loadGalleries();
+            startAutoRefresh();
+        });
 
         window.addEventListener('beforeunload', function() {
             if (refreshInterval) {

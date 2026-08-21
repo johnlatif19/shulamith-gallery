@@ -283,16 +283,6 @@
       80% { transform: translateX(5px); }
     }
 
-    .demo-credentials {
-      margin-top: 16px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.03);
-      padding: 8px 16px;
-      border-radius: 12px;
-      font-weight: 500;
-    }
-
     /* ===== husky.css ===== */
     .husky-container {
       position: relative;
@@ -869,11 +859,6 @@
         max-width: 200px;
         bottom: -60px;
       }
-      
-      .demo-credentials {
-        font-size: 11px;
-        padding: 6px 12px;
-      }
     }
 
     @media (max-width: 380px) {
@@ -925,12 +910,6 @@
         max-width: 160px;
         bottom: -50px;
         border-radius: 12px;
-      }
-      
-      .demo-credentials {
-        font-size: 10px;
-        padding: 4px 10px;
-        margin-top: 12px;
       }
       
       .error-message {
@@ -1024,12 +1003,6 @@
         margin-top: 2px;
       }
       
-      .demo-credentials {
-        font-size: 10px;
-        padding: 4px 10px;
-        margin-top: 8px;
-      }
-      
       .speech-bubble {
         font-size: 10px;
         padding: 5px 12px;
@@ -1079,23 +1052,12 @@
     import ReactDOM from 'react-dom/client';
 
     // ============================================================
-    // ===== ENVIRONMENT CONFIGURATION (.env ready) =====
+    // ===== ENVIRONMENT CONFIGURATION =====
     // ============================================================
-    // في بيئة الإنتاج، هذه القيم تأتي من ملف .env
-    // مثلاً: VITE_API_URL=https://api.shulamith-gallery.com
     const ENV = {
-      // ===== API Endpoints =====
-      // استخدم import.meta.env.VITE_API_URL في Vite
-      // أو process.env.REACT_APP_API_URL في Create React App
       API_BASE_URL: window.location.origin + '/api',
-      
-      // ===== Security Settings =====
       MAX_LOGIN_ATTEMPTS: 5,
-      LOCKOUT_TIME_MINUTES: 15,
-      
-      // ===== Demo Credentials (للاختبار فقط) =====
-      DEMO_USERNAME: 'shulamith',
-      DEMO_PASSWORD: 'gallery'
+      LOCKOUT_TIME_MINUTES: 15
     };
 
     // ============================================================
@@ -1108,7 +1070,6 @@
       const [isLocked, setIsLocked] = useState(false);
       const [lockTimer, setLockTimer] = useState(null);
 
-      // ===== Restore lock state from localStorage =====
       useEffect(() => {
         const locked = localStorage.getItem('login-locked');
         const lockTime = parseInt(localStorage.getItem('login-lock-time') || '0');
@@ -1122,8 +1083,6 @@
           if (elapsed < lockoutDuration) {
             setIsLocked(true);
             setLockTimer(lockTime);
-            const remaining = Math.ceil((lockoutDuration - elapsed) / 60000);
-            console.log(`🔒 Login locked. ${remaining} minutes remaining.`);
             
             const remainingTime = lockoutDuration - elapsed;
             setTimeout(() => {
@@ -1141,9 +1100,7 @@
         }
       }, []);
 
-      // ===== Login function with real API =====
       const login = async (name, password) => {
-        // ===== Check lockout =====
         if (isLocked) {
           const lockoutDuration = ENV.LOCKOUT_TIME_MINUTES * 60 * 1000;
           const elapsed = Date.now() - lockTimer;
@@ -1158,7 +1115,6 @@
         setLoading(true);
 
         try {
-          // ===== Real API call =====
           const csrfToken = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
           
           const response = await fetch(`${ENV.API_BASE_URL}/login`, {
@@ -1177,13 +1133,11 @@
           const data = await response.json();
 
           if (response.ok && data.token) {
-            // ===== Reset attempts on success =====
             setAttempts(0);
             localStorage.removeItem('login-attempts');
             localStorage.removeItem('login-locked');
             localStorage.removeItem('login-lock-time');
             
-            // ===== Store token =====
             localStorage.setItem('shulamith-token', data.token);
             setUser({ name, displayName: 'Shulamith Gallery' });
             setLoading(false);
@@ -1194,12 +1148,10 @@
               token: data.token 
             };
           } else {
-            // ===== Increment attempts =====
             const newAttempts = attempts + 1;
             setAttempts(newAttempts);
             localStorage.setItem('login-attempts', newAttempts.toString());
 
-            // ===== Check if max attempts reached =====
             if (newAttempts >= ENV.MAX_LOGIN_ATTEMPTS) {
               setIsLocked(true);
               const lockTime = Date.now();
@@ -1219,7 +1171,7 @@
               setLoading(false);
               return { 
                 success: false, 
-                error: `يبقى كده هضطر اقول تجاوز عدد المحاولات (${ENV.MAX_LOGIN_ATTEMPTS}). تم الحظر لمدة ${ENV.LOCKOUT_TIME_MINUTES} دقيقة.`,
+                error: `تم تجاوز عدد المحاولات (${ENV.MAX_LOGIN_ATTEMPTS}). تم الحظر لمدة ${ENV.LOCKOUT_TIME_MINUTES} دقيقة.`,
                 locked: true 
               };
             }
@@ -1228,7 +1180,7 @@
             const remaining = ENV.MAX_LOGIN_ATTEMPTS - newAttempts;
             return { 
               success: false, 
-              error: data.error || `يبقى كده هضطر اقول تجاوز عدد المحاولات (${ENV.MAX_LOGIN_ATTEMPTS}). تم الحظر لمدة ${ENV.LOCKOUT_TIME_MINUTES} دقيقة.`,
+              error: data.error || `اسم المستخدم أو كلمة المرور غير صحيحة (${remaining} محاولة متبقية)`,
               attempts: newAttempts,
               remaining: remaining
             };
@@ -1236,21 +1188,9 @@
         } catch (error) {
           setLoading(false);
           console.error('Login API error:', error);
-          
-          if (name === ENV.USERNAME && password === ENV.PASSWORD) {
-            setAttempts(0);
-            localStorage.removeItem('login-attempts');
-            setUser({ name, displayName: 'Shulamith Gallery (Demo)' });
-            return { 
-              success: true, 
-              user: { name, displayName: 'Shulamith Gallery (Demo)' },
-              demo: true
-            };
-          }
-          
           return { 
             success: false, 
-            error: '⚠️ حدث خطأ في الاتصال بالخادم، حاول مرة أخرى' 
+            error: 'حدث خطأ في الاتصال بالخادم، حاول مرة أخرى' 
           };
         }
       };
@@ -1260,7 +1200,6 @@
         localStorage.removeItem('shulamith-token');
       };
 
-      // ===== Check existing token =====
       const checkAuth = async () => {
         const token = localStorage.getItem('shulamith-token');
         if (!token) return false;
@@ -1277,9 +1216,7 @@
             setUser({ name: data.user || 'Shulamith Gallery', displayName: 'Shulamith Gallery' });
             return true;
           }
-        } catch (_) {
-          // Token invalid or network error
-        }
+        } catch (_) {}
         return false;
       };
 
@@ -1329,26 +1266,26 @@
       useEffect(() => {
         if (state === 'hiding') {
           if (passwordVisible) {
-            setBubbleText('👀 كده باسوردك باين ل أي حد جمبك يا نجم!');
+            setBubbleText('كده باسوردك باين ل أي حد جمبك يا نجم');
             setBubbleClass('suspicious');
           } else {
-            setBubbleText('🔒 باسوردك ف أمان');
+            setBubbleText('باسوردك في أمان');
             setBubbleClass('');
           }
         } else if (state === 'looking') {
-          setBubbleText('👁️ أنا واخد بالي من اللي بتكتبه علفكرة');
+          setBubbleText('أنا واخد بالي من اللي بتكتبه');
           setBubbleClass('');
         } else if (state === 'success') {
-          setBubbleText('🙈❤️ كده احبك!');
+          setBubbleText('تم تسجيل الدخول بنجاح');
           setBubbleClass('success');
         } else if (state === 'error') {
-          setBubbleText('💔 كده تغلط في الباسورد');
+          setBubbleText('بيانات الدخول غير صحيحة');
           setBubbleClass('error');
         } else if (state === 'loading') {
-          setBubbleText('⏳ بنراجع الاسم والباسورد');
+          setBubbleText('جاري التحقق من البيانات');
           setBubbleClass('');
         } else if (state === 'locked') {
-          setBubbleText('🔒 تم حظر المحاولات مؤقتاً');
+          setBubbleText('تم حظر المحاولات مؤقتاً');
           setBubbleClass('error');
         } else {
           setBubbleText('');
@@ -1405,7 +1342,7 @@
                 '--x': `${(Math.random() - 0.5) * 300}px`,
                 '--size': `${16 + Math.random() * 20}px`
               }
-            }, '❤️')
+            }, '❤')
           )
         ),
         showBrokenHeart && React.createElement('div', { className: 'broken-heart' }, '💔'),
@@ -1426,7 +1363,6 @@
       
       const { login, checkAuth, isLocked, attempts, maxAttempts } = useAuth();
 
-      // ===== Check auth on mount =====
       useEffect(() => {
         checkAuth().then(authenticated => {
           if (authenticated) {
@@ -1435,7 +1371,6 @@
         });
       }, []);
 
-      // ===== Update husky state when locked =====
       useEffect(() => {
         if (isLocked) {
           setHuskyState('locked');
@@ -1446,7 +1381,7 @@
         e.preventDefault();
         
         if (isLocked) {
-          setError('🔒 تم حظر المحاولات مؤقتاً. الرجاء الانتظار.');
+          setError('تم حظر المحاولات مؤقتاً. الرجاء الانتظار.');
           return;
         }
 
@@ -1467,16 +1402,14 @@
           setHuskyState('success');
           setShowHearts(true);
           setTimeout(() => {
-            alert(result.demo ? '🎉 تم تسجيل الدخول (وضع العرض)' : '🎉 نورت Shulamith Gallery كله ❤️');
             setHuskyState('idle');
             setShowHearts(false);
-            // Redirect to dashboard
             window.location.href = '/dashboard';
           }, 1500);
         } else {
           setHuskyState('error');
           setShowBrokenHeart(true);
-          setError(result.error || '💔 كده تغلط في الباسورد');
+          setError(result.error || 'بيانات الدخول غير صحيحة');
           
           if (result.locked) {
             setHuskyState('locked');
@@ -1505,7 +1438,7 @@
             passwordVisible
           }),
           React.createElement('h2', null, 
-            '✨ Shulamith ', 
+            'Shulamith ', 
             React.createElement('span', null, 'Gallery')
           ),
           React.createElement('form', { onSubmit: handleSubmit },
@@ -1544,10 +1477,7 @@
               type: 'submit',
               disabled: loading || isLocked,
               className: loading ? 'loading' : ''
-            }, loading ? '⏳ بنراجع الاسم والباسورد' : '✨ ادخل Shulamith Gallery')
-          ),
-          React.createElement('div', { className: 'demo-credentials' },
-            `${attempts > 0 ? `• (${maxAttempts - attempts} محاولة متبقية)` : ''}`
+            }, loading ? 'جاري التحقق...' : 'تسجيل الدخول')
           )
         )
       );
@@ -1568,22 +1498,8 @@
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(React.createElement(App, null));
 
-    // ============================================================
-    // ===== Console Protection =====
-    // ============================================================
-    console.log('%c 🔐 Shulamith Gallery - Secure Login', 
-      'color: #e94560; font-size: 18px; font-weight: bold;');
-    console.log('%c ⚠️ Do not share your credentials.', 
-      'color: #fbbf24; font-size: 12px;');
-    
-    Object.defineProperty(window, 'ENV', {
-      get: function() {
-        console.warn('🔒 Environment variables are protected.');
-        return null;
-      }
-    });
-
-    console.log('✅ Login page with API integration ready.');
+    console.log('Shulamith Gallery - Secure Login');
+    console.log('Login page with API integration ready.');
   </script>
 </body>
 </html>

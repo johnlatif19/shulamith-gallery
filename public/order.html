@@ -24,65 +24,6 @@
     <meta name="twitter:description" content="اطلب عملاً فنياً مخصصاً حسب ذوقك. نوفر تنفيذ تابلوهات بأي خامة وحجم يناسب منزلك أو مكان عملك.">
     <meta name="twitter:image" content="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
 
-    <!-- Structured Data - Breadcrumb -->
-    <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-                {
-                    "@type": "ListItem",
-                    "position": 1,
-                    "name": "الرئيسية",
-                    "item": "https://shulamith-gallery.com/"
-                },
-                {
-                    "@type": "ListItem",
-                    "position": 2,
-                    "name": "طلب عمل فني",
-                    "item": "https://shulamith-gallery.com/order"
-                }
-            ]
-        }
-    </script>
-
-    <!-- Structured Data - WebPage -->
-    <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "WebPage",
-            "name": "طلب عمل فني مخصص | Shulamith Gallery",
-            "description": "اطلب عملاً فنياً مخصصاً حسب ذوقك. نوفر تنفيذ تابلوهات بأي خامة وحجم يناسب منزلك أو مكان عملك.",
-            "url": "https://shulamith-gallery.com/order",
-            "inLanguage": "ar",
-            "isPartOf": {
-                "@type": "WebSite",
-                "name": "Shulamith Gallery",
-                "url": "https://shulamith-gallery.com/"
-            }
-        }
-    </script>
-
-    <!-- Structured Data - Service (Service offered: Custom Artwork) -->
-    <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "Service",
-            "name": "طلبات فنية مخصصة",
-            "description": "تنفيذ تابلوهات فنية بأي خامة وحجم يناسب مكان العميل. استشارة مجانية وتصميم حسب الطلب.",
-            "provider": {
-                "@type": "Person",
-                "name": "مريم (شولميث)",
-                "jobTitle": "فنانة تشكيلية",
-                "url": "https://shulamith-gallery.com/about"
-            },
-            "areaServed": {
-                "@type": "Country",
-                "name": "مصر"
-            }
-        }
-    </script>
-
     <!-- Favicon -->
     <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
@@ -795,7 +736,7 @@
         <div class="container">
             <div class="order-form-wrapper reveal">
                 <form id="orderForm" class="order-form" autocomplete="off" novalidate>
-                    <input type="hidden" id="csrfToken" value="">
+                    <input type="hidden" id="csrfToken" name="_csrf" value="">
 
                     <!-- NAME -->
                     <div class="form-group">
@@ -1084,6 +1025,24 @@
 
         function validateOrderText(text) {
             return text && text.length >= 10 && text.length <= 2000;
+        }
+
+        // ============================================
+        // ===== CSRF TOKEN =====
+        // ============================================
+        let csrfToken = null;
+
+        async function getCsrfToken() {
+            try {
+                const res = await fetch('/api/csrf-token');
+                if (!res.ok) throw new Error('Failed to get CSRF token');
+                const data = await res.json();
+                csrfToken = data.token;
+                return csrfToken;
+            } catch (error) {
+                console.error('CSRF token error:', error);
+                return null;
+            }
         }
 
         // ============================================
@@ -1388,8 +1347,6 @@
                 submitBtn.querySelector('span:first-child').style.display = 'none';
                 submitBtn.querySelector('.btn-loading').style.display = 'inline';
 
-                const csrfToken = document.getElementById('csrfToken').value || 'default';
-
                 try {
                     let uploadedImageUrl = '';
 
@@ -1400,6 +1357,9 @@
 
                             const uploadRes = await fetch('/api/upload', {
                                 method: 'POST',
+                                headers: {
+                                    'X-CSRF-Token': csrfToken || document.getElementById('csrfToken').value
+                                },
                                 body: uploadFormData
                             });
 
@@ -1426,7 +1386,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-Token': csrfToken
+                            'X-CSRF-Token': csrfToken || document.getElementById('csrfToken').value
                         },
                         body: JSON.stringify(orderData)
                     });
@@ -1517,10 +1477,12 @@
             const savedLang = localStorage.getItem('shulamith-lang') || 'ar';
             setLanguage(savedLang);
 
-            const csrfToken = document.getElementById('csrfToken');
-            if (csrfToken) {
-                csrfToken.value = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
-            }
+            // ===== CSRF TOKEN =====
+            getCsrfToken().then(token => {
+                if (token) {
+                    document.getElementById('csrfToken').value = token;
+                }
+            });
 
             setTimeout(() => {
                 const nameInput = document.getElementById('orderName');
@@ -1574,7 +1536,6 @@
         console.log('Shulamith Gallery - Order Page (SEO Optimized)');
         console.log('Secured against XSS, CSRF, and spam attacks.');
         console.log('Fully responsive for all devices.');
-        console.log('Structured Data implemented for better SEO.');
     </script>
 
 </body>

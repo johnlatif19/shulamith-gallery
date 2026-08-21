@@ -10,8 +10,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-const csrf = require('csurf'); // ✅ NEW: CSRF Protection
-const fileType = require('file-type'); // ✅ NEW: File validation
+const session = require('express-session');
+const csrf = require('csurf');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,6 +20,21 @@ const PORT = process.env.PORT || 3000;
 // ===== TRUST PROXY (for Vercel) =====
 // ============================================
 app.set('trust proxy', true);
+
+// ============================================
+// ===== SESSION (مطلوب لـ CSRF) =====
+// ============================================
+app.use(session({
+    secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: 'strict',
+        maxAge: 3600000 // 1 hour
+    }
+}));
 
 // ============================================
 // ===== TIMEOUT MIDDLEWARE =====
@@ -32,34 +47,16 @@ const timeoutMiddleware = (req, res, next) => {
 };
 
 // ============================================
-// ===== NONCE GENERATOR (for CSP) =====
-// ============================================
-app.use((req, res, next) => {
-    res.locals.nonce = crypto.randomBytes(16).toString('base64');
-    next();
-});
-
-// ============================================
-// ===== HELMET (CSP with NONCE) =====
+// ===== HELMET (CSP) =====
 // ============================================
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
             imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://i.postimg.cc"],
-            scriptSrc: [
-                "'self'",
-                (req, res) => `'nonce-${res.locals.nonce}'`
-            ],
-            styleSrc: [
-                "'self'",
-                (req, res) => `'nonce-${res.locals.nonce}'`
-            ],
-            connectSrc: [
-                "'self'",
-                "https://firestore.googleapis.com",
-                "https://api.cloudinary.com"
-            ],
+            scriptSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            connectSrc: ["'self'", "https://firestore.googleapis.com", "https://api.cloudinary.com"],
             baseUri: ["'self'"],
             frameAncestors: ["'none'"],
             formAction: ["'self'"],
@@ -85,7 +82,7 @@ app.use((req, res, next) => {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    res.setHeader('Permissions-Policy', 
+    res.setHeader('Permissions-Policy',
         'geolocation=(), microphone=(), camera=(), payment=(), usb=(), autoplay=()'
     );
     next();
@@ -104,7 +101,7 @@ const allowedOrigins = [
 app.use(cors({
     origin: function (origin, callback) {
         if (!origin) return callback(null, true);
-        
+
         if (allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
@@ -145,37 +142,44 @@ const authLimiter = rateLimit({
     max: 5,
     message: { error: 'Too many login attempts, please try again later.' },
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+        return req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    }
 });
 
 const contactLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
     max: 3,
-    message: { error: 'Too many messages sent. Please try again later.' }
+    message: { error: 'Too many messages sent. Please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+        return req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    }
 });
 
-const uploadLimiter = rateLimit({ // ✅ NEW: Rate limit for uploads
+const uploadLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
     max: 5,
-    message: { error: 'Too many uploads. Please try again later.' }
+    message: { error: 'Too many uploads. Please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+        return req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    }
 });
 
 app.use('/api/login', authLimiter);
 app.use('/api/contact', contactLimiter);
-app.use('/api/upload', uploadLimiter); // ✅ UPDATED
+app.use('/api/upload', uploadLimiter);
 app.use('/api/stats', limiter);
 app.use('/api/send-email', limiter);
 
 // ============================================
 // ===== CSRF PROTECTION =====
 // ============================================
-const csrfProtection = csrf({
-    cookie: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict'
-    }
-});
+const csrfProtection = csrf({ cookie: false });
 
 // ============================================
 // ===== CSRF TOKEN ENDPOINT =====
@@ -264,7 +268,7 @@ const initializeTransporter = async () => {
 
             await Promise.race([
                 newTransporter.verify(),
-                new Promise((_, reject) => 
+                new Promise((_, reject) =>
                     setTimeout(() => reject(new Error('SMTP verification timeout')), 20000)
                 )
             ]);
@@ -273,7 +277,7 @@ const initializeTransporter = async () => {
             emailConfigured = true;
             console.log('SMTP configured and verified successfully');
             return true;
-            
+
         } catch (error) {
             console.error('SMTP initialization FAILED:', error.message);
             transporter = null;
@@ -293,13 +297,13 @@ async function getTransporter() {
     if (transporter && emailConfigured) {
         return transporter;
     }
-    
+
     if (!initializationPromise) {
         await initializeTransporter();
     } else {
         await initializationPromise;
     }
-    
+
     return transporter;
 }
 
@@ -314,14 +318,14 @@ const revokedTokens = new Set();
 
 const generateToken = (username) => {
     return jwt.sign(
-        { 
-            username, 
+        {
+            username,
             role: 'admin',
             iat: Math.floor(Date.now() / 1000),
             jti: crypto.randomBytes(16).toString('hex')
         },
         process.env.JWT_SECRET,
-        { 
+        {
             expiresIn: '1h',
             algorithm: 'HS256'
         }
@@ -432,7 +436,6 @@ app.post('/api/login', csrfProtection, async (req, res) => {
         const adminUsername = process.env.ADMIN_USERNAME;
         const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
 
-        // ✅ FIX: Timing-safe comparison
         if (!crypto.timingSafeEqual(Buffer.from(username), Buffer.from(adminUsername))) {
             await new Promise(resolve => setTimeout(resolve, 100));
             return res.status(401).json({ error: 'Invalid credentials' });
@@ -599,11 +602,11 @@ app.delete('/api/galleries/:id', requireAuth, csrfProtection, async (req, res) =
 app.get('/api/artworks', async (req, res) => {
     try {
         const { galleryId, featured } = req.query;
-        
+
         if (galleryId && !validateFirestoreId(galleryId)) {
             return res.status(400).json({ error: 'Invalid galleryId' });
         }
-        
+
         if (featured && featured !== 'true' && featured !== 'false') {
             return res.status(400).json({ error: 'Invalid featured value' });
         }
@@ -761,44 +764,29 @@ app.delete('/api/artworks/:id', requireAuth, csrfProtection, async (req, res) =>
 });
 
 // ============================================
-// ===== FILE UPLOAD (SECURE) =====
+// ===== FILE UPLOAD =====
 // ============================================
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB
+        fileSize: 5 * 1024 * 1024
     },
-    fileFilter: async (req, file, cb) => {
-        try {
-            // ✅ FIX: Validate actual file signature, not just mimetype
-            const buffer = file.buffer;
-            const type = await fileType.fromBuffer(buffer);
-            
-            if (type && ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(type.ext)) {
-                // Double-check mimetype matches
-                const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-                if (allowedMimes.includes(file.mimetype)) {
-                    cb(null, true);
-                } else {
-                    cb(new Error('Invalid file type. Only images are allowed.'), false);
-                }
-            } else {
-                cb(new Error('Invalid file type. Only images are allowed.'), false);
-            }
-        } catch (error) {
-            cb(new Error('File validation failed'), false);
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Only images are allowed.'));
         }
     }
 });
 
-// ✅ UPLOAD - With CSRF and Rate Limiting
 app.post('/api/upload', uploadLimiter, csrfProtection, upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No image file provided' });
         }
 
-        // ✅ Additional security: validate file size again
         if (req.file.size > 5 * 1024 * 1024) {
             return res.status(400).json({ error: 'File too large. Maximum 5MB.' });
         }
@@ -809,8 +797,7 @@ app.post('/api/upload', uploadLimiter, csrfProtection, upload.single('image'), a
         const result = await Promise.race([
             cloudinary.uploader.upload(dataURI, {
                 folder: 'shulamith-gallery/orders',
-                resource_type: 'auto',
-                allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif']
+                resource_type: 'auto'
             }),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timeout')), 30000))
         ]);
@@ -1287,7 +1274,7 @@ app.put('/api/orders/:id/status', requireAuth, csrfProtection, async (req, res) 
                 completed: 'مكتمل',
                 cancelled: 'ملغي'
             };
-            
+
             const transporterInstance = await getTransporter();
             if (transporterInstance && order.email) {
                 await transporterInstance.sendMail({
@@ -1454,7 +1441,7 @@ app.post('/api/send-email', requireAuth, csrfProtection, async (req, res) => {
         }
 
         const smtpTransporter = await getTransporter();
-        
+
         if (!smtpTransporter) {
             logger.error('Email service not available');
             return res.status(503).json({
@@ -1521,7 +1508,6 @@ app.get('/api/health', requireAuth, (req, res) => {
 app.use((err, req, res, next) => {
     logger.error('Server error', err);
 
-    // ✅ CSRF Error Handling
     if (err.code === 'EBADCSRFTOKEN') {
         return res.status(403).json({ error: 'Invalid CSRF token. Please refresh the page.' });
     }
@@ -1554,7 +1540,6 @@ if (require.main === module) {
         console.log('Health check at http://localhost:' + PORT + '/api/health (admin only)');
         console.log('CSRF protection enabled ✅');
         console.log('Secure file upload enabled ✅');
-        console.log('CSP with nonce enabled ✅');
     });
 }
 

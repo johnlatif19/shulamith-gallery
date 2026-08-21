@@ -578,7 +578,7 @@
         <div class="container">
             <div class="rate-form-wrapper">
                 <form id="rateForm" class="rate-form" autocomplete="off" novalidate>
-                    <input type="hidden" id="csrfToken" value="">
+                    <input type="hidden" id="csrfToken" name="_csrf" value="">
 
                     <!-- ===== NAME ===== -->
                     <div class="form-group">
@@ -826,6 +826,24 @@
         }
 
         // ============================================
+        // ===== CSRF TOKEN =====
+        // ============================================
+        let csrfToken = null;
+
+        async function getCsrfToken() {
+            try {
+                const res = await fetch('/api/csrf-token');
+                if (!res.ok) throw new Error('Failed to get CSRF token');
+                const data = await res.json();
+                csrfToken = data.token;
+                return csrfToken;
+            } catch (error) {
+                console.error('CSRF token error:', error);
+                return null;
+            }
+        }
+
+        // ============================================
         // ===== LANGUAGE =====
         // ============================================
         let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
@@ -865,29 +883,6 @@
                 updateRatingText(parseInt(selected.value));
             }
         }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedLang = localStorage.getItem('shulamith-lang') || 'ar';
-            setLanguage(savedLang);
-            
-            const csrfToken = document.getElementById('csrfToken');
-            if (csrfToken) {
-                csrfToken.value = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
-            }
-            
-            loadRates();
-            startAutoRefresh();
-            
-            setTimeout(() => {
-                document.getElementById('rateName').focus();
-            }, 300);
-        });
-
-        document.getElementById('langSwitch').addEventListener('click', function(e) {
-            e.preventDefault();
-            const newLang = currentLang === 'ar' ? 'en' : 'ar';
-            setLanguage(newLang);
-        });
 
         // ============================================
         // ===== NAV =====
@@ -968,6 +963,18 @@
         });
 
         // ============================================
+        // ===== SAFE RENDER FUNCTIONS =====
+        // ============================================
+        function createElementSafe(tag, content, attributes = {}) {
+            const el = document.createElement(tag);
+            el.textContent = content;
+            Object.entries(attributes).forEach(([key, value]) => {
+                el.setAttribute(key, value);
+            });
+            return el;
+        }
+
+        // ============================================
         // ===== LOAD RATES =====
         // ============================================
         async function loadRates() {
@@ -996,24 +1003,48 @@
                     return;
                 }
 
-                let html = '';
+                grid.innerHTML = '';
                 data.forEach((rate, index) => {
                     const stars = '★'.repeat(rate.rating) + '☆'.repeat(5 - rate.rating);
                     const date = rate.createdAt ? new Date(rate.createdAt).toLocaleDateString(currentLang === 'ar' ? 'ar' : 'en') : '';
                     const delay = (index % 5) * 0.08;
-                    html += `
-                        <div class="rate-item" style="animation-delay: ${delay}s;">
-                            <div class="rate-header">
-                                <span class="rate-name">${escapeHtml(rate.name)}</span>
-                                <span class="rate-stars">${stars}</span>
-                            </div>
-                            <div class="rate-email">${escapeHtml(rate.email)}</div>
-                            <div class="rate-opinion">${escapeHtml(rate.opinion)}</div>
-                            <div class="rate-date">📅 ${date}</div>
-                        </div>
-                    `;
+                    
+                    const item = document.createElement('div');
+                    item.className = 'rate-item';
+                    item.style.animationDelay = delay + 's';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'rate-header';
+                    
+                    const name = document.createElement('span');
+                    name.className = 'rate-name';
+                    name.textContent = rate.name;
+                    
+                    const starsSpan = document.createElement('span');
+                    starsSpan.className = 'rate-stars';
+                    starsSpan.textContent = stars;
+                    
+                    header.appendChild(name);
+                    header.appendChild(starsSpan);
+                    
+                    const email = document.createElement('div');
+                    email.className = 'rate-email';
+                    email.textContent = rate.email;
+                    
+                    const opinion = document.createElement('div');
+                    opinion.className = 'rate-opinion';
+                    opinion.textContent = rate.opinion;
+                    
+                    const dateDiv = document.createElement('div');
+                    dateDiv.className = 'rate-date';
+                    dateDiv.textContent = '📅 ' + date;
+                    
+                    item.appendChild(header);
+                    item.appendChild(email);
+                    item.appendChild(opinion);
+                    item.appendChild(dateDiv);
+                    grid.appendChild(item);
                 });
-                grid.innerHTML = html;
 
             } catch (error) {
                 console.error('Error loading rates:', error);
@@ -1095,14 +1126,12 @@
             submitBtn.querySelector('span:first-child').style.display = 'none';
             submitBtn.querySelector('.btn-loading').style.display = 'inline';
 
-            const csrfToken = document.getElementById('csrfToken').value || 'default';
-
             try {
                 const res = await fetch('/api/rates', {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-Token': csrfToken
+                        'X-CSRF-Token': csrfToken || document.getElementById('csrfToken').value
                     },
                     body: JSON.stringify({
                         name: nameVal,
@@ -1196,6 +1225,34 @@
                 }
             }, 30000);
         }
+
+        // ============================================
+        // ===== INIT =====
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLang = localStorage.getItem('shulamith-lang') || 'ar';
+            setLanguage(savedLang);
+            
+            // ===== CSRF TOKEN =====
+            getCsrfToken().then(token => {
+                if (token) {
+                    document.getElementById('csrfToken').value = token;
+                }
+            });
+            
+            loadRates();
+            startAutoRefresh();
+            
+            setTimeout(() => {
+                document.getElementById('rateName').focus();
+            }, 300);
+        });
+
+        document.getElementById('langSwitch').addEventListener('click', function(e) {
+            e.preventDefault();
+            const newLang = currentLang === 'ar' ? 'en' : 'ar';
+            setLanguage(newLang);
+        });
 
         // ============================================
         // ===== CONSOLE PROTECTION =====

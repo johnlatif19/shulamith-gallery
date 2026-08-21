@@ -377,9 +377,6 @@
             border: 1px solid var(--color-border);
             border-radius: var(--radius);
             overflow: hidden;
-        }
-
-        .table-responsive {
             overflow-x: auto;
         }
 
@@ -387,6 +384,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.9rem;
+            min-width: 600px;
         }
 
         thead {
@@ -1082,6 +1080,40 @@
             resize: vertical;
         }
 
+        /* ===== STAR RATING ===== */
+        .star-rating {
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        body.ltr .star-rating {
+            flex-direction: row;
+        }
+
+        .star-rating input {
+            display: none;
+        }
+
+        .star-rating label {
+            font-size: 2.2rem;
+            color: var(--color-border);
+            cursor: pointer;
+            transition: var(--transition);
+            margin: 0;
+        }
+
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+            color: #f1c40f;
+        }
+
+        body.ltr .star-rating label:hover ~ label {
+            color: #f1c40f;
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 992px) {
             .sidebar {
@@ -1159,6 +1191,7 @@
 
             table {
                 font-size: 0.8rem;
+                min-width: 500px;
             }
 
             th, td {
@@ -1247,40 +1280,6 @@
             .send-message-wrapper {
                 padding: 16px;
             }
-        }
-
-        /* ===== STAR RATING ===== */
-        .star-rating {
-            display: flex;
-            flex-direction: row-reverse;
-            gap: 8px;
-            justify-content: flex-end;
-        }
-
-        body.ltr .star-rating {
-            flex-direction: row;
-        }
-
-        .star-rating input {
-            display: none;
-        }
-
-        .star-rating label {
-            font-size: 2.2rem;
-            color: var(--color-border);
-            cursor: pointer;
-            transition: var(--transition);
-            margin: 0;
-        }
-
-        .star-rating label:hover,
-        .star-rating label:hover ~ label,
-        .star-rating input:checked ~ label {
-            color: #f1c40f;
-        }
-
-        body.ltr .star-rating label:hover ~ label {
-            color: #f1c40f;
         }
     </style>
 </head>
@@ -1489,6 +1488,7 @@
                     </div>
                     <div class="send-message-wrapper">
                         <form id="sendMessageForm">
+                            <input type="hidden" id="sendCsrfToken" name="_csrf" value="">
                             <div class="form-group">
                                 <label for="sendName">الاسم</label>
                                 <input type="text" id="sendName" name="name" required placeholder="أدخل اسم المستلم">
@@ -1520,6 +1520,7 @@
                         <h2>إعدادات الموقع</h2>
                     </div>
                     <form id="settingsForm" class="settings-form">
+                        <input type="hidden" id="settingsCsrfToken" name="_csrf" value="">
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
                             <div class="form-group" style="grid-column: 1 / -1;">
                                 <label for="siteName">اسم الموقع</label>
@@ -1586,6 +1587,7 @@
                 <button class="modal-close" data-modal="galleryModal">✕</button>
             </div>
             <form id="galleryForm">
+                <input type="hidden" id="galleryCsrfToken" name="_csrf" value="">
                 <input type="hidden" id="galleryId" value="">
                 <div class="form-group">
                     <label for="galleryName">اسم المعرض</label>
@@ -1640,6 +1642,7 @@
                 <button class="modal-close" data-modal="artworkModal">✕</button>
             </div>
             <form id="artworkForm">
+                <input type="hidden" id="artworkCsrfToken" name="_csrf" value="">
                 <input type="hidden" id="artworkId" value="">
                 <div class="form-group">
                     <label for="artworkGallery">المعرض</label>
@@ -1714,6 +1717,7 @@
                 <button class="modal-close" data-modal="editOrderModal">✕</button>
             </div>
             <form id="editOrderForm">
+                <input type="hidden" id="editOrderCsrfToken" name="_csrf" value="">
                 <input type="hidden" id="editOrderId" value="">
                 <div class="form-group">
                     <label for="editOrderName">الاسم</label>
@@ -1754,7 +1758,7 @@
         </div>
     </div>
 
-    <!-- Image Preview Modal للعرض بالحجم الكامل -->
+    <!-- Image Preview Modal -->
     <div class="modal" id="imagePreviewModal">
         <div class="modal-content modal-small">
             <div class="modal-header">
@@ -1778,6 +1782,7 @@
                 <button class="modal-close" data-modal="editRateModal">✕</button>
             </div>
             <form id="editRateForm">
+                <input type="hidden" id="editRateCsrfToken" name="_csrf" value="">
                 <input type="hidden" id="editRateId" value="">
                 <div class="form-group">
                     <label for="editRateName">الاسم</label>
@@ -1846,10 +1851,51 @@
         }
 
         // ============================================
+        // ===== SANITIZE INPUT =====
+        // ============================================
+        function sanitizeInput(text) {
+            if (!text) return '';
+            return text
+                .replace(/<script/gi, '&lt;script')
+                .replace(/<\/script>/gi, '&lt;/script&gt;')
+                .replace(/onerror=/gi, 'onerror=')
+                .replace(/onload=/gi, 'onload=')
+                .replace(/javascript:/gi, 'javascript:')
+                .trim();
+        }
+
+        // ============================================
+        // ===== CSRF TOKEN =====
+        // ============================================
+        let csrfToken = null;
+
+        async function getCsrfToken() {
+            try {
+                const res = await fetch('/api/csrf-token');
+                if (!res.ok) throw new Error('Failed to get CSRF token');
+                const data = await res.json();
+                csrfToken = data.token;
+                return csrfToken;
+            } catch (error) {
+                console.error('CSRF token error:', error);
+                return null;
+            }
+        }
+
+        async function addCsrfToForms() {
+            const token = await getCsrfToken();
+            if (!token) return;
+            
+            document.querySelectorAll('form input[name="_csrf"]').forEach(input => {
+                input.value = token;
+            });
+        }
+
+        // ============================================
         // ===== STATE & VARIABLES =====
         // ============================================
         let currentLang = localStorage.getItem('shulamith-lang') || 'ar';
-        let token = localStorage.getItem('shulamith-token');
+        let token = sessionStorage.getItem('shulamith-token');
         let galleries = [];
         let artworks = [];
         let messages = [];
@@ -1877,10 +1923,14 @@
         // ===== AUTHENTICATION =====
         // ============================================
         function getHeaders() {
-            return {
+            const headers = {
                 'Authorization': 'Bearer ' + token,
                 'Content-Type': 'application/json'
             };
+            if (csrfToken) {
+                headers['X-CSRF-Token'] = csrfToken;
+            }
+            return headers;
         }
 
         async function checkAuth() {
@@ -1894,14 +1944,14 @@
                 });
                 
                 if (res.status === 401) {
-                    localStorage.removeItem('shulamith-token');
+                    sessionStorage.removeItem('shulamith-token');
                     window.location.href = '/login';
                     return false;
                 }
                 
                 const data = await res.json();
                 if (!data.valid) {
-                    localStorage.removeItem('shulamith-token');
+                    sessionStorage.removeItem('shulamith-token');
                     window.location.href = '/login';
                     return false;
                 }
@@ -1919,7 +1969,7 @@
                     headers: getHeaders()
                 });
             } catch (e) {}
-            localStorage.removeItem('shulamith-token');
+            sessionStorage.removeItem('shulamith-token');
             window.location.href = '/login';
         }
 
@@ -1929,15 +1979,31 @@
         async function apiFetch(url, options = {}) {
             try {
                 const headers = options.body ? getHeaders() : { 'Authorization': 'Bearer ' + token };
+                
                 const res = await fetch(url, {
                     ...options,
                     headers: headers
                 });
                 
                 if (res.status === 401 && !url.includes('/verify')) {
-                    localStorage.removeItem('shulamith-token');
+                    sessionStorage.removeItem('shulamith-token');
                     window.location.href = '/login';
                     throw new Error('Unauthorized');
+                }
+                
+                if (res.status === 403) {
+                    // CSRF token expired - refresh
+                    await getCsrfToken();
+                    const newHeaders = getHeaders();
+                    const retryRes = await fetch(url, {
+                        ...options,
+                        headers: newHeaders
+                    });
+                    if (!retryRes.ok) {
+                        const errData = await retryRes.json().catch(() => ({}));
+                        throw new Error(errData.error || 'Request failed');
+                    }
+                    return retryRes.json();
                 }
                 
                 if (res.status === 401 && url.includes('/verify')) {
@@ -2028,6 +2094,67 @@
         };
 
         // ============================================
+        // ===== SAFE RENDER FUNCTIONS =====
+        // ============================================
+        function createElementSafe(tag, content, attributes = {}) {
+            const el = document.createElement(tag);
+            el.textContent = content;
+            Object.entries(attributes).forEach(([key, value]) => {
+                el.setAttribute(key, value);
+            });
+            return el;
+        }
+
+        function renderTable(data, columns, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="empty-state">لا توجد بيانات</div>';
+                return;
+            }
+            
+            const table = document.createElement('table');
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            
+            columns.forEach(col => {
+                const th = document.createElement('th');
+                th.textContent = col.label;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            const tbody = document.createElement('tbody');
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                columns.forEach(col => {
+                    const td = document.createElement('td');
+                    let value;
+                    if (col.render) {
+                        value = col.render(item, index);
+                    } else {
+                        value = item[col.key];
+                    }
+                    
+                    if (value instanceof HTMLElement) {
+                        td.appendChild(value);
+                    } else if (value !== null && value !== undefined) {
+                        td.textContent = value;
+                    } else {
+                        td.textContent = '-';
+                    }
+                    row.appendChild(td);
+                });
+                tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+            container.appendChild(table);
+        }
+
+        // ============================================
         // ===== LOAD STATS =====
         // ============================================
         async function loadStats() {
@@ -2062,23 +2189,38 @@
                     container.innerHTML = '<div class="empty-state">لا توجد رسائل حالياً</div>';
                     return;
                 }
-                let html = '';
+                container.innerHTML = '';
                 data.slice(0, 5).forEach(msg => {
-                    const status = msg.read ? 'مقروءة' : 'غير مقروءة';
-                    const statusClass = msg.read ? 'read' : 'unread';
-                    const time = msg.createdAt ? new Date(msg.createdAt).toLocaleDateString('ar') : '';
-                    html += `
-                        <div class="message-item">
-                            <div class="msg-info">
-                                <span class="msg-name">${escapeHtml(msg.name)}</span>
-                                <span class="msg-preview">${escapeHtml(msg.message.substring(0, 60))}${msg.message.length > 60 ? '...' : ''}</span>
-                                <span class="msg-time">${time}</span>
-                            </div>
-                            <span class="msg-status ${statusClass}">${status}</span>
-                        </div>
-                    `;
+                    const item = document.createElement('div');
+                    item.className = 'message-item';
+                    
+                    const info = document.createElement('div');
+                    info.className = 'msg-info';
+                    
+                    const name = document.createElement('span');
+                    name.className = 'msg-name';
+                    name.textContent = msg.name;
+                    
+                    const preview = document.createElement('span');
+                    preview.className = 'msg-preview';
+                    preview.textContent = msg.message.substring(0, 60) + (msg.message.length > 60 ? '...' : '');
+                    
+                    const time = document.createElement('span');
+                    time.className = 'msg-time';
+                    time.textContent = msg.createdAt ? new Date(msg.createdAt).toLocaleDateString('ar') : '';
+                    
+                    info.appendChild(name);
+                    info.appendChild(preview);
+                    info.appendChild(time);
+                    
+                    const status = document.createElement('span');
+                    status.className = `msg-status ${msg.read ? 'read' : 'unread'}`;
+                    status.textContent = msg.read ? 'مقروءة' : 'غير مقروءة';
+                    
+                    item.appendChild(info);
+                    item.appendChild(status);
+                    container.appendChild(item);
                 });
-                container.innerHTML = html;
             } catch (error) {
                 console.error('Error loading recent messages:', error);
             }
@@ -2096,39 +2238,46 @@
                     container.innerHTML = '<div class="empty-state">لا توجد معارض حالياً</div>';
                     return;
                 }
-                let html = `
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>الاسم</th>
-                                    <th>الوصف</th>
-                                    <th>الحالة</th>
-                                    <th>الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
-                data.forEach((g, i) => {
-                    html += `
-                        <tr>
-                            <td>${i + 1}</td>
-                            <td>${escapeHtml(g.name)}</td>
-                            <td>${escapeHtml(g.description ? g.description.substring(0, 30) + (g.description.length > 30 ? '...' : '') : '-')}</td>
-                            <td><span class="badge-status ${g.visible !== false ? 'visible' : 'hidden'}">${g.visible !== false ? 'ظاهر' : 'مخفي'}</span></td>
-                            <td>
-                                <div class="table-actions">
-                                    <button class="btn-edit" onclick="window.editGallery('${escapeHtml(g.id)}')">تعديل</button>
-                                    <button class="btn-toggle ${g.visible !== false ? '' : 'hidden'}" onclick="window.toggleGallery('${escapeHtml(g.id)}')">${g.visible !== false ? 'إخفاء' : 'إظهار'}</button>
-                                    <button class="btn-delete" onclick="window.confirmDelete('gallery', '${escapeHtml(g.id)}')">حذف</button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                });
-                html += '</tbody></table></div>';
-                container.innerHTML = html;
+
+                const columns = [
+                    { label: '#', render: (_, i) => i + 1 },
+                    { label: 'الاسم', render: (item) => item.name || '-' },
+                    { label: 'الوصف', render: (item) => 
+                        item.description ? item.description.substring(0, 30) + (item.description.length > 30 ? '...' : '') : '-' 
+                    },
+                    { label: 'الحالة', render: (item) => {
+                        const span = document.createElement('span');
+                        span.className = `badge-status ${item.visible !== false ? 'visible' : 'hidden'}`;
+                        span.textContent = item.visible !== false ? 'ظاهر' : 'مخفي';
+                        return span;
+                    }},
+                    { label: 'الإجراءات', render: (item) => {
+                        const container = document.createElement('div');
+                        container.className = 'table-actions';
+                        
+                        const editBtn = document.createElement('button');
+                        editBtn.className = 'btn-edit';
+                        editBtn.textContent = 'تعديل';
+                        editBtn.onclick = () => window.editGallery(item.id);
+                        
+                        const toggleBtn = document.createElement('button');
+                        toggleBtn.className = `btn-toggle ${item.visible !== false ? '' : 'hidden'}`;
+                        toggleBtn.textContent = item.visible !== false ? 'إخفاء' : 'إظهار';
+                        toggleBtn.onclick = () => window.toggleGallery(item.id);
+                        
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'btn-delete';
+                        deleteBtn.textContent = 'حذف';
+                        deleteBtn.onclick = () => window.confirmDelete('gallery', item.id);
+                        
+                        container.appendChild(editBtn);
+                        container.appendChild(toggleBtn);
+                        container.appendChild(deleteBtn);
+                        return container;
+                    }}
+                ];
+                
+                renderTable(data, columns, 'galleriesContainer');
             } catch (error) {
                 console.error('Error loading galleries:', error);
                 container.innerHTML = '<div class="empty-state">حدث خطأ في تحميل المعارض</div>';
@@ -2159,7 +2308,10 @@
                     document.getElementById('galleryVisible').checked = gallery.visible !== false;
                     
                     if (gallery.coverImage) {
-                        document.getElementById('galleryUploadPreview').innerHTML = `<img src="${escapeHtml(gallery.coverImage)}" alt="Preview">`;
+                        const img = document.createElement('img');
+                        img.src = gallery.coverImage;
+                        img.alt = 'Preview';
+                        document.getElementById('galleryUploadPreview').appendChild(img);
                     }
                 }
             } else {
@@ -2206,47 +2358,55 @@
                     container.innerHTML = '<div class="empty-state">لا توجد أعمال فنية حالياً</div>';
                     return;
                 }
-                let html = `
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>الصورة</th>
-                                    <th>العنوان</th>
-                                    <th>الخامة</th>
-                                    <th>المقاس</th>
-                                    <th>المعرض</th>
-                                    <th>الحالة</th>
-                                    <th>الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
-                for (const a of data) {
-                    let galleryName = '';
-                    const gallery = galleries.find(g => g.id === a.galleryId);
-                    if (gallery) galleryName = gallery.name;
-                    
-                    html += `
-                        <tr>
-                            <td><img src="${escapeHtml(a.imageUrl)}" alt="${escapeHtml(a.title)}" class="image-thumb"></td>
-                            <td>${escapeHtml(a.title)}</td>
-                            <td>${escapeHtml(a.material || '-')}</td>
-                            <td>${escapeHtml(a.dimensions || '-')}</td>
-                            <td>${escapeHtml(galleryName || '-')}</td>
-                            <td><span class="badge-status ${a.visible !== false ? 'visible' : 'hidden'}">${a.visible !== false ? 'ظاهر' : 'مخفي'}</span></td>
-                            <td>
-                                <div class="table-actions">
-                                    <button class="btn-edit" onclick="window.editArtwork('${escapeHtml(a.id)}')">تعديل</button>
-                                    <button class="btn-toggle ${a.visible !== false ? '' : 'hidden'}" onclick="window.toggleArtwork('${escapeHtml(a.id)}')">${a.visible !== false ? 'إخفاء' : 'إظهار'}</button>
-                                    <button class="btn-delete" onclick="window.confirmDelete('artwork', '${escapeHtml(a.id)}')">حذف</button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }
-                html += '</tbody></table></div>';
-                container.innerHTML = html;
+
+                const columns = [
+                    { label: 'الصورة', render: (item) => {
+                        const img = document.createElement('img');
+                        img.src = item.imageUrl;
+                        img.alt = item.title;
+                        img.className = 'image-thumb';
+                        return img;
+                    }},
+                    { label: 'العنوان', render: (item) => item.title || '-' },
+                    { label: 'الخامة', render: (item) => item.material || '-' },
+                    { label: 'المقاس', render: (item) => item.dimensions || '-' },
+                    { label: 'المعرض', render: (item) => {
+                        const gallery = galleries.find(g => g.id === item.galleryId);
+                        return gallery ? gallery.name : '-';
+                    }},
+                    { label: 'الحالة', render: (item) => {
+                        const span = document.createElement('span');
+                        span.className = `badge-status ${item.visible !== false ? 'visible' : 'hidden'}`;
+                        span.textContent = item.visible !== false ? 'ظاهر' : 'مخفي';
+                        return span;
+                    }},
+                    { label: 'الإجراءات', render: (item) => {
+                        const container = document.createElement('div');
+                        container.className = 'table-actions';
+                        
+                        const editBtn = document.createElement('button');
+                        editBtn.className = 'btn-edit';
+                        editBtn.textContent = 'تعديل';
+                        editBtn.onclick = () => window.editArtwork(item.id);
+                        
+                        const toggleBtn = document.createElement('button');
+                        toggleBtn.className = `btn-toggle ${item.visible !== false ? '' : 'hidden'}`;
+                        toggleBtn.textContent = item.visible !== false ? 'إخفاء' : 'إظهار';
+                        toggleBtn.onclick = () => window.toggleArtwork(item.id);
+                        
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'btn-delete';
+                        deleteBtn.textContent = 'حذف';
+                        deleteBtn.onclick = () => window.confirmDelete('artwork', item.id);
+                        
+                        container.appendChild(editBtn);
+                        container.appendChild(toggleBtn);
+                        container.appendChild(deleteBtn);
+                        return container;
+                    }}
+                ];
+                
+                renderTable(data, columns, 'artworksContainer');
             } catch (error) {
                 console.error('Error loading artworks:', error);
                 container.innerHTML = '<div class="empty-state">حدث خطأ في تحميل الأعمال الفنية</div>';
@@ -2296,7 +2456,10 @@
                     document.getElementById('artworkVisible').checked = artwork.visible !== false;
                     
                     if (artwork.imageUrl) {
-                        document.getElementById('uploadPreview').innerHTML = `<img src="${escapeHtml(artwork.imageUrl)}" alt="Preview">`;
+                        const img = document.createElement('img');
+                        img.src = artwork.imageUrl;
+                        img.alt = 'Preview';
+                        document.getElementById('uploadPreview').appendChild(img);
                     }
                 }
             } else {
@@ -2345,54 +2508,50 @@
                     container.innerHTML = '<div class="empty-state">لا توجد رسائل حالياً</div>';
                     return;
                 }
-                let html = `
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>الاسم</th>
-                                    <th>البريد</th>
-                                    <th>الهاتف</th>
-                                    <th>الرسالة</th>
-                                    <th>التاريخ</th>
-                                    <th>الحالة</th>
-                                    <th>الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
-                data.forEach(msg => {
-                    const status = msg.read ? 'مقروءة' : 'غير مقروءة';
-                    const statusClass = msg.read ? 'read' : 'unread';
-                    const time = msg.createdAt ? new Date(msg.createdAt).toLocaleDateString('ar') : '';
-                    html += `
-                        <tr>
-                            <td>${escapeHtml(msg.name)}</td>
-                            <td>${escapeHtml(msg.email)}</td>
-                            <td>${escapeHtml(msg.phone || '-')}</td>
-                            <td>${escapeHtml(msg.message.substring(0, 40))}${msg.message.length > 40 ? '...' : ''}</td>
-                            <td>${time}</td>
-                            <td><span class="badge-status ${statusClass}">${status}</span></td>
-                            <td>
-                                <div class="table-actions">
-                                    <button class="btn-toggle ${msg.read ? '' : 'hidden'}" onclick="window.toggleMessage('${escapeHtml(msg.id)}', ${!msg.read})">${msg.read ? 'غير مقروء' : 'قراءة'}</button>
-                                    <button class="btn-delete" onclick="window.confirmDelete('message', '${escapeHtml(msg.id)}')">حذف</button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                });
-                html += '</tbody></table></div>';
-                container.innerHTML = html;
+
+                const columns = [
+                    { label: 'الاسم', render: (item) => item.name || '-' },
+                    { label: 'البريد', render: (item) => item.email || '-' },
+                    { label: 'الهاتف', render: (item) => item.phone || '-' },
+                    { label: 'الرسالة', render: (item) => 
+                        item.message ? item.message.substring(0, 40) + (item.message.length > 40 ? '...' : '') : '-' 
+                    },
+                    { label: 'التاريخ', render: (item) => 
+                        item.createdAt ? new Date(item.createdAt).toLocaleDateString('ar') : '' 
+                    },
+                    { label: 'الحالة', render: (item) => {
+                        const span = document.createElement('span');
+                        span.className = `badge-status ${item.read ? 'read' : 'unread'}`;
+                        span.textContent = item.read ? 'مقروءة' : 'غير مقروءة';
+                        return span;
+                    }},
+                    { label: 'الإجراءات', render: (item) => {
+                        const container = document.createElement('div');
+                        container.className = 'table-actions';
+                        
+                        const toggleBtn = document.createElement('button');
+                        toggleBtn.className = `btn-toggle ${item.read ? '' : 'hidden'}`;
+                        toggleBtn.textContent = item.read ? 'غير مقروء' : 'قراءة';
+                        toggleBtn.onclick = () => window.toggleMessage(item.id, !item.read);
+                        
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'btn-delete';
+                        deleteBtn.textContent = 'حذف';
+                        deleteBtn.onclick = () => window.confirmDelete('message', item.id);
+                        
+                        container.appendChild(toggleBtn);
+                        container.appendChild(deleteBtn);
+                        return container;
+                    }}
+                ];
+                
+                renderTable(data, columns, 'messagesContainer');
             } catch (error) {
                 console.error('Error loading messages:', error);
                 container.innerHTML = '<div class="empty-state">حدث خطأ في تحميل الرسائل</div>';
             }
         }
 
-        // ============================================
-        // ===== MESSAGE FUNCTIONS =====
-        // ============================================
         window.toggleMessage = async function(id, read) {
             try {
                 const res = await fetch(`/api/messages/${id}/read`, {
@@ -2418,52 +2577,49 @@
             try {
                 let url = '/api/rates';
                 if (filter !== 'all') url += `?rating=${filter}`;
-                
-                const res = await fetch(url);
-                if (!res.ok) throw new Error('Failed to fetch rates');
-                const data = await res.json();
-                
+                const data = await apiFetch(url);
                 rates = data;
                 if (!data || data.length === 0) {
                     container.innerHTML = '<div class="empty-state">لا توجد تقييمات حالياً</div>';
                     return;
                 }
-                let html = `
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>الاسم</th>
-                                    <th>البريد</th>
-                                    <th>التقييم</th>
-                                    <th>الرأي</th>
-                                    <th>التاريخ</th>
-                                    <th>الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
-                data.forEach(rate => {
-                    const stars = '★'.repeat(rate.rating) + '☆'.repeat(5 - rate.rating);
-                    const date = rate.createdAt ? new Date(rate.createdAt).toLocaleDateString('ar') : '';
-                    html += `
-                        <tr>
-                            <td>${escapeHtml(rate.name)}</td>
-                            <td>${escapeHtml(rate.email)}</td>
-                            <td style="color:#f1c40f;">${stars}</td>
-                            <td>${escapeHtml(rate.opinion.substring(0, 40))}${rate.opinion.length > 40 ? '...' : ''}</td>
-                            <td>${date}</td>
-                            <td>
-                                <div class="table-actions">
-                                    <button class="btn-edit" onclick="window.editRate('${escapeHtml(rate.id)}')">تعديل</button>
-                                    <button class="btn-delete" onclick="window.confirmDelete('rate', '${escapeHtml(rate.id)}')">حذف</button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                });
-                html += '</tbody></table></div>';
-                container.innerHTML = html;
+
+                const columns = [
+                    { label: 'الاسم', render: (item) => item.name || '-' },
+                    { label: 'البريد', render: (item) => item.email || '-' },
+                    { label: 'التقييم', render: (item) => {
+                        const span = document.createElement('span');
+                        span.style.color = '#f1c40f';
+                        span.textContent = '★'.repeat(item.rating) + '☆'.repeat(5 - item.rating);
+                        return span;
+                    }},
+                    { label: 'الرأي', render: (item) => 
+                        item.opinion ? item.opinion.substring(0, 40) + (item.opinion.length > 40 ? '...' : '') : '-' 
+                    },
+                    { label: 'التاريخ', render: (item) => 
+                        item.createdAt ? new Date(item.createdAt).toLocaleDateString('ar') : '' 
+                    },
+                    { label: 'الإجراءات', render: (item) => {
+                        const container = document.createElement('div');
+                        container.className = 'table-actions';
+                        
+                        const editBtn = document.createElement('button');
+                        editBtn.className = 'btn-edit';
+                        editBtn.textContent = 'تعديل';
+                        editBtn.onclick = () => window.editRate(item.id);
+                        
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'btn-delete';
+                        deleteBtn.textContent = 'حذف';
+                        deleteBtn.onclick = () => window.confirmDelete('rate', item.id);
+                        
+                        container.appendChild(editBtn);
+                        container.appendChild(deleteBtn);
+                        return container;
+                    }}
+                ];
+                
+                renderTable(data, columns, 'ratesContainer');
 
                 const badge = document.getElementById('ratesBadge');
                 if (badge) {
@@ -2507,73 +2663,86 @@
             try {
                 let url = '/api/orders';
                 if (filter !== 'all') url += `?status=${filter}`;
-                
-                const res = await fetch(url, {
-                    headers: getHeaders()
-                });
-                if (!res.ok) throw new Error('Failed to fetch orders');
-                const data = await res.json();
-                
+                const data = await apiFetch(url);
                 orders = data;
                 if (!data || data.length === 0) {
                     container.innerHTML = '<div class="empty-state">لا توجد طلبات حالياً</div>';
                     return;
                 }
-                let html = `
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>الصورة</th>
-                                    <th>الاسم</th>
-                                    <th>الهاتف</th>
-                                    <th>البريد</th>
-                                    <th>الطلب</th>
-                                    <th>الحالة</th>
-                                    <th>التاريخ</th>
-                                    <th>الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
+
                 const statusMap = {
                     pending: 'قيد الانتظار',
                     processing: 'قيد التنفيذ',
                     completed: 'مكتمل',
                     cancelled: 'ملغي'
                 };
-                data.forEach(order => {
-                    const statusText = statusMap[order.status] || order.status;
-                    const date = order.createdAt ? new Date(order.createdAt).toLocaleDateString('ar') : '';
-                    const hasImage = order.imageUrl && order.imageUrl.length > 0;
-                    html += `
-                        <tr>
-                            <td>
-                                ${hasImage ? `<img src="${escapeHtml(order.imageUrl)}" alt="صورة الطلب" class="order-image-thumb" onclick="window.previewOrderImage('${escapeHtml(order.imageUrl)}', '${escapeHtml(order.name)}')">` : '<span class="no-image-text">لا توجد</span>'}
-                            </td>
-                            <td>${escapeHtml(order.name)}</td>
-                            <td>${escapeHtml(order.phone)}</td>
-                            <td>${escapeHtml(order.email)}</td>
-                            <td>${escapeHtml(order.orderText.substring(0, 40))}${order.orderText.length > 40 ? '...' : ''}</td>
-                            <td><span class="badge-status ${order.status}">${statusText}</span></td>
-                            <td>${date}</td>
-                            <td>
-                                <div class="table-actions">
-                                    <button class="btn-edit" onclick="window.editOrder('${escapeHtml(order.id)}')">تعديل</button>
-                                    <select class="filter-select" onchange="window.updateOrderStatus('${escapeHtml(order.id)}', this.value)" style="padding:2px 8px; font-size:0.75rem;">
-                                        <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>قيد الانتظار</option>
-                                        <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>قيد التنفيذ</option>
-                                        <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>مكتمل</option>
-                                        <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>ملغي</option>
-                                    </select>
-                                    <button class="btn-delete" onclick="window.confirmDelete('order', '${escapeHtml(order.id)}')">حذف</button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                });
-                html += '</tbody></table></div>';
-                container.innerHTML = html;
+
+                const columns = [
+                    { label: 'الصورة', render: (item) => {
+                        if (item.imageUrl && item.imageUrl.length > 0) {
+                            const img = document.createElement('img');
+                            img.src = item.imageUrl;
+                            img.alt = 'صورة الطلب';
+                            img.className = 'order-image-thumb';
+                            img.onclick = () => window.previewOrderImage(item.imageUrl, item.name);
+                            return img;
+                        } else {
+                            const span = document.createElement('span');
+                            span.className = 'no-image-text';
+                            span.textContent = 'لا توجد';
+                            return span;
+                        }
+                    }},
+                    { label: 'الاسم', render: (item) => item.name || '-' },
+                    { label: 'الهاتف', render: (item) => item.phone || '-' },
+                    { label: 'البريد', render: (item) => item.email || '-' },
+                    { label: 'الطلب', render: (item) => 
+                        item.orderText ? item.orderText.substring(0, 40) + (item.orderText.length > 40 ? '...' : '') : '-' 
+                    },
+                    { label: 'الحالة', render: (item) => {
+                        const span = document.createElement('span');
+                        span.className = `badge-status ${item.status}`;
+                        span.textContent = statusMap[item.status] || item.status;
+                        return span;
+                    }},
+                    { label: 'التاريخ', render: (item) => 
+                        item.createdAt ? new Date(item.createdAt).toLocaleDateString('ar') : '' 
+                    },
+                    { label: 'الإجراءات', render: (item) => {
+                        const container = document.createElement('div');
+                        container.className = 'table-actions';
+                        
+                        const editBtn = document.createElement('button');
+                        editBtn.className = 'btn-edit';
+                        editBtn.textContent = 'تعديل';
+                        editBtn.onclick = () => window.editOrder(item.id);
+                        
+                        const select = document.createElement('select');
+                        select.className = 'filter-select';
+                        select.style.padding = '2px 8px';
+                        select.style.fontSize = '0.75rem';
+                        ['pending', 'processing', 'completed', 'cancelled'].forEach(status => {
+                            const opt = document.createElement('option');
+                            opt.value = status;
+                            opt.textContent = statusMap[status] || status;
+                            if (status === item.status) opt.selected = true;
+                            select.appendChild(opt);
+                        });
+                        select.onchange = () => window.updateOrderStatus(item.id, select.value);
+                        
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'btn-delete';
+                        deleteBtn.textContent = 'حذف';
+                        deleteBtn.onclick = () => window.confirmDelete('order', item.id);
+                        
+                        container.appendChild(editBtn);
+                        container.appendChild(select);
+                        container.appendChild(deleteBtn);
+                        return container;
+                    }}
+                ];
+                
+                renderTable(data, columns, 'ordersContainer');
 
                 const badge = document.getElementById('ordersBadge');
                 if (badge) {
@@ -2607,10 +2776,22 @@
             document.getElementById('editOrderImage').value = order.imageUrl || '';
             
             const preview = document.getElementById('editOrderImagePreview');
+            preview.innerHTML = '';
             if (order.imageUrl) {
-                preview.innerHTML = `<img src="${escapeHtml(order.imageUrl)}" alt="الصورة المرفقة" style="max-width:100%; max-height:150px; border-radius:8px; border:1px solid var(--color-border);">`;
+                const img = document.createElement('img');
+                img.src = order.imageUrl;
+                img.alt = 'الصورة المرفقة';
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '150px';
+                img.style.borderRadius = '8px';
+                img.style.border = '1px solid var(--color-border)';
+                preview.appendChild(img);
             } else {
-                preview.innerHTML = '<span style="color:var(--color-text-dark); font-size:0.85rem;">لا توجد صورة مرفقة</span>';
+                const span = document.createElement('span');
+                span.style.color = 'var(--color-text-dark)';
+                span.style.fontSize = '0.85rem';
+                span.textContent = 'لا توجد صورة مرفقة';
+                preview.appendChild(span);
             }
             
             document.getElementById('editOrderModal').classList.add('active');
@@ -2855,6 +3036,9 @@
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', '/api/upload');
                 xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                if (csrfToken) {
+                    xhr.setRequestHeader('X-CSRF-Token', csrfToken);
+                }
                 
                 xhr.upload.onprogress = function(e) {
                     if (e.lengthComputable) {
@@ -2868,10 +3052,15 @@
                     if (xhr.status === 200) {
                         const data = JSON.parse(xhr.response);
                         document.getElementById('galleryCover').value = data.url;
-                        document.getElementById('galleryUploadPreview').innerHTML = `<img src="${escapeHtml(data.url)}" alt="Uploaded">`;
+                        const preview = document.getElementById('galleryUploadPreview');
+                        preview.innerHTML = '';
+                        const img = document.createElement('img');
+                        img.src = data.url;
+                        img.alt = 'Uploaded';
+                        preview.appendChild(img);
                         showToast('تم رفع الصورة بنجاح');
                     } else if (xhr.status === 401) {
-                        localStorage.removeItem('shulamith-token');
+                        sessionStorage.removeItem('shulamith-token');
                         window.location.href = '/login';
                     } else {
                         showToast('فشل رفع الصورة', 'error');
@@ -2895,6 +3084,10 @@
         // ===== INITIALIZATION =====
         // ============================================
         document.addEventListener('DOMContentLoaded', async function() {
+            // ===== CSRF TOKEN =====
+            await getCsrfToken();
+            await addCsrfToForms();
+            
             const isValid = await checkAuth();
             if (!isValid) return;
             
@@ -3052,6 +3245,9 @@
                     const xhr = new XMLHttpRequest();
                     xhr.open('POST', '/api/upload');
                     xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                    if (csrfToken) {
+                        xhr.setRequestHeader('X-CSRF-Token', csrfToken);
+                    }
                     
                     xhr.upload.onprogress = function(e) {
                         if (e.lengthComputable) {
@@ -3065,11 +3261,16 @@
                         if (xhr.status === 200) {
                             const data = JSON.parse(xhr.response);
                             document.getElementById('artworkImageUrl').value = data.url;
-                            document.getElementById('uploadPreview').innerHTML = `<img src="${escapeHtml(data.url)}" alt="Uploaded">`;
+                            const preview = document.getElementById('uploadPreview');
+                            preview.innerHTML = '';
+                            const img = document.createElement('img');
+                            img.src = data.url;
+                            img.alt = 'Uploaded';
+                            preview.appendChild(img);
                             showToast('تم رفع الصورة بنجاح');
                         } else if (xhr.status === 401) {
-                            localStorage.removeItem('shulamith-token');
-                            window.location.href = '/login.html';
+                            sessionStorage.removeItem('shulamith-token');
+                            window.location.href = '/login';
                         } else {
                             showToast('فشل رفع الصورة', 'error');
                         }

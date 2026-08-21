@@ -10,12 +10,20 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const csrf = require('csurf'); // ✅ NEW: CSRF Protection
+const fileType = require('file-type'); // ✅ NEW: File validation
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ============================================
+// ===== TRUST PROXY (for Vercel) =====
+// ============================================
 app.set('trust proxy', true);
 
+// ============================================
+// ===== TIMEOUT MIDDLEWARE =====
+// ============================================
 const timeoutMiddleware = (req, res, next) => {
     req.setTimeout(30000, () => {
         res.status(504).json({ error: 'Request timeout' });
@@ -23,14 +31,35 @@ const timeoutMiddleware = (req, res, next) => {
     next();
 };
 
+// ============================================
+// ===== NONCE GENERATOR (for CSP) =====
+// ============================================
+app.use((req, res, next) => {
+    res.locals.nonce = crypto.randomBytes(16).toString('base64');
+    next();
+});
+
+// ============================================
+// ===== HELMET (CSP with NONCE) =====
+// ============================================
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
             imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://i.postimg.cc"],
-            scriptSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
-            connectSrc: ["'self'", "https://firestore.googleapis.com", "https://api.cloudinary.com"],
+            scriptSrc: [
+                "'self'",
+                (req, res) => `'nonce-${res.locals.nonce}'`
+            ],
+            styleSrc: [
+                "'self'",
+                (req, res) => `'nonce-${res.locals.nonce}'`
+            ],
+            connectSrc: [
+                "'self'",
+                "https://firestore.googleapis.com",
+                "https://api.cloudinary.com"
+            ],
             baseUri: ["'self'"],
             frameAncestors: ["'none'"],
             formAction: ["'self'"],
@@ -48,6 +77,23 @@ app.use(helmet({
     xssFilter: true
 }));
 
+// ============================================
+// ===== EXTRA SECURITY HEADERS =====
+// ============================================
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 
+        'geolocation=(), microphone=(), camera=(), payment=(), usb=(), autoplay=()'
+    );
+    next();
+});
+
+// ============================================
+// ===== CORS =====
+// ============================================
 const allowedOrigins = [
     'https://shulamith-gallery.vercel.app',
     'https://shulamith-gallery.com',
@@ -59,7 +105,7 @@ app.use(cors({
     origin: function (origin, callback) {
         if (!origin) return callback(null, true);
         
-        if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+        if (allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
             console.warn('CORS blocked: ' + origin);
@@ -68,15 +114,21 @@ app.use(cors({
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token']
 }));
 
+// ============================================
+// ===== BODY PARSER =====
+// ============================================
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static('public'));
 
 app.use(timeoutMiddleware);
 
+// ============================================
+// ===== RATE LIMITING =====
+// ============================================
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -93,31 +145,48 @@ const authLimiter = rateLimit({
     max: 5,
     message: { error: 'Too many login attempts, please try again later.' },
     standardHeaders: true,
-    legacyHeaders: false,
-    keyGenerator: (req) => {
-        return req.ip || req.headers['x-forwarded-for'] || 'unknown';
-    }
+    legacyHeaders: false
 });
 
 const contactLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
     max: 3,
-    message: { error: 'Too many messages sent. Please try again later.' },
-    standardHeaders: true,
-    legacyHeaders: false,
-    keyGenerator: (req) => {
-        return req.ip || req.headers['x-forwarded-for'] || 'unknown';
-    }
+    message: { error: 'Too many messages sent. Please try again later.' }
+});
+
+const uploadLimiter = rateLimit({ // ✅ NEW: Rate limit for uploads
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    message: { error: 'Too many uploads. Please try again later.' }
 });
 
 app.use('/api/login', authLimiter);
 app.use('/api/contact', contactLimiter);
-app.use('/api/upload', limiter);
+app.use('/api/upload', uploadLimiter); // ✅ UPDATED
 app.use('/api/stats', limiter);
 app.use('/api/send-email', limiter);
 
-const revokedTokens = new Set();
+// ============================================
+// ===== CSRF PROTECTION =====
+// ============================================
+const csrfProtection = csrf({
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+    }
+});
 
+// ============================================
+// ===== CSRF TOKEN ENDPOINT =====
+// ============================================
+app.get('/api/csrf-token', csrfProtection, (req, res) => {
+    res.json({ token: req.csrfToken() });
+});
+
+// ============================================
+// ===== FIREBASE =====
+// ============================================
 let firebaseConfig;
 try {
     firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
@@ -142,19 +211,24 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
+// ============================================
+// ===== CLOUDINARY =====
+// ============================================
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// ============================================
+// ===== NODEMAILER =====
+// ============================================
 let transporter = null;
 let emailConfigured = false;
 let initializationPromise = null;
 
 const initializeTransporter = async () => {
     if (initializationPromise) {
-        console.log('SMTP initialization already in progress, waiting...');
         return initializationPromise;
     }
 
@@ -171,8 +245,6 @@ const initializeTransporter = async () => {
                 console.warn('Missing SMTP env variables: ' + missing.join(', '));
                 return false;
             }
-
-            console.log('Connecting to SMTP: ' + process.env.SMTP_HOST + ':' + process.env.SMTP_PORT);
 
             const newTransporter = nodemailer.createTransport({
                 host: process.env.SMTP_HOST,
@@ -204,15 +276,6 @@ const initializeTransporter = async () => {
             
         } catch (error) {
             console.error('SMTP initialization FAILED:', error.message);
-            
-            if (error.message.includes('535-5.7.8')) {
-                console.error('GMAIL AUTH ERROR: Use App Password, not regular password');
-                console.error('Get one at: https://myaccount.google.com/apppasswords');
-            } else if (error.message.includes('timeout')) {
-                console.error('TIMEOUT: Vercel might be blocking the connection');
-                console.error('Try changing SMTP_PORT to 587 and SMTP_SECURE to false');
-            }
-            
             transporter = null;
             emailConfigured = false;
             return false;
@@ -243,6 +306,11 @@ async function getTransporter() {
 function isEmailConfigured() {
     return transporter !== null && emailConfigured === true;
 }
+
+// ============================================
+// ===== JWT =====
+// ============================================
+const revokedTokens = new Set();
 
 const generateToken = (username) => {
     return jwt.sign(
@@ -288,6 +356,9 @@ const requireAuth = (req, res, next) => {
     next();
 };
 
+// ============================================
+// ===== VALIDATION FUNCTIONS =====
+// ============================================
 const validateEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
@@ -322,7 +393,35 @@ function sanitizeInput(text) {
         .trim();
 }
 
-app.post('/api/login', async (req, res) => {
+// ============================================
+// ===== SECURE LOGGER =====
+// ============================================
+const logger = {
+    error: (msg, error) => {
+        let sanitized = msg;
+        if (error) {
+            try {
+                const errorObj = JSON.parse(JSON.stringify(error, (key, value) => {
+                    if (['password', 'token', 'authorization', 'secret', 'key', 'api_key'].includes(key.toLowerCase())) {
+                        return '[REDACTED]';
+                    }
+                    return value;
+                }));
+                sanitized = `${msg}: ${JSON.stringify(errorObj)}`;
+            } catch (_) {
+                sanitized = `${msg}: ${error.message || 'Unknown error'}`;
+            }
+        }
+        console.error(sanitized);
+    },
+    info: (msg) => console.log(msg),
+    warn: (msg) => console.warn(msg)
+};
+
+// ============================================
+// ===== LOGIN =====
+// ============================================
+app.post('/api/login', csrfProtection, async (req, res) => {
     try {
         const { username, password } = req.body;
 
@@ -333,7 +432,8 @@ app.post('/api/login', async (req, res) => {
         const adminUsername = process.env.ADMIN_USERNAME;
         const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
 
-        if (username !== adminUsername) {
+        // ✅ FIX: Timing-safe comparison
+        if (!crypto.timingSafeEqual(Buffer.from(username), Buffer.from(adminUsername))) {
             await new Promise(resolve => setTimeout(resolve, 100));
             return res.status(401).json({ error: 'Invalid credentials' });
         }
@@ -351,11 +451,14 @@ app.post('/api/login', async (req, res) => {
             expiresIn: 3600
         });
     } catch (error) {
-        console.error('Login error:', error);
+        logger.error('Login error', error);
         res.status(500).json({ error: 'Login failed' });
     }
 });
 
+// ============================================
+// ===== LOGOUT =====
+// ============================================
 app.post('/api/logout', requireAuth, (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     try {
@@ -367,10 +470,16 @@ app.post('/api/logout', requireAuth, (req, res) => {
     res.json({ success: true });
 });
 
+// ============================================
+// ===== VERIFY =====
+// ============================================
 app.post('/api/verify', requireAuth, (req, res) => {
     res.json({ valid: true, user: req.user });
 });
 
+// ============================================
+// ===== GALLERIES CRUD =====
+// ============================================
 app.get('/api/galleries', async (req, res) => {
     try {
         const snapshot = await db.collection('galleries').limit(100).get();
@@ -384,12 +493,12 @@ app.get('/api/galleries', async (req, res) => {
 
         res.json(galleries);
     } catch (error) {
-        console.error('Error fetching galleries:', error);
+        logger.error('Error fetching galleries', error);
         res.status(500).json({ error: 'Failed to fetch galleries' });
     }
 });
 
-app.post('/api/galleries', requireAuth, async (req, res) => {
+app.post('/api/galleries', requireAuth, csrfProtection, async (req, res) => {
     try {
         const { name, description, coverImage, visible, order } = req.body;
 
@@ -410,12 +519,12 @@ app.post('/api/galleries', requireAuth, async (req, res) => {
         const docRef = await db.collection('galleries').add(galleryData);
         res.status(201).json({ id: docRef.id, ...galleryData });
     } catch (error) {
-        console.error('Error creating gallery:', error);
+        logger.error('Error creating gallery', error);
         res.status(500).json({ error: 'Failed to create gallery' });
     }
 });
 
-app.put('/api/galleries/:id', requireAuth, async (req, res) => {
+app.put('/api/galleries/:id', requireAuth, csrfProtection, async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, coverImage, visible, order } = req.body;
@@ -446,12 +555,12 @@ app.put('/api/galleries/:id', requireAuth, async (req, res) => {
         await docRef.update(updateData);
         res.json({ id, ...updateData });
     } catch (error) {
-        console.error('Error updating gallery:', error);
+        logger.error('Error updating gallery', error);
         res.status(500).json({ error: 'Failed to update gallery' });
     }
 });
 
-app.delete('/api/galleries/:id', requireAuth, async (req, res) => {
+app.delete('/api/galleries/:id', requireAuth, csrfProtection, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -479,11 +588,14 @@ app.delete('/api/galleries/:id', requireAuth, async (req, res) => {
         await docRef.delete();
         res.json({ success: true });
     } catch (error) {
-        console.error('Error deleting gallery:', error);
+        logger.error('Error deleting gallery', error);
         res.status(500).json({ error: 'Failed to delete gallery' });
     }
 });
 
+// ============================================
+// ===== ARTWORKS CRUD =====
+// ============================================
 app.get('/api/artworks', async (req, res) => {
     try {
         const { galleryId, featured } = req.query;
@@ -516,12 +628,12 @@ app.get('/api/artworks', async (req, res) => {
 
         res.json(artworks);
     } catch (error) {
-        console.error('Error fetching artworks:', error);
+        logger.error('Error fetching artworks', error);
         res.status(500).json({ error: 'Failed to fetch artworks' });
     }
 });
 
-app.post('/api/artworks', requireAuth, async (req, res) => {
+app.post('/api/artworks', requireAuth, csrfProtection, async (req, res) => {
     try {
         const {
             galleryId, title, description, imageUrl, cloudinaryPublicId,
@@ -559,12 +671,12 @@ app.post('/api/artworks', requireAuth, async (req, res) => {
         const docRef = await db.collection('artworks').add(artworkData);
         res.status(201).json({ id: docRef.id, ...artworkData });
     } catch (error) {
-        console.error('Error creating artwork:', error);
+        logger.error('Error creating artwork', error);
         res.status(500).json({ error: 'Failed to create artwork' });
     }
 });
 
-app.put('/api/artworks/:id', requireAuth, async (req, res) => {
+app.put('/api/artworks/:id', requireAuth, csrfProtection, async (req, res) => {
     try {
         const { id } = req.params;
         const {
@@ -612,12 +724,12 @@ app.put('/api/artworks/:id', requireAuth, async (req, res) => {
         await docRef.update(updateData);
         res.json({ id, ...updateData });
     } catch (error) {
-        console.error('Error updating artwork:', error);
+        logger.error('Error updating artwork', error);
         res.status(500).json({ error: 'Failed to update artwork' });
     }
 });
 
-app.delete('/api/artworks/:id', requireAuth, async (req, res) => {
+app.delete('/api/artworks/:id', requireAuth, csrfProtection, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -636,38 +748,59 @@ app.delete('/api/artworks/:id', requireAuth, async (req, res) => {
             try {
                 await cloudinary.uploader.destroy(data.cloudinaryPublicId);
             } catch (error) {
-                console.error('Error deleting from Cloudinary:', error);
+                logger.error('Error deleting from Cloudinary', error);
             }
         }
 
         await docRef.delete();
         res.json({ success: true });
     } catch (error) {
-        console.error('Error deleting artwork:', error);
+        logger.error('Error deleting artwork', error);
         res.status(500).json({ error: 'Failed to delete artwork' });
     }
 });
 
+// ============================================
+// ===== FILE UPLOAD (SECURE) =====
+// ============================================
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-        fileSize: 5 * 1024 * 1024
+        fileSize: 5 * 1024 * 1024 // 5MB
     },
-    fileFilter: (req, file, cb) => {
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error('Invalid file type. Only images are allowed.'));
+    fileFilter: async (req, file, cb) => {
+        try {
+            // ✅ FIX: Validate actual file signature, not just mimetype
+            const buffer = file.buffer;
+            const type = await fileType.fromBuffer(buffer);
+            
+            if (type && ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(type.ext)) {
+                // Double-check mimetype matches
+                const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                if (allowedMimes.includes(file.mimetype)) {
+                    cb(null, true);
+                } else {
+                    cb(new Error('Invalid file type. Only images are allowed.'), false);
+                }
+            } else {
+                cb(new Error('Invalid file type. Only images are allowed.'), false);
+            }
+        } catch (error) {
+            cb(new Error('File validation failed'), false);
         }
     }
 });
 
-// رفع الصور - بدون توثيق للسماح للعملاء برفع الصور
-app.post('/api/upload', upload.single('image'), async (req, res) => {
+// ✅ UPLOAD - With CSRF and Rate Limiting
+app.post('/api/upload', uploadLimiter, csrfProtection, upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No image file provided' });
+        }
+
+        // ✅ Additional security: validate file size again
+        if (req.file.size > 5 * 1024 * 1024) {
+            return res.status(400).json({ error: 'File too large. Maximum 5MB.' });
         }
 
         const b64 = Buffer.from(req.file.buffer).toString('base64');
@@ -676,7 +809,8 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
         const result = await Promise.race([
             cloudinary.uploader.upload(dataURI, {
                 folder: 'shulamith-gallery/orders',
-                resource_type: 'auto'
+                resource_type: 'auto',
+                allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif']
             }),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Upload timeout')), 30000))
         ]);
@@ -690,7 +824,7 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
             bytes: result.bytes
         });
     } catch (error) {
-        console.error('Upload error:', error);
+        logger.error('Upload error', error);
         if (error.message === 'Upload timeout') {
             res.status(504).json({ error: 'Upload timeout, please try again' });
         } else {
@@ -699,7 +833,10 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
     }
 });
 
-app.post('/api/contact', async (req, res) => {
+// ============================================
+// ===== CONTACT =====
+// ============================================
+app.post('/api/contact', csrfProtection, async (req, res) => {
     try {
         const { name, email, phone, message } = req.body;
 
@@ -752,13 +889,13 @@ app.post('/api/contact', async (req, res) => {
                             </div>
                         `
                     });
-                    console.log('Confirmation email sent to:', email);
+                    logger.info('Confirmation email sent to: ' + email);
                 } catch (error) {
-                    console.error('Error sending confirmation email:', error.message);
+                    logger.error('Error sending confirmation email', error);
                 }
             });
         } else {
-            console.log('Email service not configured, skipping confirmation email');
+            logger.info('Email service not configured, skipping confirmation email');
         }
 
         res.status(201).json({
@@ -767,11 +904,14 @@ app.post('/api/contact', async (req, res) => {
             id: docRef.id
         });
     } catch (error) {
-        console.error('Contact error:', error);
+        logger.error('Contact error', error);
         res.status(500).json({ error: 'Failed to send message' });
     }
 });
 
+// ============================================
+// ===== MESSAGES =====
+// ============================================
 app.get('/api/messages', requireAuth, async (req, res) => {
     try {
         const { unread } = req.query;
@@ -800,12 +940,12 @@ app.get('/api/messages', requireAuth, async (req, res) => {
 
         res.json(messages);
     } catch (error) {
-        console.error('Error fetching messages:', error);
+        logger.error('Error fetching messages', error);
         res.status(500).json({ error: 'Failed to fetch messages' });
     }
 });
 
-app.put('/api/messages/:id/read', requireAuth, async (req, res) => {
+app.put('/api/messages/:id/read', requireAuth, csrfProtection, async (req, res) => {
     try {
         const { id } = req.params;
         const { read } = req.body;
@@ -827,12 +967,12 @@ app.put('/api/messages/:id/read', requireAuth, async (req, res) => {
 
         res.json({ success: true });
     } catch (error) {
-        console.error('Error updating message:', error);
+        logger.error('Error updating message', error);
         res.status(500).json({ error: 'Failed to update message' });
     }
 });
 
-app.delete('/api/messages/:id', requireAuth, async (req, res) => {
+app.delete('/api/messages/:id', requireAuth, csrfProtection, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -849,12 +989,15 @@ app.delete('/api/messages/:id', requireAuth, async (req, res) => {
         await docRef.delete();
         res.json({ success: true });
     } catch (error) {
-        console.error('Error deleting message:', error);
+        logger.error('Error deleting message', error);
         res.status(500).json({ error: 'Failed to delete message' });
     }
 });
 
-app.post('/api/rates', async (req, res) => {
+// ============================================
+// ===== RATES =====
+// ============================================
+app.post('/api/rates', csrfProtection, async (req, res) => {
     try {
         const { name, email, rating, opinion } = req.body;
 
@@ -881,7 +1024,7 @@ app.post('/api/rates', async (req, res) => {
         const docRef = await db.collection('rates').add(rateData);
         res.status(201).json({ id: docRef.id, ...rateData });
     } catch (error) {
-        console.error('Error creating rate:', error);
+        logger.error('Error creating rate', error);
         res.status(500).json({ error: 'Failed to submit rate' });
     }
 });
@@ -917,12 +1060,12 @@ app.get('/api/rates', async (req, res) => {
 
         res.json(rates);
     } catch (error) {
-        console.error('Error fetching rates:', error);
+        logger.error('Error fetching rates', error);
         res.status(500).json({ error: 'Failed to fetch rates' });
     }
 });
 
-app.put('/api/rates/:id', requireAuth, async (req, res) => {
+app.put('/api/rates/:id', requireAuth, csrfProtection, async (req, res) => {
     try {
         const { id } = req.params;
         const { name, email, rating, opinion } = req.body;
@@ -960,12 +1103,12 @@ app.put('/api/rates/:id', requireAuth, async (req, res) => {
         await docRef.update(updateData);
         res.json({ id, ...updateData });
     } catch (error) {
-        console.error('Error updating rate:', error);
+        logger.error('Error updating rate', error);
         res.status(500).json({ error: 'Failed to update rate' });
     }
 });
 
-app.delete('/api/rates/:id', requireAuth, async (req, res) => {
+app.delete('/api/rates/:id', requireAuth, csrfProtection, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -982,12 +1125,15 @@ app.delete('/api/rates/:id', requireAuth, async (req, res) => {
         await docRef.delete();
         res.json({ success: true });
     } catch (error) {
-        console.error('Error deleting rate:', error);
+        logger.error('Error deleting rate', error);
         res.status(500).json({ error: 'Failed to delete rate' });
     }
 });
 
-app.post('/api/orders', async (req, res) => {
+// ============================================
+// ===== ORDERS =====
+// ============================================
+app.post('/api/orders', csrfProtection, async (req, res) => {
     try {
         const { name, phone, email, orderText, imageUrl } = req.body;
 
@@ -1017,7 +1163,7 @@ app.post('/api/orders', async (req, res) => {
         const docRef = await db.collection('orders').add(orderData);
         res.status(201).json({ id: docRef.id, ...orderData });
     } catch (error) {
-        console.error('Error creating order:', error);
+        logger.error('Error creating order', error);
         res.status(500).json({ error: 'Failed to submit order' });
     }
 });
@@ -1053,12 +1199,12 @@ app.get('/api/orders', requireAuth, async (req, res) => {
 
         res.json(orders);
     } catch (error) {
-        console.error('Error fetching orders:', error);
+        logger.error('Error fetching orders', error);
         res.status(500).json({ error: 'Failed to fetch orders' });
     }
 });
 
-app.put('/api/orders/:id', requireAuth, async (req, res) => {
+app.put('/api/orders/:id', requireAuth, csrfProtection, async (req, res) => {
     try {
         const { id } = req.params;
         const { name, phone, email, orderText, status, imageUrl } = req.body;
@@ -1103,12 +1249,12 @@ app.put('/api/orders/:id', requireAuth, async (req, res) => {
         await docRef.update(updateData);
         res.json({ id, ...updateData });
     } catch (error) {
-        console.error('Error updating order:', error);
+        logger.error('Error updating order', error);
         res.status(500).json({ error: 'Failed to update order' });
     }
 });
 
-app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
+app.put('/api/orders/:id/status', requireAuth, csrfProtection, async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
@@ -1166,20 +1312,20 @@ app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
                         </div>
                     `
                 });
-                console.log('Status update email sent to:', order.email);
+                logger.info('Status update email sent to: ' + order.email);
             }
         } catch (emailError) {
-            console.error('Error sending status email:', emailError.message);
+            logger.error('Error sending status email', emailError);
         }
 
         res.json({ success: true });
     } catch (error) {
-        console.error('Error updating order status:', error);
+        logger.error('Error updating order status', error);
         res.status(500).json({ error: 'Failed to update order status' });
     }
 });
 
-app.delete('/api/orders/:id', requireAuth, async (req, res) => {
+app.delete('/api/orders/:id', requireAuth, csrfProtection, async (req, res) => {
     try {
         const { id } = req.params;
 
@@ -1196,11 +1342,14 @@ app.delete('/api/orders/:id', requireAuth, async (req, res) => {
         await docRef.delete();
         res.json({ success: true });
     } catch (error) {
-        console.error('Error deleting order:', error);
+        logger.error('Error deleting order', error);
         res.status(500).json({ error: 'Failed to delete order' });
     }
 });
 
+// ============================================
+// ===== SETTINGS =====
+// ============================================
 app.get('/api/settings', async (req, res) => {
     try {
         const doc = await db.collection('settings').doc('site').get();
@@ -1222,12 +1371,12 @@ app.get('/api/settings', async (req, res) => {
             });
         }
     } catch (error) {
-        console.error('Error fetching settings:', error);
+        logger.error('Error fetching settings', error);
         res.status(500).json({ error: 'Failed to fetch settings' });
     }
 });
 
-app.put('/api/settings', requireAuth, async (req, res) => {
+app.put('/api/settings', requireAuth, csrfProtection, async (req, res) => {
     try {
         const settings = req.body;
 
@@ -1243,11 +1392,14 @@ app.put('/api/settings', requireAuth, async (req, res) => {
         await db.collection('settings').doc('site').set(settings, { merge: true });
         res.json({ success: true, settings });
     } catch (error) {
-        console.error('Error updating settings:', error);
+        logger.error('Error updating settings', error);
         res.status(500).json({ error: 'Failed to update settings' });
     }
 });
 
+// ============================================
+// ===== STATS =====
+// ============================================
 app.get('/api/stats', requireAuth, async (req, res) => {
     try {
         const statsPromise = Promise.all([
@@ -1277,7 +1429,7 @@ app.get('/api/stats', requireAuth, async (req, res) => {
             orders: ordersSnapshot.size
         });
     } catch (error) {
-        console.error('Error fetching stats:', error);
+        logger.error('Error fetching stats', error);
         if (error.message === 'Stats request timeout') {
             res.status(504).json({ error: 'Request timeout, please try again' });
         } else {
@@ -1286,7 +1438,10 @@ app.get('/api/stats', requireAuth, async (req, res) => {
     }
 });
 
-app.post('/api/send-email', requireAuth, async (req, res) => {
+// ============================================
+// ===== SEND EMAIL =====
+// ============================================
+app.post('/api/send-email', requireAuth, csrfProtection, async (req, res) => {
     try {
         const { name, email, message } = req.body;
 
@@ -1301,7 +1456,7 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
         const smtpTransporter = await getTransporter();
         
         if (!smtpTransporter) {
-            console.error('Email service not available');
+            logger.error('Email service not available');
             return res.status(503).json({
                 error: 'خدمة البريد الإلكتروني غير متاحة. الرجاء المحاولة لاحقاً.'
             });
@@ -1341,15 +1496,18 @@ app.post('/api/send-email', requireAuth, async (req, res) => {
         };
 
         await smtpTransporter.sendMail(mailOptions);
-        console.log('Email sent to:', email);
+        logger.info('Email sent to: ' + email);
 
         res.json({ success: true, message: 'Email sent successfully' });
     } catch (error) {
-        console.error('Send email error:', error);
+        logger.error('Send email error', error);
         res.status(500).json({ error: 'Failed to send email: ' + error.message });
     }
 });
 
+// ============================================
+// ===== HEALTH CHECK =====
+// ============================================
 app.get('/api/health', requireAuth, (req, res) => {
     res.json({
         status: 'ok',
@@ -1357,8 +1515,16 @@ app.get('/api/health', requireAuth, (req, res) => {
     });
 });
 
+// ============================================
+// ===== ERROR HANDLING =====
+// ============================================
 app.use((err, req, res, next) => {
-    console.error('Server error:', err);
+    logger.error('Server error', err);
+
+    // ✅ CSRF Error Handling
+    if (err.code === 'EBADCSRFTOKEN') {
+        return res.status(403).json({ error: 'Invalid CSRF token. Please refresh the page.' });
+    }
 
     if (err instanceof multer.MulterError) {
         if (err.code === 'FILE_TOO_LARGE') {
@@ -1377,12 +1543,18 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Internal server error' });
 });
 
+// ============================================
+// ===== START SERVER =====
+// ============================================
 if (require.main === module) {
     app.listen(PORT, () => {
         console.log('Shulamith Gallery Server running on port ' + PORT);
         console.log('Dashboard available at http://localhost:' + PORT + '/dashboard.html');
         console.log('Login at http://localhost:' + PORT + '/login.html');
         console.log('Health check at http://localhost:' + PORT + '/api/health (admin only)');
+        console.log('CSRF protection enabled ✅');
+        console.log('Secure file upload enabled ✅');
+        console.log('CSP with nonce enabled ✅');
     });
 }
 

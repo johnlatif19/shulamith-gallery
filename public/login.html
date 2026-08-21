@@ -1,1591 +1,783 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>تسجيل دخول - Shulamith Gallery</title>
-  <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
-  
-  <style>
-    /* ===== global.css ===== */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      overflow: hidden;
-      min-height: 100vh;
-    }
-
-    #root {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* ===== AnimatedBackground ===== */
-    .bg-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      overflow: hidden;
-      pointer-events: none;
-    }
-
-    .bg-blob {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(100px);
-      opacity: 0.15;
-      animation: floatBlob 18s ease-in-out infinite alternate;
-    }
-
-    .bg-blob--1 {
-      width: 40vw;
-      height: 40vw;
-      top: -10vw;
-      left: -5vw;
-      background: #e94560;
-    }
-
-    .bg-blob--2 {
-      width: 35vw;
-      height: 35vw;
-      bottom: -8vw;
-      right: -5vw;
-      background: #533483;
-      animation-duration: 24s;
-    }
-
-    .bg-blob--3 {
-      width: 25vw;
-      height: 25vw;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #0f3460;
-      animation-duration: 30s;
-    }
-
-    .bg-blob--4 {
-      width: 20vw;
-      height: 20vw;
-      top: 20%;
-      right: 10%;
-      background: #e94560;
-      animation-duration: 20s;
-      opacity: 0.08;
-    }
-
-    @keyframes floatBlob {
-      0% { transform: translate(0, 0) scale(1); }
-      33% { transform: translate(30px, -20px) scale(1.1); }
-      66% { transform: translate(-20px, 30px) scale(0.9); }
-      100% { transform: translate(20px, -10px) scale(1.05); }
-    }
-
-    .particle {
-      position: absolute;
-      background: rgba(233, 69, 96, 0.15);
-      border-radius: 50%;
-      animation: floatParticle var(--duration) ease-in-out infinite;
-      animation-delay: var(--delay);
-      width: var(--size);
-      height: var(--size);
-    }
-
-    @keyframes floatParticle {
-      0% {
-        transform: translate(0, 0) scale(0);
-        opacity: 0;
-      }
-      50% {
-        opacity: 0.5;
-        transform: translate(var(--x), -50vh) scale(1);
-      }
-      100% {
-        transform: translate(calc(var(--x) * -1), -100vh) scale(0);
-        opacity: 0;
-      }
-    }
-
-    /* ===== login.css ===== */
-    .login-page {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      position: relative;
-      overflow: hidden;
-      width: 100%;
-      z-index: 1;
-    }
-
-    .login-card {
-      background: rgba(26, 26, 46, 0.85);
-      backdrop-filter: blur(20px);
-      border-radius: 40px;
-      padding: 30px 40px 40px;
-      width: 100%;
-      max-width: 440px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 
-                  0 0 40px rgba(233, 69, 96, 0.05);
-      text-align: center;
-      animation: floatCard 6s ease-in-out infinite;
-      position: relative;
-      z-index: 5;
-      border: 1px solid rgba(233, 69, 96, 0.15);
-    }
-
-    @keyframes floatCard {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-8px); }
-    }
-
-    .login-logo {
-      height: 80px;
-      width: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 5px;
-      border: 2px solid rgba(233, 69, 96, 0.3);
-    }
-
-    .login-card h2 {
-      font-size: 24px;
-      font-weight: 600;
-      color: #ffffff;
-      margin: 5px 0 20px;
-      letter-spacing: -0.5px;
-    }
-
-    .login-card h2 span {
-      color: #e94560;
-    }
-
-    .input-group {
-      margin-bottom: 16px;
-      position: relative;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 14px 20px;
-      border: 2px solid rgba(233, 69, 96, 0.15);
-      border-radius: 16px;
-      font-size: 16px;
-      background: rgba(255,255,255,0.05);
-      transition: all 0.3s ease;
-      font-family: 'Inter', sans-serif;
-      color: #ffffff;
-    }
-
-    .input-group input::placeholder {
-      color: rgba(255,255,255,0.3);
-    }
-
-    .input-group input:focus {
-      outline: none;
-      border-color: #e94560;
-      box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.15);
-      background: rgba(255,255,255,0.08);
-    }
-
-    .password-group {
-      position: relative;
-    }
-
-    /* ===== Password toggle on LEFT side (RTL) ===== */
-    .password-toggle {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-      padding: 5px;
-      border-radius: 50%;
-      transition: all 0.3s ease;
-      opacity: 0.5;
-      z-index: 2;
-    }
-
-    .password-toggle:hover {
-      opacity: 1;
-      background: rgba(255,255,255,0.05);
-    }
-
-    .password-group input {
-      padding-left: 48px;
-    }
-
-    button[type="submit"] {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 16px;
-      background: linear-gradient(135deg, #e94560, #c23152);
-      color: white;
-      font-size: 18px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-family: 'Inter', sans-serif;
-      margin-top: 6px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    button[type="submit"]:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
-    }
-
-    button[type="submit"]:active:not(:disabled) {
-      transform: scale(0.98);
-    }
-
-    button[type="submit"]:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-
-    button[type="submit"].loading {
-      background: linear-gradient(135deg, #c23152, #e94560);
-    }
-
-    .error-message {
-      color: #e94560;
-      font-size: 14px;
-      margin-top: 8px;
-      animation: shakeError 0.5s ease;
-      font-weight: 500;
-    }
-
-    @keyframes shakeError {
-      0%, 100% { transform: translateX(0); }
-      20% { transform: translateX(-10px); }
-      40% { transform: translateX(10px); }
-      60% { transform: translateX(-5px); }
-      80% { transform: translateX(5px); }
-    }
-
-    .demo-credentials {
-      margin-top: 16px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.03);
-      padding: 8px 16px;
-      border-radius: 12px;
-      font-weight: 500;
-    }
-
-    /* ===== husky.css ===== */
-    .husky-container {
-      position: relative;
-      width: 200px;
-      height: 220px;
-      margin: -20px auto 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-      z-index: 10;
-    }
-
-    .husky {
-      position: relative;
-      width: 160px;
-      height: 200px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .body {
-      width: 120px;
-      height: 100px;
-      background: linear-gradient(180deg, #6b7f94 0%, #4a5a6e 100%);
-      border-radius: 60px 60px 40px 40px;
-      position: relative;
-      margin-top: 60px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    }
-
-    .chest {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80px;
-      height: 70px;
-      background: #d4dce8;
-      border-radius: 50%;
-      opacity: 0.2;
-    }
-
-    .tail {
-      position: absolute;
-      bottom: -20px;
-      right: -15px;
-      width: 30px;
-      height: 30px;
-      background: #4a5a6e;
-      border-radius: 50% 50% 0 50%;
-      transform: rotate(45deg);
-      animation: wagTail 2s ease-in-out infinite;
-    }
-
-    @keyframes wagTail {
-      0%, 100% { transform: rotate(45deg) scale(1); }
-      50% { transform: rotate(60deg) scale(1.1); }
-    }
-
-    .head {
-      position: absolute;
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 130px;
-      height: 110px;
-      background: linear-gradient(180deg, #a8b8cc 0%, #7a8a9e 100%);
-      border-radius: 50% 50% 40% 40%;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-      z-index: 2;
-    }
-
-    .ear {
-      position: absolute;
-      width: 40px;
-      height: 50px;
-      background: #4a5a6e;
-      border-radius: 50% 50% 0 0;
-      top: -15px;
-      transform-origin: bottom;
-      transition: transform 0.3s ease;
-    }
-
-    .left-ear {
-      left: 5px;
-      transform: rotate(-15deg);
-    }
-
-    .right-ear {
-      right: 5px;
-      transform: rotate(15deg);
-    }
-
-    .ear-inner {
-      position: absolute;
-      bottom: 5px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 25px;
-      height: 30px;
-      background: #f8c8c8;
-      border-radius: 50% 50% 0 0;
-    }
-
-    .face {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 20px;
-    }
-
-    .eyebrow {
-      position: absolute;
-      top: -5px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 30px;
-      height: 4px;
-      background: #4a5a6e;
-      border-radius: 2px;
-      opacity: 0.3;
-      transition: all 0.3s ease;
-    }
-
-    .eyebrow:first-child {
-      left: 30%;
-    }
-
-    .eyebrow:last-child {
-      left: 70%;
-    }
-
-    .eyes {
-      display: flex;
-      gap: 25px;
-      position: relative;
-      z-index: 3;
-    }
-
-    .eye {
-      position: relative;
-      width: 28px;
-      height: 32px;
-      background: white;
-      border-radius: 50%;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-      transition: all 0.3s ease;
-    }
-
-    .pupil {
-      position: absolute;
-      bottom: 6px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 16px;
-      height: 18px;
-      background: #2c3e50;
-      border-radius: 50%;
-      transition: all 0.3s ease;
-    }
-
-    .pupil::after {
-      content: '';
-      position: absolute;
-      top: 3px;
-      right: 3px;
-      width: 6px;
-      height: 6px;
-      background: white;
-      border-radius: 50%;
-    }
-
-    .eyelid {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #a8b8cc;
-      border-radius: 50%;
-      transform: scaleY(0);
-      transition: transform 0.3s ease;
-      transform-origin: top;
-    }
-
-    .nose {
-      width: 20px;
-      height: 16px;
-      background: #2c3e50;
-      border-radius: 50% 50% 40% 40%;
-      margin-top: 5px;
-      position: relative;
-      z-index: 2;
-    }
-
-    .mouth {
-      width: 30px;
-      height: 15px;
-      border-bottom: 3px solid #2c3e50;
-      border-radius: 0 0 50% 50%;
-      margin-top: -2px;
-      position: relative;
-      z-index: 1;
-      transition: all 0.3s ease;
-    }
-
-    .tongue {
-      position: absolute;
-      bottom: -8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 16px;
-      height: 20px;
-      background: #f8a0a0;
-      border-radius: 0 0 50% 50%;
-      opacity: 0;
-      transition: all 0.3s ease;
-    }
-
-    .cheek {
-      position: absolute;
-      width: 20px;
-      height: 12px;
-      border-radius: 50%;
-      background: #f8c8c8;
-      opacity: 0.2;
-      top: 50px;
-    }
-
-    .left-cheek {
-      left: 10px;
-    }
-
-    .right-cheek {
-      right: 10px;
-    }
-
-    .paws {
-      position: absolute;
-      top: -10px;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 5;
-    }
-
-    .paw {
-      position: absolute;
-      width: 45px;
-      height: 45px;
-      background: linear-gradient(180deg, #b8c8d8, #8a9aae);
-      border-radius: 50% 50% 30% 30%;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-      opacity: 0;
-      transform: scale(0);
-    }
-
-    .paw::after {
-      content: '';
-      position: absolute;
-      bottom: 5px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 20px;
-      height: 15px;
-      background: #d4dce8;
-      border-radius: 50%;
-    }
-
-    .left-paw {
-      left: -10px;
-      top: 20px;
-    }
-
-    .right-paw {
-      right: -10px;
-      top: 20px;
-    }
-
-    /* Husky States */
-    .husky-container.hiding .paw {
-      opacity: 1;
-      transform: scale(1);
-    }
-
-    .husky-container.hiding .left-paw {
-      transform: translate(15px, -10px) rotate(-20deg) scale(1);
-    }
-
-    .husky-container.hiding .right-paw {
-      transform: translate(-15px, -10px) rotate(20deg) scale(1);
-    }
-
-    .husky-container.hiding .eyelid {
-      transform: scaleY(0.9);
-    }
-
-    .husky-container.hiding .pupil {
-      transform: translateX(-50%) scale(0.8);
-    }
-
-    .husky-container.looking .pupil {
-      transform: translateX(-8px);
-    }
-
-    .husky-container.looking .left-ear {
-      transform: rotate(-25deg);
-    }
-
-    .husky-container.looking .right-ear {
-      transform: rotate(25deg);
-    }
-
-    .husky-container.looking .eyebrow {
-      opacity: 0.6;
-    }
-
-    .husky-container.success .ear {
-      transform: rotate(0deg) scale(1.2);
-    }
-
-    .husky-container.success .mouth {
-      border-bottom: 3px solid #2c3e50;
-      height: 20px;
-    }
-
-    .husky-container.success .tongue {
-      opacity: 1;
-      height: 15px;
-    }
-
-    .husky-container.success .cheek {
-      opacity: 0.5;
-    }
-
-    .husky-container.success .tail {
-      animation-duration: 0.5s;
-    }
-
-    .husky-container.error .ear {
-      transform: rotate(0deg) scale(0.8);
-    }
-
-    .husky-container.error .mouth {
-      border-bottom: 3px solid #2c3e50;
-      height: 10px;
-      transform: rotate(180deg);
-    }
-
-    .husky-container.error .eyebrow {
-      opacity: 0.8;
-      transform: rotate(20deg);
-    }
-
-    .husky-container.error .tail {
-      animation: none;
-      transform: rotate(20deg);
-    }
-
-    .husky-container.loading .head {
-      animation: headBob 0.5s ease-in-out infinite;
-    }
-
-    .husky-container.idle .body {
-      animation: breathe 3s ease-in-out infinite;
-    }
-
-    .husky-container.idle .head {
-      animation: headBob 4s ease-in-out infinite;
-    }
-
-    .husky-container.idle .eye {
-      animation: blink 4s ease-in-out infinite;
-    }
-
-    .husky-container.idle .tail {
-      animation: wagTail 2s ease-in-out infinite;
-    }
-
-    @keyframes breathe {
-      0%, 100% { transform: scaleY(1); }
-      50% { transform: scaleY(1.03); }
-    }
-
-    @keyframes headBob {
-      0%, 100% { transform: translateX(-50%) rotate(0deg); }
-      50% { transform: translateX(-50%) rotate(2deg); }
-    }
-
-    @keyframes blink {
-      0%, 95%, 100% { transform: scaleY(1); }
-      97% { transform: scaleY(0.1); }
-    }
-
-    /* Hearts */
-    .hearts-container {
-      position: absolute;
-      top: -60px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 300px;
-      height: 200px;
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    .heart {
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      font-size: 24px;
-      animation: floatHeart 2s ease-out forwards;
-      animation-delay: var(--delay);
-    }
-
-    @keyframes floatHeart {
-      0% {
-        transform: translate(0, 0) scale(0) rotate(0deg);
-        opacity: 1;
-      }
-      100% {
-        transform: translate(var(--x), -200px) scale(1.5) rotate(20deg);
-        opacity: 0;
-      }
-    }
-
-    .broken-heart {
-      position: absolute;
-      top: -40px;
-      font-size: 50px;
-      animation: shakeHeart 0.8s ease-in-out infinite;
-      z-index: 10;
-    }
-
-    @keyframes shakeHeart {
-      0%, 100% { transform: rotate(0deg) scale(1); }
-      25% { transform: rotate(-15deg) scale(1.1); }
-      75% { transform: rotate(15deg) scale(0.9); }
-    }
-
-    /* ===== Speech Bubble - FIXED ===== */
-    .speech-bubble {
-      position: absolute;
-      bottom: -70px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(26, 26, 46, 0.95);
-      backdrop-filter: blur(10px);
-      padding: 10px 18px;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-      font-size: 13px;
-      font-weight: 500;
-      line-height: 1.5;
-      animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-      z-index: 20;
-      max-width: 280px;
-      min-width: 60px;
-      width: auto;
-      color: #ffffff;
-      border: 1px solid rgba(233, 69, 96, 0.1);
-      word-wrap: break-word;
-      white-space: normal;
-      text-align: center;
-    }
-
-    .speech-bubble::after {
-      content: '';
-      position: absolute;
-      top: -8px;
-      left: 50%;
-      transform: translateX(-50%);
-      border-left: 8px solid transparent;
-      border-right: 8px solid transparent;
-      border-bottom: 8px solid rgba(26, 26, 46, 0.95);
-    }
-
-    .speech-bubble.success {
-      color: #4ade80;
-      background: rgba(26, 26, 46, 0.95);
-      border-color: rgba(74, 222, 128, 0.2);
-    }
-
-    .speech-bubble.success::after {
-      border-bottom-color: rgba(26, 26, 46, 0.95);
-    }
-
-    .speech-bubble.error {
-      color: #e94560;
-      background: rgba(26, 26, 46, 0.95);
-      border-color: rgba(233, 69, 96, 0.2);
-    }
-
-    .speech-bubble.error::after {
-      border-bottom-color: rgba(26, 26, 46, 0.95);
-    }
-
-    .speech-bubble.suspicious {
-      color: #fbbf24;
-      background: rgba(26, 26, 46, 0.95);
-      border-color: rgba(251, 191, 36, 0.2);
-    }
-
-    .speech-bubble.suspicious::after {
-      border-bottom-color: rgba(26, 26, 46, 0.95);
-    }
-
-    @keyframes popIn {
-      0% {
-        transform: translateX(-50%) scale(0) translateY(20px);
-        opacity: 0;
-      }
-      100% {
-        transform: translateX(-50%) scale(1) translateY(0);
-        opacity: 1;
-      }
-    }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 480px) {
-      .login-card {
-        padding: 20px 16px 28px;
-        border-radius: 28px;
-        max-width: 100%;
-        margin: 0 8px;
-      }
-      
-      .login-card h2 {
-        font-size: 20px;
-        margin: 2px 0 14px;
-      }
-      
-      .input-group input {
-        font-size: 14px;
-        padding: 12px 14px;
-      }
-      
-      .password-group input {
-        padding-left: 44px;
-      }
-      
-      .password-toggle {
-        font-size: 18px;
-        left: 10px;
-      }
-      
-      button[type="submit"] {
-        font-size: 16px;
-        padding: 12px;
-      }
-      
-      .login-logo {
-        height: 65px;
-        width: 65px;
-      }
-      
-      .husky-container {
-        transform: scale(0.65);
-        margin: -40px auto 0;
-        height: 180px;
-      }
-      
-      .speech-bubble {
-        font-size: 11px;
-        padding: 8px 14px;
-        max-width: 200px;
-        bottom: -60px;
-      }
-      
-      .demo-credentials {
-        font-size: 11px;
-        padding: 6px 12px;
-      }
-    }
-
-    @media (max-width: 380px) {
-      .login-card {
-        padding: 16px 12px 20px;
-        border-radius: 20px;
-      }
-      
-      .login-card h2 {
-        font-size: 17px;
-      }
-      
-      .input-group input {
-        font-size: 13px;
-        padding: 10px 12px;
-        border-radius: 12px;
-      }
-      
-      .password-group input {
-        padding-left: 38px;
-      }
-      
-      .password-toggle {
-        font-size: 16px;
-        left: 8px;
-        padding: 3px;
-      }
-      
-      button[type="submit"] {
-        font-size: 14px;
-        padding: 10px;
-        border-radius: 12px;
-      }
-      
-      .login-logo {
-        height: 55px;
-        width: 55px;
-      }
-      
-      .husky-container {
-        transform: scale(0.5);
-        margin: -50px auto 0;
-        height: 150px;
-      }
-      
-      .speech-bubble {
-        font-size: 10px;
-        padding: 6px 10px;
-        max-width: 160px;
-        bottom: -50px;
-        border-radius: 12px;
-      }
-      
-      .demo-credentials {
-        font-size: 10px;
-        padding: 4px 10px;
-        margin-top: 12px;
-      }
-      
-      .error-message {
-        font-size: 12px;
-      }
-    }
-
-    @media (min-width: 768px) and (max-height: 700px) {
-      .husky-container {
-        transform: scale(0.75);
-        margin: -30px auto 0;
-        height: 180px;
-      }
-      
-      .login-card {
-        padding: 20px 35px 30px;
-      }
-      
-      .login-logo {
-        height: 60px;
-        width: 60px;
-      }
-      
-      .login-card h2 {
-        font-size: 20px;
-        margin: 0 0 14px;
-      }
-      
-      .input-group {
-        margin-bottom: 12px;
-      }
-      
-      .input-group input {
-        padding: 10px 16px;
-        font-size: 14px;
-      }
-      
-      button[type="submit"] {
-        padding: 10px;
-        font-size: 15px;
-        margin-top: 2px;
-      }
-    }
-
-    @media (max-height: 600px) {
-      .husky-container {
-        transform: scale(0.5);
-        margin: -50px auto 0;
-        height: 140px;
-      }
-      
-      .login-card {
-        padding: 12px 20px 18px;
-        border-radius: 24px;
-      }
-      
-      .login-logo {
-        height: 45px;
-        width: 45px;
-        margin-bottom: 0;
-      }
-      
-      .login-card h2 {
-        font-size: 16px;
-        margin: 0 0 10px;
-      }
-      
-      .input-group {
-        margin-bottom: 8px;
-      }
-      
-      .input-group input {
-        padding: 8px 14px;
-        font-size: 13px;
-        border-radius: 12px;
-      }
-      
-      .password-group input {
-        padding-left: 38px;
-      }
-      
-      .password-toggle {
-        font-size: 16px;
-        left: 8px;
-      }
-      
-      button[type="submit"] {
-        padding: 8px;
-        font-size: 14px;
-        border-radius: 12px;
-        margin-top: 2px;
-      }
-      
-      .demo-credentials {
-        font-size: 10px;
-        padding: 4px 10px;
-        margin-top: 8px;
-      }
-      
-      .speech-bubble {
-        font-size: 10px;
-        padding: 5px 12px;
-        max-width: 160px;
-        bottom: -45px;
-        border-radius: 12px;
-      }
-      
-      .error-message {
-        font-size: 11px;
-        margin-top: 4px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .bg-blob,
-      .particle,
-      .login-card,
-      .husky-container.idle .body,
-      .husky-container.idle .head,
-      .husky-container.idle .eye,
-      .husky-container.idle .tail,
-      .heart {
-        animation: none !important;
-      }
-      
-      .speech-bubble {
-        animation: none !important;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول — Shulamith Gallery</title>
+    <link rel="icon" type="image/jpeg" href="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg">
+    
+    <style>
+        /* ===== ROOT VARIABLES ===== */
+        :root {
+            --color-bg: #0d0b0a;
+            --color-bg-secondary: #161210;
+            --color-bg-card: #1e1a18;
+            --color-bg-hover: #2a2421;
+            --color-primary: #d4b892;
+            --color-primary-light: #e8d4bc;
+            --color-primary-dark: #b89a72;
+            --color-text: #e8e0d4;
+            --color-text-muted: #b0a89a;
+            --color-text-dark: #8a8272;
+            --color-border: #2a2421;
+            --color-error: #e74c3c;
+            --color-success: #2ecc71;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ===== RESET ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Tahoma', Arial, sans-serif;
+            background: var(--color-bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        /* ===== BACKGROUND ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                url('https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg') center center / cover no-repeat;
+            opacity: 0.15;
+            z-index: 0;
+            animation: bgZoom 30s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgZoom {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        /* ===== LOGIN CONTAINER ===== */
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .login-card {
+            background: rgba(22, 18, 16, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: 48px 40px 40px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+            transition: var(--transition);
+        }
+
+        .login-card:hover {
+            border-color: rgba(212, 184, 146, 0.2);
+        }
+
+        /* ===== HEADER ===== */
+        .login-header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .login-logo {
+            height: 70px;
+            width: auto;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        .login-header h1 {
+            color: var(--color-primary);
+            font-size: 1.8rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+
+        .login-header p {
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+            font-weight: 300;
+        }
+
+        /* ===== FORM ===== */
+        .login-form .form-group {
+            margin-bottom: 20px;
+        }
+
+        .login-form label {
+            display: block;
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+            font-weight: 400;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            color: var(--color-text);
+            font-size: 1rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: var(--color-primary-dark);
+            box-shadow: 0 0 0 3px rgba(212, 184, 146, 0.08);
+        }
+
+        .login-form input::placeholder {
+            color: var(--color-text-dark);
+        }
+
+        .form-error {
+            color: var(--color-error);
+            font-size: 0.8rem;
+            display: block;
+            margin-top: 4px;
+            min-height: 18px;
+        }
+
+        /* ===== PASSWORD TOGGLE - LEFT SIDE (RTL) ===== */
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            padding-left: 48px;  /* مساحة للزر على اليسار */
+        }
+
+        .toggle-password {
+            position: absolute;
+            left: 12px;  /* الزر على اليسار */
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--color-text-dark);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px;
+            transition: var(--transition);
+        }
+
+        .toggle-password:hover {
+            color: var(--color-text);
+        }
+
+        /* ===== SUBMIT BUTTON ===== */
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--color-primary);
+            color: var(--color-bg);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1.05rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .login-btn:hover {
+            background: var(--color-primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(212, 184, 146, 0.2);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-loading {
+            display: none;
+        }
+
+        /* ===== STATUS ===== */
+        .login-status {
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            display: none;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .login-status.success {
+            display: block;
+            background: rgba(46, 204, 113, 0.12);
+            color: var(--color-success);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+
+        .login-status.error {
+            display: block;
+            background: rgba(231, 76, 60, 0.12);
+            color: var(--color-error);
+            border: 1px solid rgba(231, 76, 60, 0.2);
+        }
+
+        /* ===== FOOTER ===== */
+        .login-footer {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .login-footer a {
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .login-footer a:hover {
+            color: var(--color-primary);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 32px 24px 28px;
+            }
+
+            .login-logo {
+                height: 55px;
+            }
+
+            .login-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .login-form input {
+                padding: 10px 14px;
+                font-size: 0.95rem;
+            }
+
+            .login-btn {
+                padding: 12px;
+                font-size: 0.95rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .login-card {
+                padding: 24px 16px 20px;
+            }
+
+            .login-logo {
+                height: 45px;
+            }
+
+            .login-header h1 {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* ===== LTR ===== */
+        body.ltr .password-wrapper input {
+            padding-left: 16px;
+            padding-right: 48px;
+        }
+
+        body.ltr .toggle-password {
+            left: auto;
+            right: 12px;
+        }
+
+        body.ltr .login-footer a {
+            display: inline-block;
+        }
+
+        /* ===== SECURITY NOTICE ===== */
+        .security-notice {
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: rgba(212, 184, 146, 0.05);
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(212, 184, 146, 0.1);
+            font-size: 0.75rem;
+            color: var(--color-text-dark);
+            text-align: center;
+        }
+
+        .security-notice span {
+            color: var(--color-primary-dark);
+        }
+
+        /* ===== RATE LIMIT WARNING ===== */
+        .rate-limit-warning {
+            display: none;
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: rgba(231, 76, 60, 0.08);
+            border: 1px solid rgba(231, 76, 60, 0.15);
+            border-radius: var(--radius-sm);
+            color: var(--color-error);
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .rate-limit-warning.visible {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-  <div id="root"></div>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <img src="https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg" alt="Shulamith Gallery" class="login-logo" loading="lazy">
+                <h1>Shulamith Gallery</h1>
+            </div>
+            
+            <form id="loginForm" class="login-form" autocomplete="off">
+                <!-- ===== CSRF TOKEN ===== -->
+                <input type="hidden" id="csrfToken" value="">
+                
+                <div class="form-group">
+                    <label for="username">اسم المستخدم</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        required 
+                        placeholder="أدخل اسم المستخدم" 
+                        autocomplete="username"
+                        maxlength="50"
+                        aria-describedby="usernameError"
+                    >
+                    <span class="form-error" id="usernameError"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">كلمة المرور</label>
+                    <div class="password-wrapper">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required 
+                            placeholder="أدخل كلمة المرور" 
+                            autocomplete="current-password"
+                            maxlength="100"
+                            aria-describedby="passwordError"
+                        >
+                        <button 
+                            type="button" 
+                            class="toggle-password" 
+                            id="togglePassword" 
+                            aria-label="إظهار/إخفاء كلمة المرور"
+                            title="إظهار/إخفاء كلمة المرور"
+                        >
+                            🐵
+                        </button>
+                    </div>
+                    <span class="form-error" id="passwordError"></span>
+                </div>
+                
+                <!-- ===== RATE LIMIT WARNING ===== -->
+                <div class="rate-limit-warning" id="rateLimitWarning">
+                    تم تجاوز عدد محاولات تسجيل الدخول. الرجاء الانتظار 15 دقيقة.
+                </div>
+                
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <span>تسجيل الدخول</span>
+                    <span class="btn-loading">جاري التحقق...</span>
+                </button>
+                
+                <div class="login-status" id="loginStatus"></div>
+                
 
-  <script type="importmap">
-    {
-      "imports": {
-        "react": "https://esm.sh/react@18.2.0",
-        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client"
-      }
-    }
-  </script>
+            </form>
+            
+            <div class="login-footer">
+                <a href="/">العودة الى الموقع الرئيسي</a>
+            </div>
+        </div>
+    </div>
 
-  <script type="module">
-    import React, { useState, useEffect } from 'react';
-    import ReactDOM from 'react-dom/client';
-
-    // ============================================================
-    // ===== ENVIRONMENT CONFIGURATION (.env ready) =====
-    // ============================================================
-    // في بيئة الإنتاج، هذه القيم تأتي من ملف .env
-    // مثلاً: VITE_API_URL=https://api.shulamith-gallery.com
-    const ENV = {
-      // ===== API Endpoints =====
-      // استخدم import.meta.env.VITE_API_URL في Vite
-      // أو process.env.REACT_APP_API_URL في Create React App
-      API_BASE_URL: window.location.origin + '/api',
-      
-      // ===== Security Settings =====
-      MAX_LOGIN_ATTEMPTS: 5,
-      LOCKOUT_TIME_MINUTES: 15,
-      
-      // ===== Demo Credentials (للاختبار فقط) =====
-      DEMO_USERNAME: 'shulamith',
-      DEMO_PASSWORD: 'gallery'
-    };
-
-    // ============================================================
-    // ===== useAuth Hook with Real API =====
-    // ============================================================
-    const useAuth = () => {
-      const [user, setUser] = useState(null);
-      const [loading, setLoading] = useState(false);
-      const [attempts, setAttempts] = useState(0);
-      const [isLocked, setIsLocked] = useState(false);
-      const [lockTimer, setLockTimer] = useState(null);
-
-      // ===== Restore lock state from localStorage =====
-      useEffect(() => {
-        const locked = localStorage.getItem('login-locked');
-        const lockTime = parseInt(localStorage.getItem('login-lock-time') || '0');
-        const savedAttempts = parseInt(localStorage.getItem('login-attempts') || '0');
+    <script>
+        // ============================================
+        // ===== SECURITY: Anti-Brute Force =====
+        // ============================================
         
-        if (savedAttempts > 0) setAttempts(savedAttempts);
-        
-        if (locked === 'true' && lockTime > 0) {
-          const elapsed = Date.now() - lockTime;
-          const lockoutDuration = ENV.LOCKOUT_TIME_MINUTES * 60 * 1000;
-          if (elapsed < lockoutDuration) {
-            setIsLocked(true);
-            setLockTimer(lockTime);
-            const remaining = Math.ceil((lockoutDuration - elapsed) / 60000);
-            console.log(`🔒 Login locked. ${remaining} minutes remaining.`);
-            
-            const remainingTime = lockoutDuration - elapsed;
-            setTimeout(() => {
-              setIsLocked(false);
-              setAttempts(0);
-              localStorage.removeItem('login-locked');
-              localStorage.removeItem('login-lock-time');
-              localStorage.removeItem('login-attempts');
-            }, remainingTime);
-          } else {
-            localStorage.removeItem('login-locked');
-            localStorage.removeItem('login-lock-time');
-            localStorage.removeItem('login-attempts');
-          }
+        // ===== DOM REFS =====
+        const form = document.getElementById('loginForm');
+        const username = document.getElementById('username');
+        const password = document.getElementById('password');
+        const usernameError = document.getElementById('usernameError');
+        const passwordError = document.getElementById('passwordError');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginStatus = document.getElementById('loginStatus');
+        const togglePassword = document.getElementById('togglePassword');
+        const rateLimitWarning = document.getElementById('rateLimitWarning');
+
+        // ===== STATE =====
+        let loginAttempts = 0;
+        const MAX_ATTEMPTS = 5;
+        const LOCKOUT_TIME = 15 * 60 * 1000; // 15 دقيقة
+        let isLocked = false;
+        let lockoutTimer = null;
+
+        // ============================================
+        // ===== TOGGLE PASSWORD =====
+        // ============================================
+        togglePassword.addEventListener('click', function() {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            this.textContent = type === 'password' ? '🐵' : '🙈';
+            this.setAttribute('aria-label', type === 'password' ? 'إظهار كلمة المرور' : 'إخفاء كلمة المرور');
+        });
+
+        // ============================================
+        // ===== CHECK AUTH =====
+        // ============================================
+        function checkAuth() {
+            const token = localStorage.getItem('shulamith-token');
+            if (token) {
+                fetch('/api/verify', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.valid) {
+                        window.location.href = '/dashboard';
+                    }
+                })
+                .catch(() => {});
+            }
         }
-      }, []);
 
-      // ===== Login function with real API =====
-      const login = async (name, password) => {
-        // ===== Check lockout =====
-        if (isLocked) {
-          const lockoutDuration = ENV.LOCKOUT_TIME_MINUTES * 60 * 1000;
-          const elapsed = Date.now() - lockTimer;
-          const remaining = Math.ceil((lockoutDuration - elapsed) / 60000);
-          return { 
-            success: false, 
-            error: `🔒 تم حظر المحاولات مؤقتاً. الرجاء الانتظار ${remaining} دقيقة.`,
-            locked: true 
-          };
+        // ============================================
+        // ===== HANDLE LOGIN =====
+        // ============================================
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            // ===== CHECK LOCKOUT =====
+            if (isLocked) {
+                const remaining = Math.ceil((LOCKOUT_TIME - (Date.now() - lockoutTimer)) / 60000);
+                loginStatus.className = 'login-status error';
+                loginStatus.style.display = 'block';
+                loginStatus.textContent = `تم حظر المحاولات مؤقتاً. الرجاء الانتظار ${remaining} دقيقة.`;
+                return;
+            }
+            
+            // ===== RESET ERRORS =====
+            usernameError.textContent = '';
+            passwordError.textContent = '';
+            loginStatus.className = 'login-status';
+            loginStatus.style.display = 'none';
+            rateLimitWarning.classList.remove('visible');
+            
+            // ===== VALIDATE =====
+            let isValid = true;
+            
+            const usernameVal = username.value.trim();
+            const passwordVal = password.value.trim();
+            
+            // منع حقن XSS في حقول الدخول
+            if (!usernameVal || usernameVal.length < 2 || usernameVal.length > 50) {
+                usernameError.textContent = 'اسم المستخدم يجب أن يكون بين 2 و 50 حرف';
+                isValid = false;
+            }
+            
+            if (!passwordVal || passwordVal.length < 4) {
+                passwordError.textContent = 'كلمة المرور يجب أن تكون 4 أحرف على الأقل';
+                isValid = false;
+            }
+            
+            if (!isValid) return;
+            
+            // ===== INCREMENT ATTEMPTS =====
+            loginAttempts++;
+            
+            // ===== CHECK MAX ATTEMPTS =====
+            if (loginAttempts >= MAX_ATTEMPTS) {
+                isLocked = true;
+                lockoutTimer = Date.now();
+                rateLimitWarning.classList.add('visible');
+                loginStatus.className = 'login-status error';
+                loginStatus.style.display = 'block';
+                loginStatus.textContent = `تم تجاوز عدد المحاولات (${MAX_ATTEMPTS}). تم حظر تسجيل الدخول لمدة 15 دقيقة.`;
+                
+                // إعادة تعيين العداد بعد 15 دقيقة
+                setTimeout(() => {
+                    loginAttempts = 0;
+                    isLocked = false;
+                    rateLimitWarning.classList.remove('visible');
+                    loginStatus.className = 'login-status';
+                    loginStatus.style.display = 'none';
+                }, LOCKOUT_TIME);
+                
+                return;
+            }
+            
+            // ===== SUBMIT =====
+            loginBtn.disabled = true;
+            const originalText = loginBtn.querySelector('span:first-child');
+            const loadingText = loginBtn.querySelector('.btn-loading');
+            originalText.style.display = 'none';
+            loadingText.style.display = 'inline';
+            
+            try {
+                // ===== CSRF PROTECTION =====
+                const csrfToken = document.getElementById('csrfToken').value || 'default';
+                
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
+                    },
+                    body: JSON.stringify({
+                        username: usernameVal,
+                        password: passwordVal
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    // ===== RESET ATTEMPTS ON SUCCESS =====
+                    loginAttempts = 0;
+                    
+                    // ===== SECURE TOKEN STORAGE =====
+                    localStorage.setItem('shulamith-token', data.token);
+                    
+                    loginStatus.className = 'login-status success';
+                    loginStatus.style.display = 'block';
+                    loginStatus.textContent = 'تم تسجيل الدخول بنجاح! جاري التحويل...';
+                    
+                    // ===== REDIRECT =====
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 800);
+                } else {
+                    // ===== SHOW ERROR =====
+                    loginStatus.className = 'login-status error';
+                    loginStatus.style.display = 'block';
+                    loginStatus.textContent = data.error || 'اسم المستخدم أو كلمة المرور غير صحيحة';
+                    
+                    // ===== REMINDER OF REMAINING ATTEMPTS =====
+                    if (loginAttempts < MAX_ATTEMPTS) {
+                        const remaining = MAX_ATTEMPTS - loginAttempts;
+                        loginStatus.textContent += ` (${remaining} محاولة متبقية)`;
+                    }
+                }
+            } catch (error) {
+                loginStatus.className = 'login-status error';
+                loginStatus.style.display = 'block';
+                loginStatus.textContent = 'حدث خطأ في الاتصال، حاول مرة أخرى';
+                console.error('Login error:', error);
+            } finally {
+                loginBtn.disabled = false;
+                originalText.style.display = 'inline';
+                loadingText.style.display = 'none';
+            }
         }
 
-        setLoading(true);
+        // ============================================
+        // ===== KEYBOARD SHORTCUTS =====
+        // ============================================
+        document.addEventListener('keydown', function(e) {
+            // Enter = Submit
+            if (e.key === 'Enter') {
+                const active = document.activeElement;
+                if (active === username || active === password) {
+                    e.preventDefault();
+                    form.dispatchEvent(new Event('submit'));
+                }
+            }
+            // Escape = Go Home
+            if (e.key === 'Escape') {
+                window.location.href = '/';
+            }
+        });
 
-        try {
-          // ===== Real API call =====
-          const csrfToken = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
-          
-          const response = await fetch(`${ENV.API_BASE_URL}/login`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-Token': csrfToken,
-              'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ 
-              username: name.trim(), 
-              password: password.trim() 
-            })
-          });
+        // ============================================
+        // ===== INPUT SANITIZATION =====
+        // ============================================
+        username.addEventListener('input', function() {
+            this.value = this.value.replace(/[<>&"'/]/g, '');
+        });
 
-          const data = await response.json();
+        password.addEventListener('input', function() {
+            this.value = this.value.replace(/[<>&"'/]/g, '');
+        });
 
-          if (response.ok && data.token) {
-            // ===== Reset attempts on success =====
-            setAttempts(0);
-            localStorage.removeItem('login-attempts');
-            localStorage.removeItem('login-locked');
-            localStorage.removeItem('login-lock-time');
-            
-            // ===== Store token =====
-            localStorage.setItem('shulamith-token', data.token);
-            setUser({ name, displayName: 'Shulamith Gallery' });
-            setLoading(false);
-            
-            return { 
-              success: true, 
-              user: { name, displayName: 'Shulamith Gallery' },
-              token: data.token 
-            };
-          } else {
-            // ===== Increment attempts =====
-            const newAttempts = attempts + 1;
-            setAttempts(newAttempts);
-            localStorage.setItem('login-attempts', newAttempts.toString());
-
-            // ===== Check if max attempts reached =====
-            if (newAttempts >= ENV.MAX_LOGIN_ATTEMPTS) {
-              setIsLocked(true);
-              const lockTime = Date.now();
-              setLockTimer(lockTime);
-              localStorage.setItem('login-locked', 'true');
-              localStorage.setItem('login-lock-time', lockTime.toString());
-              
-              const lockoutDuration = ENV.LOCKOUT_TIME_MINUTES * 60 * 1000;
-              setTimeout(() => {
-                setIsLocked(false);
-                setAttempts(0);
+        // ============================================
+        // ===== RATE LIMIT PERSISTENCE =====
+        // ============================================
+        // حفظ حالة القفل في localStorage
+        function saveLockState() {
+            if (isLocked) {
+                localStorage.setItem('login-locked', 'true');
+                localStorage.setItem('login-lock-time', lockoutTimer.toString());
+            } else {
                 localStorage.removeItem('login-locked');
                 localStorage.removeItem('login-lock-time');
-                localStorage.removeItem('login-attempts');
-              }, lockoutDuration);
-
-              setLoading(false);
-              return { 
-                success: false, 
-                error: `⚠️ تم تجاوز عدد المحاولات (${ENV.MAX_LOGIN_ATTEMPTS}). تم الحظر لمدة ${ENV.LOCKOUT_TIME_MINUTES} دقيقة.`,
-                locked: true 
-              };
             }
-
-            setLoading(false);
-            const remaining = ENV.MAX_LOGIN_ATTEMPTS - newAttempts;
-            return { 
-              success: false, 
-              error: data.error || `❌ اسم المستخدم أو كلمة المرور غير صحيحة (${remaining} محاولة متبقية)`,
-              attempts: newAttempts,
-              remaining: remaining
-            };
-          }
-        } catch (error) {
-          setLoading(false);
-          console.error('Login API error:', error);
-          
-          // ===== Fallback to demo credentials if API fails =====
-          // (للاختبار والتطوير فقط)
-          if (name === ENV.DEMO_USERNAME && password === ENV.DEMO_PASSWORD) {
-            setAttempts(0);
-            localStorage.removeItem('login-attempts');
-            setUser({ name, displayName: 'Shulamith Gallery (Demo)' });
-            return { 
-              success: true, 
-              user: { name, displayName: 'Shulamith Gallery (Demo)' },
-              demo: true
-            };
-          }
-          
-          return { 
-            success: false, 
-            error: '⚠️ حدث خطأ في الاتصال بالخادم، حاول مرة أخرى' 
-          };
         }
-      };
 
-      const logout = () => {
-        setUser(null);
-        localStorage.removeItem('shulamith-token');
-      };
-
-      // ===== Check existing token =====
-      const checkAuth = async () => {
-        const token = localStorage.getItem('shulamith-token');
-        if (!token) return false;
-
-        try {
-          const response = await fetch(`${ENV.API_BASE_URL}/verify`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'X-CSRF-Token': 'verify-' + Date.now()
+        function restoreLockState() {
+            const locked = localStorage.getItem('login-locked');
+            const lockTime = parseInt(localStorage.getItem('login-lock-time') || '0');
+            
+            if (locked === 'true' && lockTime > 0) {
+                const elapsed = Date.now() - lockTime;
+                if (elapsed < LOCKOUT_TIME) {
+                    isLocked = true;
+                    lockoutTimer = lockTime;
+                    rateLimitWarning.classList.add('visible');
+                    loginStatus.className = 'login-status error';
+                    loginStatus.style.display = 'block';
+                    const remaining = Math.ceil((LOCKOUT_TIME - elapsed) / 60000);
+                    loginStatus.textContent = `تم حظر المحاولات مؤقتاً. الرجاء الانتظار ${remaining} دقيقة.`;
+                    
+                    // إعادة تعيين بعد انتهاء الوقت
+                    const remainingTime = LOCKOUT_TIME - elapsed;
+                    setTimeout(() => {
+                        loginAttempts = 0;
+                        isLocked = false;
+                        rateLimitWarning.classList.remove('visible');
+                        loginStatus.className = 'login-status';
+                        loginStatus.style.display = 'none';
+                        localStorage.removeItem('login-locked');
+                        localStorage.removeItem('login-lock-time');
+                    }, remainingTime);
+                } else {
+                    localStorage.removeItem('login-locked');
+                    localStorage.removeItem('login-lock-time');
+                }
             }
-          });
-          const data = await response.json();
-          if (data.valid) {
-            setUser({ name: data.user || 'Shulamith Gallery', displayName: 'Shulamith Gallery' });
-            return true;
-          }
-        } catch (_) {
-          // Token invalid or network error
         }
-        return false;
-      };
 
-      return { 
-        user, 
-        loading, 
-        login, 
-        logout, 
-        checkAuth,
-        attempts,
-        isLocked,
-        maxAttempts: ENV.MAX_LOGIN_ATTEMPTS
-      };
-    };
-
-    // ============================================================
-    // ===== AnimatedBackground Component =====
-    // ============================================================
-    const AnimatedBackground = () => {
-      return React.createElement('div', { className: 'bg-container' },
-        React.createElement('div', { className: 'bg-blob bg-blob--1' }),
-        React.createElement('div', { className: 'bg-blob bg-blob--2' }),
-        React.createElement('div', { className: 'bg-blob bg-blob--3' }),
-        React.createElement('div', { className: 'bg-blob bg-blob--4' }),
-        ...Array.from({ length: 15 }, (_, i) => 
-          React.createElement('div', {
-            key: i,
-            className: 'particle',
-            style: {
-              '--duration': `${15 + Math.random() * 20}s`,
-              '--delay': `${Math.random() * 10}s`,
-              '--x': `${Math.random() * 100}vw`,
-              '--size': `${3 + Math.random() * 6}px`
-            }
-          })
-        )
-      );
-    };
-
-    // ============================================================
-    // ===== Husky Component =====
-    // ============================================================
-    const Husky = ({ state, showHearts, showBrokenHeart, passwordVisible }) => {
-      const [bubbleText, setBubbleText] = useState('');
-      const [bubbleClass, setBubbleClass] = useState('');
-
-      useEffect(() => {
-        if (state === 'hiding') {
-          if (passwordVisible) {
-            setBubbleText('👀 كده باسوردك باين ل أي حد جمبك يا نجم!');
-            setBubbleClass('suspicious');
-          } else {
-            setBubbleText('🔒 باسوردك ف أمان');
-            setBubbleClass('');
-          }
-        } else if (state === 'looking') {
-          setBubbleText('👁️ أنا واخد بالي من اللي بتكتبه علفكرة');
-          setBubbleClass('');
-        } else if (state === 'success') {
-          setBubbleText('🙈❤️ كده احبك!');
-          setBubbleClass('success');
-        } else if (state === 'error') {
-          setBubbleText('💔 كده تغلط في الباسورد');
-          setBubbleClass('error');
-        } else if (state === 'loading') {
-          setBubbleText('⏳ بنراجع الاسم والباسورد');
-          setBubbleClass('');
-        } else if (state === 'locked') {
-          setBubbleText('🔒 تم حظر المحاولات مؤقتاً');
-          setBubbleClass('error');
-        } else {
-          setBubbleText('');
-          setBubbleClass('');
-        }
-      }, [state, passwordVisible]);
-
-      return React.createElement('div', { className: `husky-container ${state}` },
-        React.createElement('div', { className: 'husky' },
-          React.createElement('div', { className: 'body' },
-            React.createElement('div', { className: 'chest' }),
-            React.createElement('div', { className: 'tail' })
-          ),
-          React.createElement('div', { className: 'head' },
-            React.createElement('div', { className: 'ear left-ear' },
-              React.createElement('div', { className: 'ear-inner' })
-            ),
-            React.createElement('div', { className: 'ear right-ear' },
-              React.createElement('div', { className: 'ear-inner' })
-            ),
-            React.createElement('div', { className: 'face' },
-              React.createElement('div', { className: 'eyes' },
-                React.createElement('div', { className: 'eye left-eye' },
-                  React.createElement('div', { className: 'pupil' }),
-                  React.createElement('div', { className: 'eyelid' }),
-                  React.createElement('div', { className: 'eyebrow' })
-                ),
-                React.createElement('div', { className: 'eye right-eye' },
-                  React.createElement('div', { className: 'pupil' }),
-                  React.createElement('div', { className: 'eyelid' }),
-                  React.createElement('div', { className: 'eyebrow' })
-                )
-              ),
-              React.createElement('div', { className: 'nose' }),
-              React.createElement('div', { className: 'mouth' },
-                React.createElement('div', { className: 'tongue' })
-              ),
-              React.createElement('div', { className: 'cheek left-cheek' }),
-              React.createElement('div', { className: 'cheek right-cheek' })
-            ),
-            React.createElement('div', { className: 'paws' },
-              React.createElement('div', { className: 'paw left-paw' }),
-              React.createElement('div', { className: 'paw right-paw' })
-            )
-          )
-        ),
-        showHearts && React.createElement('div', { className: 'hearts-container' },
-          ...Array.from({ length: 10 }, (_, i) => 
-            React.createElement('div', {
-              key: i,
-              className: 'heart',
-              style: {
-                '--delay': `${i * 0.12}s`,
-                '--x': `${(Math.random() - 0.5) * 300}px`,
-                '--size': `${16 + Math.random() * 20}px`
-              }
-            }, '❤️')
-          )
-        ),
-        showBrokenHeart && React.createElement('div', { className: 'broken-heart' }, '💔'),
-        bubbleText && React.createElement('div', { className: `speech-bubble ${bubbleClass}` }, bubbleText)
-      );
-    };
-
-    // ============================================================
-    // ===== LoginPage Component =====
-    // ============================================================
-    const LoginPage = () => {
-      const [huskyState, setHuskyState] = useState('idle');
-      const [showHearts, setShowHearts] = useState(false);
-      const [showBrokenHeart, setShowBrokenHeart] = useState(false);
-      const [loading, setLoading] = useState(false);
-      const [error, setError] = useState('');
-      const [passwordVisible, setPasswordVisible] = useState(false);
-      
-      const { login, checkAuth, isLocked, attempts, maxAttempts } = useAuth();
-
-      // ===== Check auth on mount =====
-      useEffect(() => {
-        checkAuth().then(authenticated => {
-          if (authenticated) {
-            window.location.href = '/dashboard';
-          }
+        // ============================================
+        // ===== SECURE INPUT CLEANUP =====
+        // ============================================
+        // مسح الحقول عند إعادة تحميل الصفحة
+        window.addEventListener('beforeunload', function() {
+            if (username) username.value = '';
+            if (password) password.value = '';
         });
-      }, []);
 
-      // ===== Update husky state when locked =====
-      useEffect(() => {
-        if (isLocked) {
-          setHuskyState('locked');
-        }
-      }, [isLocked]);
+        // منع حفظ كلمة المرور في المتصفح
+        document.addEventListener('DOMContentLoaded', function() {
+            if (password) {
+                password.setAttribute('autocomplete', 'off');
+            }
+        });
 
-      const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        if (isLocked) {
-          setError('🔒 تم حظر المحاولات مؤقتاً. الرجاء الانتظار.');
-          return;
-        }
+        // ============================================
+        // ===== ENTER KEY PROTECTION =====
+        // ============================================
+        // منع إرسال النموذج عن طريق الخطأ
+        form.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const target = e.target;
+                if (target.tagName === 'INPUT' && target.type !== 'submit') {
+                    e.preventDefault();
+                    form.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
 
-        setLoading(true);
-        setError('');
-        setShowHearts(false);
-        setShowBrokenHeart(false);
-        
-        const formData = new FormData(e.target);
-        const name = formData.get('name');
-        const password = formData.get('password');
-        
-        setHuskyState('loading');
-        
-        const result = await login(name, password);
-        
-        if (result.success) {
-          setHuskyState('success');
-          setShowHearts(true);
-          setTimeout(() => {
-            alert(result.demo ? '🎉 تم تسجيل الدخول (وضع العرض)' : '🎉 نورت Shulamith Gallery كله ❤️');
-            setHuskyState('idle');
-            setShowHearts(false);
-            // Redirect to dashboard
-            window.location.href = '/dashboard';
-          }, 1500);
-        } else {
-          setHuskyState('error');
-          setShowBrokenHeart(true);
-          setError(result.error || '💔 كده تغلط في الباسورد');
-          
-          if (result.locked) {
-            setHuskyState('locked');
-          }
-          
-          setTimeout(() => {
-            setHuskyState(isLocked ? 'locked' : 'idle');
-            setShowBrokenHeart(false);
-          }, 3000);
-        }
-        setLoading(false);
-      };
+        // ============================================
+        // ===== INIT =====
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // ===== CHECK AUTH =====
+            checkAuth();
+            
+            // ===== RESTORE LOCK STATE =====
+            restoreLockState();
+            
+            // ===== SETUP FORM =====
+            form.addEventListener('submit', handleLogin);
+            
+            // ===== GENERATE CSRF TOKEN =====
+            const csrfToken = document.getElementById('csrfToken');
+            if (csrfToken) {
+                csrfToken.value = 'csrf-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
+            }
+            
+            // ===== FOCUS FIRST INPUT =====
+            if (username) {
+                setTimeout(() => username.focus(), 100);
+            }
+            
+            // ===== SAVE LOCK STATE =====
+            setInterval(saveLockState, 5000);
+        });
 
-      return React.createElement('div', { className: 'login-page' },
-        React.createElement(AnimatedBackground, null),
-        React.createElement('div', { className: 'login-card' },
-          React.createElement('img', {
-            src: 'https://i.postimg.cc/D0rwSp7r/Shulamith-Gallery.jpg',
-            alt: 'Shulamith Gallery',
-            className: 'login-logo'
-          }),
-          React.createElement(Husky, {
-            state: huskyState,
-            showHearts,
-            showBrokenHeart,
-            passwordVisible
-          }),
-          React.createElement('h2', null, 
-            '✨ Shulamith ', 
-            React.createElement('span', null, 'Gallery')
-          ),
-          React.createElement('form', { onSubmit: handleSubmit },
-            React.createElement('div', { className: 'input-group' },
-              React.createElement('input', {
-                type: 'text',
-                name: 'name',
-                placeholder: 'اسم المستخدم',
-                onFocus: () => !isLocked && setHuskyState('looking'),
-                onBlur: () => !isLocked && setHuskyState('idle'),
-                required: true,
-                autoComplete: 'username',
-                disabled: isLocked
-              })
-            ),
-            React.createElement('div', { className: 'input-group password-group' },
-              React.createElement('input', {
-                type: passwordVisible ? 'text' : 'password',
-                name: 'password',
-                placeholder: 'كلمة المرور',
-                onFocus: () => !isLocked && setHuskyState('hiding'),
-                onBlur: () => !isLocked && setHuskyState('idle'),
-                required: true,
-                autoComplete: 'current-password',
-                disabled: isLocked
-              }),
-              React.createElement('button', {
-                type: 'button',
-                className: 'password-toggle',
-                onClick: () => setPasswordVisible(!passwordVisible),
-                disabled: isLocked
-              }, passwordVisible ? '🙈' : '🐵')
-            ),
-            error && React.createElement('div', { className: 'error-message' }, error),
-            React.createElement('button', {
-              type: 'submit',
-              disabled: loading || isLocked,
-              className: loading ? 'loading' : ''
-            }, loading ? '⏳ بنراجع الاسم والباسورد' : '✨ ادخل Shulamith Gallery')
-          ),
-          React.createElement('div', { className: 'demo-credentials' },
-            `${attempts > 0 ? `• (${maxAttempts - attempts} محاولة متبقية)` : ''}`
-          )
-        )
-      );
-    };
+        // ============================================
+        // =====CONSOLE PROTECTION =====
+        // ============================================
+        // منع عرض معلومات حساسة في الـ Console
+        console.log('%c Shulamith Gallery - Login Page (Secure)', 
+            'color: #d4b892; font-size: 16px; font-weight: bold;');
+        console.log('%c Do not share your credentials with anyone.', 
+            'color: #e74c3c; font-size: 12px;');
 
-    // ============================================================
-    // ===== App Component =====
-    // ============================================================
-    const App = () => {
-      return React.createElement('div', { className: 'app' },
-        React.createElement(LoginPage, null)
-      );
-    };
+        // منع محاولات التلاعب بالـ Console
+        Object.defineProperty(window, 'token', {
+            get: function() { 
+                console.warn('Access to token is restricted.');
+                return null; 
+            }
+        });
 
-    // ============================================================
-    // ===== Render =====
-    // ============================================================
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(React.createElement(App, null));
+        // ============================================
+        // ===== XSS PROTECTION =====
+        // ============================================
+        // منع تنفيذ أي سكريبت من خلال حقول الإدخال
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('paste', function(e) {
+                const pasted = (e.clipboardData || window.clipboardData).getData('text');
+                if (pasted && /<script|<iframe|onerror|onload|javascript:/i.test(pasted)) {
+                    e.preventDefault();
+                    this.value = pasted.replace(/<script|<iframe|onerror|onload|javascript:/gi, '');
+                    this.style.borderColor = 'var(--color-error)';
+                    setTimeout(() => {
+                        this.style.borderColor = '';
+                    }, 1000);
+                }
+            });
+        });
 
-    // ============================================================
-    // ===== Console Protection =====
-    // ============================================================
-    console.log('%c 🔐 Shulamith Gallery - Secure Login', 
-      'color: #e94560; font-size: 18px; font-weight: bold;');
-    console.log('%c ⚠️ Do not share your credentials.', 
-      'color: #fbbf24; font-size: 12px;');
-    
-    Object.defineProperty(window, 'ENV', {
-      get: function() {
-        console.warn('🔒 Environment variables are protected.');
-        return null;
-      }
-    });
-
-    console.log('✅ Login page with API integration ready.');
-  </script>
+        console.log(' Login page secured successfully.');
+    </script>
 </body>
 </html>

@@ -20,6 +20,10 @@
       "dest": "/public/index.html"
     },
     {
+      "src": "/login-p",
+      "dest": "/public/login-p.html"
+    },
+    {
       "src": "/login",
       "dest": "/public/login.html"
     },
